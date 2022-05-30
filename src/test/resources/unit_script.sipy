@@ -4,8 +4,18 @@ def calculate_time(km/h velocity_par, mm distance_par):
     return distance_par / velocity_par
 
 
-hm/h<double> velocity = 3 dm/h
+km/h<double> velocity = 3 dm/h
 
+velocity = 3 dm/h
+# type(velocity) = <class 'dm/h'>
+
+velocity = km/h(3 dm/h)
+# type(velocity) = <class 'km/h'>
+
+m/(s*s)
+4 m/ns^2
+
+int(num_str)
 print(velocity)
 
 dm distance = 200000 µm
