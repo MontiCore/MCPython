@@ -22,4 +22,4 @@ time_sec = time_min * 60
 
 print(time_sec)
 
-print(calculate_time(velocity_kmh, distance_dm))
+print(calculate_time(velocity_kmh, (distance_dm / 100)))

@@ -10,10 +10,13 @@ km/h velocity = 3 dm/h
 velocity = 3 dm/h
 # type(velocity) = <class 'dm/h'>
 
+# casting/parsing
 velocity = km/h(3 dm/h)
+velocity = (3 dm/h)km/h
 # type(velocity) = <class 'km/h'>
 
-m/(s*s)
+# power support?
+m/(ns*ns)
 4 m/ns^2
 
 print(velocity)
