@@ -2,8 +2,8 @@
 
 package de.monticore.sipythonunits;
 
-import de.monticore.sipythonunits._ast.ASTSIPythonUnit;
-import de.monticore.sipythonunits._parser.SIPythonUnitsParser;
+import de.monticore.sipython._parser.SIPythonParser;
+import de.monticore.siunits._ast.ASTSIUnit;
 import de.se_rwth.commons.logging.Log;
 import de.se_rwth.commons.logging.LogStub;
 import org.junit.BeforeClass;
@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 
 public class SIPythonUnitTest {
 
-    SIPythonUnitsParser parser = new SIPythonUnitsParser();
+    SIPythonParser parser = new SIPythonParser();
 
     @BeforeClass
     public static void init() {
@@ -26,21 +26,21 @@ public class SIPythonUnitTest {
     }
 
     private void checkSIPythonUnit(String s, String unitAsString, String baseUnitAsString) throws IOException {
-        ASTSIPythonUnit lit = parseSIPythonUnit(s);
+        ASTSIUnit lit = parseSIPythonUnit(s);
         //String printFromLit = UnitPrettyPrinter.printUnit(lit);
         //String printStandardFromLit = UnitPrettyPrinter.printBaseUnit(lit);
         //assertEquals(unitAsString, printFromLit);
         //assertEquals(baseUnitAsString, printStandardFromLit);
     }
 
-    private ASTSIPythonUnit parseSIPythonUnit(String input) throws IOException {
-        Optional<ASTSIPythonUnit> res = parser.parseSIPythonUnit(new StringReader(input));
+    private ASTSIUnit parseSIPythonUnit(String input) throws IOException {
+        Optional<ASTSIUnit> res = parser.parseSIUnit(new StringReader(input));
         assertTrue(res.isPresent());
         return res.get();
     }
 
     private void checkInvalid(String input) throws IOException {
-        Optional<ASTSIPythonUnit> res = parser.parseSIPythonUnit(new StringReader(input));
+        Optional<ASTSIUnit> res = parser.parseSIUnit(new StringReader(input));
         assertFalse(res.isPresent());
     }
 

@@ -55,6 +55,9 @@ buildDir = file("$projectDir/target")
 configurations { grammar }
 
 dependencies {
+    implementation "de.monticore:siunits:$mc_version"
+    grammar "de.monticore:siunits:$mc_version:grammars"
+
     implementation "de.se_rwth.commons:se-commons-logging:$commons_version"
     implementation "de.se_rwth.commons:se-commons-utilities:$commons_version"
     implementation "com.google.guava:guava:25.1-jre"
@@ -93,33 +96,8 @@ repositories {
 }
 
 def grammarDependencies = ext {
-    SIUnits = []
-    SIUnitLiterals = ["SIUnits"]
-    SIUnitTypes4Math = ["SIUnitLiterals"]
-    SIUnitTypes4Computing = ["SIUnitTypes4Math"]
-    CombineExpressionsWithLiterals = []
-    CombineExpressionsWithSIUnitLiterals = ["CombineExpressionsWithLiterals"]
-    TestSIJava = []
-    TestSIJavaWithCustomTypes = ["CustomSIUnitTypes4Computing"]
-    CustomSIUnitTypes4Computing  = []
-    TestSIUnitLiterals = []
-    TestSIUnitTypes  = []
-    SIPythonUnits = []
+    SIPython = []
 }
-
-/*
-def grammarPhase = ext {
-	SIUnits = "main"
-    SIUnitLiterals = "main"
-	SIUnitTypes4Math = "main"
-	SIUnitTypes4Computing = "main"
-	CombineExpressionsWithSIUnitLiterals = "test"
-	TestSIJava = "test"
-	TestSIJavaWithCustomTypes = "test"
-	CustomSIUnitTypes4Computing  = "test"
-	TestSIUnitLiterals = "test"
-	TestSIUnitTypes = "test"
-}*/
 
 createGrammarTasksForDir(grammarDir, "main")
 createGrammarTasksForDir(testGrammarDir, "test")
