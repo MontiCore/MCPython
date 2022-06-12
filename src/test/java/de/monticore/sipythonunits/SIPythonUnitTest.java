@@ -48,7 +48,7 @@ public class SIPythonUnitTest {
     public void simpleTest() {
         try {
             parseSIPythonUnit("kmh");
-            checkInvalid("khA sdf");
+            checkInvalid("khA sadf");
         } catch (IOException e) {
             fail(e.getMessage());
         }
