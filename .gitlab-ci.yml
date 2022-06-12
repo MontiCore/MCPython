@@ -16,9 +16,7 @@ before_script:
 stages:
   - build
   - test
-  - deploy
   - check
-  - mirror
 
 build:
   stage: build
