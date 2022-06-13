@@ -1,0 +1,60 @@
+/* (c) https://github.com/MontiCore/monticore */
+package de.monticore;
+
+grammar Python extends de.monticore.expressions.CommonExpressions,
+                        de.monticore.expressions.AssignmentExpressions,
+                        de.monticore.literals.MCCommonLiterals,
+                        de.monticore.symbols.BasicSymbols,
+                        de.monticore.statements.MCStatementsBasis {
+
+  PythonScript = MCBlockStatement* ;
+
+  // variable declaration
+  LocalVariableDeclarationStatement implements MCBlockStatement = LocalVariableDeclaration NEWLINE ;
+  LocalVariableDeclaration = VariableDeclarator ;
+
+  VariableDeclarator = Declarator ("=" VariableInit)? ;
+
+  interface Declarator = Name ;
+
+  DeclaratorId implements Declarator = Name ;
+
+  interface VariableInit ;
+
+  SimpleInit implements VariableInit = Expression ;
+  ArrayInit implements VariableInit = "{" (VariableInit || ",")* "}" ;
+
+  // if-else
+  IfStatement implements MCStatement = "if" condition:Expression ":"
+                                        thenStatement:MCStatement
+                                        ("else" ":" elseStatement:MCStatement)? ;
+
+  ExpressionStatement implements MCStatement = Expression ;
+
+  // for-loop
+  scope (non_exporting ordered) ForStatement implements MCStatement = "for" "(" ForControl ")" MCStatement ;
+
+  interface ForControl ;
+
+  CommonForControl implements ForControl = ForInit? ";" condition:Expression? ";" (Expression || ",")* ;
+  ForInit = LocalVariableDeclaration ;
+
+  // TODO enhanced for loops
+
+  // while-loop
+  WhileStatement implements MCStatement = "while" "(" condition:Expression ")" MCStatement ;
+  DoWhileStatement implements MCStatement = "do" MCStatement "while" "(" condition:Expression ")" ;
+
+  // TODO switch
+
+
+
+  // function
+
+  FunctionDeclaration = "def" Name@Function "(" FunctionDeclarationArguments ")" ":" ;
+
+  interface FunctionDeclarationArguments ;
+
+  SimpleFunctionDeclarationArguments implements FunctionDeclarationArguments = (Expression  || ",")* ;
+
+}
