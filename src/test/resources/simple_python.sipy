@@ -1,7 +1,29 @@
 x = 1
+x = x + 1
+x += 1
+x++
+y = [1, 2, 3]
+
 print("1")
 
 if x == 1:
     print("one")
 else:
     print("not one")
+
+calcVelocity(1, 1)
+
+def calcVelocity(distance, time):
+    print("calculating...")
+    return distance / time
+
+for x in [0,1,2]:
+    print(x)
+
+for x in range(3):
+    print(x)
+
+while 1:
+    z = 4
+
+# test comment

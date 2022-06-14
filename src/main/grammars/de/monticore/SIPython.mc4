@@ -1,8 +1,9 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore;
 
-grammar SIPython extends de.monticore.SIUnitTypes4Computing, de.monticore.Python {
+grammar SIPython extends de.monticore.SIUnitLiterals, de.monticore.Python {
 
+  SIInit implements VariableInit = SIUnitLiteral;
 
-
+  SIUnitParse implements Expression = SIUnit "(" Expression ")" EOL;
 }

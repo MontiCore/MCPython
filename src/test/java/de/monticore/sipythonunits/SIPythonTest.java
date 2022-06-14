@@ -36,4 +36,10 @@ public class SIPythonTest {
 		String model = "simple_python.sipy";
 		parseModel(model);
 	}
+
+	@Test
+	public void parseSimpleSIPython() {
+		String model = "unit_script.sipy";
+		parseModel(model);
+	}
 }

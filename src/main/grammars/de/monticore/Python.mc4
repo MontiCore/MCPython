@@ -4,16 +4,27 @@ package de.monticore;
 grammar Python extends de.monticore.expressions.CommonExpressions,
                         de.monticore.expressions.AssignmentExpressions,
                         de.monticore.literals.MCCommonLiterals,
-                        de.monticore.symbols.BasicSymbols,
-                        de.monticore.statements.MCStatementsBasis {
+                        de.monticore.symbols.BasicSymbols {
 
-  PythonScript = MCBlockStatement* ;
+  token Indent = "    ";
+
+  PythonScript = (Statement)* ;
+
+  EOL = ("\n" | "\r")+ ;
+
+  EmptyStatement implements Statement = EOL ;
+
+  interface Statement ;
+
+  StatementBlock implements Statement = (Indent Statement)+ ;
+
+  token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
   // variable declaration
-  LocalVariableDeclarationStatement implements MCBlockStatement = LocalVariableDeclaration NEWLINE ;
+  LocalVariableDeclarationStatement implements Statement = LocalVariableDeclaration EOL;
   LocalVariableDeclaration = VariableDeclarator ;
 
-  VariableDeclarator = Declarator ("=" VariableInit)? ;
+  VariableDeclarator = Declarator "=" VariableInit ;
 
   interface Declarator = Name ;
 
@@ -22,39 +33,41 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   interface VariableInit ;
 
   SimpleInit implements VariableInit = Expression ;
-  ArrayInit implements VariableInit = "{" (VariableInit || ",")* "}" ;
+  ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
 
   // if-else
-  IfStatement implements MCStatement = "if" condition:Expression ":"
-                                        thenStatement:MCStatement
-                                        ("else" ":" elseStatement:MCStatement)? ;
-
-  ExpressionStatement implements MCStatement = Expression ;
+  IfStatement implements Statement = "if" condition:Expression ":" EOL thenStatement:StatementBlock ("else" ":" EOL elseStatement:StatementBlock)? ;
 
   // for-loop
-  scope (non_exporting ordered) ForStatement implements MCStatement = "for" "(" ForControl ")" MCStatement ;
+  scope ForStatement implements Statement = "for" ForControl ":" EOL StatementBlock ;
 
   interface ForControl ;
 
-  CommonForControl implements ForControl = ForInit? ";" condition:Expression? ";" (Expression || ",")* ;
-  ForInit = LocalVariableDeclaration ;
+  CommonForControl implements ForControl = forVariable:Name "in" Expression ;
+  ArrayForControl implements ForControl = forVariable:Name "in" ArrayInit ;
 
-  // TODO enhanced for loops
 
   // while-loop
-  WhileStatement implements MCStatement = "while" "(" condition:Expression ")" MCStatement ;
-  DoWhileStatement implements MCStatement = "do" MCStatement "while" "(" condition:Expression ")" ;
-
-  // TODO switch
+  WhileStatement implements Statement = "while" condition:Expression ":" EOL StatementBlock;
 
 
+  // function declaration
 
-  // function
-
-  FunctionDeclaration = "def" Name@Function "(" FunctionDeclarationArguments ")" ":" ;
+  FunctionDeclaration implements Statement = "def" Name@Function "(" FunctionDeclarationArguments ")" ":" EOL
+                                                        StatementBlock ReturnStatement?;
 
   interface FunctionDeclarationArguments ;
 
   SimpleFunctionDeclarationArguments implements FunctionDeclarationArguments = (Expression  || ",")* ;
 
+  ReturnStatement implements Statement = "return" Expression? EOL ;
+
+  // function call
+  FunctionCall implements Statement = Name@Function "(" FunctionArguments ")" ;
+  FunctionArguments = (Expression || ",")* ;
+
+
+  ExpressionStatement implements Statement = Expression EOL;
+
+  // TODO: statement at file end,
 }
