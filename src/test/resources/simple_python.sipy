@@ -20,10 +20,12 @@ def calcVelocity(distance, time):
 for x in [0,1,2]:
     print(x)
 
-for x in range(3):
+for x in range(3): {
     print(x)
+    for y in range(4):
+        print(y)
+    print(z)
+}
 
 while 1:
     z = 4
-
-# test comment

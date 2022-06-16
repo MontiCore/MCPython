@@ -6,17 +6,22 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
                         de.monticore.literals.MCCommonLiterals,
                         de.monticore.symbols.BasicSymbols {
 
-  token Indent = "    ";
+  // token Indent = "    ";
 
-  PythonScript = (Statement)* ;
+  start PythonScript ;
 
-  EOL = ("\n" | "\r")+ ;
+  PythonScript = (Statement)*;
+
+  EOL = ("\n" | "\r" | "<EOF>")+ ;
 
   EmptyStatement implements Statement = EOL ;
 
   interface Statement ;
 
-  StatementBlock implements Statement = (Indent Statement)+ ;
+  interface StatementBlock;
+
+  SingleLineStatementBlock implements StatementBlock = Statement ;
+  MultiLineStatementBlock implements StatementBlock = EOL? "{" EOL? Statement* EOL? "}" EOL?;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
@@ -36,10 +41,10 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
 
   // if-else
-  IfStatement implements Statement = "if" condition:Expression ":" EOL thenStatement:StatementBlock ("else" ":" EOL elseStatement:StatementBlock)? ;
+  IfStatement implements Statement = "if" condition:Expression ":" EOL? thenStatement:StatementBlock ("else" ":" EOL? elseStatement:StatementBlock)? ;
 
   // for-loop
-  scope ForStatement implements Statement = "for" ForControl ":" EOL StatementBlock ;
+  scope ForStatement implements Statement = "for" ForControl ":" EOL? StatementBlock ;
 
   interface ForControl ;
 
@@ -48,13 +53,13 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
 
   // while-loop
-  WhileStatement implements Statement = "while" condition:Expression ":" EOL StatementBlock;
+  WhileStatement implements Statement = "while" condition:Expression ":" EOL? StatementBlock;
 
 
   // function declaration
 
   FunctionDeclaration implements Statement = "def" Name@Function "(" FunctionDeclarationArguments ")" ":" EOL
-                                                        StatementBlock ReturnStatement?;
+                                                        StatementBlock? ReturnStatement?;
 
   interface FunctionDeclarationArguments ;
 
@@ -63,7 +68,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
   // function call
-  FunctionCall implements Statement = Name@Function "(" FunctionArguments ")" ;
+  FunctionCall implements Statement = Name@Function "(" FunctionArguments ")" EOL?;
   FunctionArguments = (Expression || ",")* ;
 
 
