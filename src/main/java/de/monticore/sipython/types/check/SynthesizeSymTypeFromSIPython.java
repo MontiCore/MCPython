@@ -1,7 +1,7 @@
 package de.monticore.sipython.types.check;
 
 import de.monticore.sipython.SIPythonMill;
-import de.monticore.sipython._ast.ASTSIUnitParse;
+import de.monticore.sipython._ast.ASTSIUnitConversion;
 import de.monticore.sipython._visitor.SIPythonHandler;
 import de.monticore.sipython._visitor.SIPythonTraverser;
 import de.monticore.siunits.utility.UnitPrettyPrinter;
@@ -29,7 +29,7 @@ public class SynthesizeSymTypeFromSIPython extends AbstractSynthesize implements
 	}
 
 	@Override
-	public void traverse(ASTSIUnitParse node) {
+	public void traverse(ASTSIUnitConversion node) {
 		SymTypeExpression numericType = SymTypeExpressionFactory.createWildcard();
 		SymTypeExpression siunitType;
 
