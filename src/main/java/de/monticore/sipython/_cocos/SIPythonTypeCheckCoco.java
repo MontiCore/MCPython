@@ -1,9 +1,8 @@
 package de.monticore.sipython._cocos;
 
 import de.monticore.expressions.expressionsbasis._ast.ASTExpression;
-import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.sipython._ast.ASTSIPythonNode;
-import de.monticore.sipython._ast.ASTSIUnitConversion;
+import de.monticore.sipython._ast.ASTSIPythonScript;
+import de.monticore.sipython._ast.ASTSIUnitParse;
 import de.monticore.sipython._visitor.SIPythonVisitor2;
 import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
 import de.monticore.sipython.types.check.SynthesizeSymTypeFromSIPython;
@@ -13,7 +12,7 @@ import de.monticore.types.check.*;
 import de.monticore.types.check.cocos.TypeCheckCoCo;
 import de.se_rwth.commons.logging.Log;
 
-public class SIPythonTypeCheckCoco extends TypeCheckCoCo implements SIPythonASTSIPythonNodeCoCo, SIPythonVisitor2 {
+public class SIPythonTypeCheckCoco extends TypeCheckCoCo implements SIPythonASTSIPythonScriptCoCo, SIPythonVisitor2 {
 
 	public static SIPythonTypeCheckCoco getCoCo() {
 		TypeCalculator typeCalculator = new TypeCalculator(new SynthesizeSymTypeFromSIPython(), new DeriveSymTypeOfSIPython());
@@ -31,24 +30,26 @@ public class SIPythonTypeCheckCoco extends TypeCheckCoCo implements SIPythonASTS
 		super(typeCheck);
 	}
 
+	@Override
+	public void check(ASTSIPythonScript node) {
+
+	}
 
 	@Override
-	public void visit(ASTSIUnitConversion node) {
+	public void visit(ASTSIUnitParse node) {
 		checkExpression(node.getExpression());
 		SymTypeExpression typeOfExpression = this.tc.typeOf(node.getExpression());
 
-		SymTypeExpression siunitType =
-				SIUnitSymTypeExpressionFactory.createSIUnit(UnitPrettyPrinter.printUnit(node.getSIUnit()), node.getEnclosingScope());
+		SymTypeExpression siunitType = SIUnitSymTypeExpressionFactory.createSIUnit(
+				UnitPrettyPrinter.printUnit(node.getSIUnit()), node.getEnclosingScope());
 
-		if (!TypeCheck.compatible(siunitType, ((SymTypeOfNumericWithSIUnit) typeOfExpression).getSIUnit())) {
-			Log.error(node.get_SourcePositionStart() + " Incompatible SI type conversion from '" + ((SymTypeOfNumericWithSIUnit) typeOfExpression).getSIUnit().print() + "' to '" + siunitType.print() + "'");
+		if (typeOfExpression instanceof SymTypeOfSIUnit) {
+			if (!siunitType.equals(typeOfExpression)) {
+				Log.error("type parsing");
+			}
 		}
 
 
 	}
 
-	@Override
-	public void check(ASTSIPythonNode node) {
-
-	}
 }

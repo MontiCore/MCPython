@@ -2,6 +2,7 @@ package de.monticore.sipythonunits;
 
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
+import de.monticore.sipython._ast.ASTSIPythonScript;
 import de.monticore.sipython._cocos.SIPythonCoCoChecker;
 import de.monticore.sipython._cocos.SIPythonTypeCheckCoco;
 import de.monticore.sipython._parser.SIPythonParser;
@@ -22,7 +23,7 @@ public class SIPythonCocoTest {
 	@Before
 	public void init() {
 		Log.init();
-		Log.enableFailQuick(false);
+		Log.enableFailQuick(true);
 		SIPythonMill.reset();
 		SIPythonMill.init();
 		SIUnitsMill.initializeSIUnits();
@@ -34,11 +35,11 @@ public class SIPythonCocoTest {
 		);
 	}
 
-	private ASTPythonScript parseModel(String input) {
+	private ASTSIPythonScript parseModel(String input) {
 		SIPythonParser parser = new SIPythonParser();
-		Optional<ASTPythonScript> res = Optional.empty();
+		Optional<ASTSIPythonScript> res = Optional.empty();
 		try {
-			res = parser.parsePythonScript("src/test/resources/" + input);
+			res = parser.parseSIPythonScript("src/test/resources/" + input);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -48,7 +49,7 @@ public class SIPythonCocoTest {
 
 	private void typeCheckCoCo(String input, boolean expectedError) {
 		Log.getFindings().clear();
-		ASTPythonScript model = parseModel(input);
+		ASTSIPythonScript model = parseModel(input);
 		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
 		checker.addCoCo(SIPythonTypeCheckCoco.getCoCo());
@@ -72,11 +73,5 @@ public class SIPythonCocoTest {
 	public void parseSimpleSIPython() {
 		String model = "unit_script.sipy";
 		typeCheckCoCo(model, false);
-	}
-
-	@Test
-	public void parseSimpleSkriptWithTypeCoCoError() {
-		String model = "simpleSkript_WithTypeCoCoError.sipy";
-		typeCheckCoCo(model, true);
 	}
 }
