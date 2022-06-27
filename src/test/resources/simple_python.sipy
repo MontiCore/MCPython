@@ -26,6 +26,7 @@ for x in range(3): {
         print(y)
     print(z)
 }
+# comment
 
 while 1:
     z = 4

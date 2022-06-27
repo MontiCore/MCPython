@@ -26,14 +26,11 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
   // variable declaration
-  LocalVariableDeclarationStatement implements Statement = LocalVariableDeclaration EOL;
-  LocalVariableDeclaration = VariableDeclarator ;
+  LocalVariableDeclarationStatement implements Statement = VariableDeclarator EOL;
 
-  VariableDeclarator = Declarator "=" VariableInit ;
+  interface VariableDeclarator ;
 
-  interface Declarator = Name ;
-
-  DeclaratorId implements Declarator = Name ;
+  VariableDeclaration implements Variable, VariableDeclarator = Name "=" VariableInit ;
 
   interface VariableInit ;
 
@@ -58,7 +55,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // function declaration
 
-  FunctionDeclaration implements Statement = "def" Name@Function "(" FunctionDeclarationArguments ")" ":" EOL
+  FunctionDeclaration implements Statement, Function = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
                                                         StatementBlock? ReturnStatement?;
 
   interface FunctionDeclarationArguments ;

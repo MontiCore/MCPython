@@ -3,7 +3,9 @@ package de.monticore;
 
 grammar SIPython extends de.monticore.SIUnitLiterals, de.monticore.Python {
 
-  SIInit implements VariableInit = SIUnitLiteral;
+  start SIPythonScript ;
 
-  SIUnitParse implements Expression = SIUnit "(" Expression ")" EOL;
+  SIPythonScript = PythonScript ;
+
+  SIUnitParse implements Expression <300> = SIUnit "(" Expression ")" ;
 }
