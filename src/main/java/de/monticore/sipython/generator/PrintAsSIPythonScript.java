@@ -3,10 +3,10 @@ package de.monticore.sipython.generator;
 import de.monticore.literals.prettyprint.MCCommonLiteralsPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.sipython.generator.prettyprint.MyAssignmentExpressionsPrettyPrinter;
-import de.monticore.sipython.generator.prettyprint.SIPythonPrettyPrinter;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython._visitor.SIPythonTraverser;
+import de.monticore.sipython.generator.prettyprint.MySIUnitLiteralsPrettyPrinter;
+import de.monticore.sipython.generator.prettyprint.SIPythonPrettyPrinter;
 
 public class PrintAsSIPythonScript {
 
@@ -14,10 +14,6 @@ public class PrintAsSIPythonScript {
 
     public PrintAsSIPythonScript(IndentPrinter indentPrinter) {
         traverser = SIPythonMill.traverser();
-
-        MyAssignmentExpressionsPrettyPrinter assignmentExpressionsPrettyPrinter = new MyAssignmentExpressionsPrettyPrinter(indentPrinter);
-        traverser.add4AssignmentExpressions(assignmentExpressionsPrettyPrinter);
-        traverser.setAssignmentExpressionsHandler(assignmentExpressionsPrettyPrinter);
 
         SIPythonPrettyPrinter siPythonPrettyPrinter = new SIPythonPrettyPrinter(indentPrinter);
         traverser.add4SIPython(siPythonPrettyPrinter);
@@ -37,8 +33,8 @@ public class PrintAsSIPythonScript {
 //        traverser.add4TestSIJava(testSIJavaPrettyPrinter);
 //        traverser.setTestSIJavaHandler(testSIJavaPrettyPrinter);
 //
-//        MySIUnitLiteralsPrettyPrinter siUnitLiteralsPrettyPrinter = new MySIUnitLiteralsPrettyPrinter(indentPrinter);
-//        traverser.setSIUnitLiteralsHandler(siUnitLiteralsPrettyPrinter);
+        MySIUnitLiteralsPrettyPrinter siUnitLiteralsPrettyPrinter = new MySIUnitLiteralsPrettyPrinter(indentPrinter);
+        traverser.setSIUnitLiteralsHandler(siUnitLiteralsPrettyPrinter);
 
         MCCommonLiteralsPrettyPrinter mcCommonLiteralsPrettyPrinter = new MCCommonLiteralsPrettyPrinter(indentPrinter);
         traverser.add4MCCommonLiterals(mcCommonLiteralsPrettyPrinter);

@@ -1,25 +1,24 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore.sipython.generator.prettyprint;
 
+import de.monticore.literals.mccommonliterals._ast.ASTNatLiteral;
 import de.monticore.prettyprint.CommentPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
-import de.monticore.python._ast.ASTExpressionStatement;
-import de.monticore.python._ast.ASTForStatement;
-import de.monticore.python._ast.ASTFunctionCall;
-import de.monticore.python._ast.ASTFunctionDeclaration;
-import de.monticore.python._ast.ASTIfStatement;
-import de.monticore.python._ast.ASTLocalVariableDeclarationStatement;
-import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.python._ast.ASTReturnStatement;
-import de.monticore.python._ast.ASTStatement;
-import de.monticore.python._ast.ASTWhileStatement;
+import de.monticore.python._ast.*;
 import de.monticore.python._visitor.PythonHandler;
 import de.monticore.python._visitor.PythonTraverser;
 import de.monticore.python._visitor.PythonVisitor2;
+import de.monticore.sipython._ast.ASTSIUnitConversion;
 import de.monticore.sipython._visitor.SIPythonHandler;
 import de.monticore.sipython._visitor.SIPythonTraverser;
 import de.monticore.sipython._visitor.SIPythonVisitor2;
+import de.monticore.siunits.utility.Converter;
+import de.monticore.types.check.DeriveSymTypeOfTestSIJava;
+import de.monticore.types.check.SymTypeOfNumericWithSIUnit;
+import de.monticore.types.check.TypeCalculator;
+
 import javax.measure.converter.UnitConverter;
+import javax.measure.unit.Unit;
 
 public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2, PythonHandler, PythonVisitor2 {
 
@@ -53,35 +52,27 @@ public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2,
 
         for( ASTStatement astStatement: node.getStatementList()) {
             if(astStatement instanceof ASTLocalVariableDeclarationStatement) {
-                printer.println("ASTLocalVariableDeclarationStatement detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             } else if(astStatement instanceof ASTIfStatement) {
-                printer.println("ASTIfStatement detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             } else if(astStatement instanceof ASTForStatement) {
-                printer.println("ASTForStatement detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             } else if(astStatement instanceof ASTWhileStatement) {
-                printer.println("ASTWhileStatement detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             } else if(astStatement instanceof ASTFunctionDeclaration) {
-                printer.println("ASTFunctionDeclaration detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             } else if(astStatement instanceof ASTReturnStatement) {
-                printer.println("ASTReturnStatement detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             } else if(astStatement instanceof ASTFunctionCall) {
-                printer.println("ASTFunctionCall detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             } else if(astStatement instanceof ASTExpressionStatement) {
-                printer.println("ASTExpressionStatement detected");
                 astStatement.accept(getTraverser());
                 printer.println(";");
             }
@@ -89,21 +80,25 @@ public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2,
         CommentPrettyPrinter.printPostComments(node, printer);
     }
 
-    public static String factorStartSimple(UnitConverter converter) {
-        if (converter != UnitConverter.IDENTITY && converter.convert(1) != 1.0)
-            return "(";
-        else return "";
+    @Override
+    public void traverse(ASTLocalVariableDeclarationStatement node) {
+        CommentPrettyPrinter.printPreComments(node, printer);
+        printer.print(node.getVariableDeclaration().getName());
+        printer.print(" = ");
+        ASTVariableInit astVariableInit = node.getVariableDeclaration().getVariableInit();
+        astVariableInit.accept(getTraverser());
+        CommentPrettyPrinter.printPostComments(node, printer);
     }
 
-    public static String factorEndSimple(UnitConverter converter) {
-        if (converter != UnitConverter.IDENTITY && converter.convert(1) != 1.0) {
-            String factor;
-            if (converter.convert(1) > 1)
-                factor = " * " + converter.convert(1);
-            else
-                factor = " / " + converter.inverse().convert(1);
-            return ")" + factor;
-        } else
-            return "";
+    @Override
+    public void traverse(ASTSIUnitConversion node) {
+        CommentPrettyPrinter.printPreComments(node, printer);
+        node.getSIUnit().accept(getTraverser());
+
+        printer.print("(");
+
+        printer.print(")");
+
+        CommentPrettyPrinter.printPostComments(node, printer);
     }
 }
