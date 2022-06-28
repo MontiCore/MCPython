@@ -8,8 +8,7 @@ import org.junit.Test;
 public class GeneratorTest {
     @Test
     public void simpleGeneratorTest() {
-        String generatedScript = Generator.generate("src/test/resources","unit_script.sipy","target/generate");
-        System.out.println("generatedScript: " + generatedScript);
-        assertNotEquals("", generatedScript);
+        Generator.generate("src/test/resources/python/","simple_python.sipy","target/generate");
+
     }
 }
