@@ -1,4 +1,4 @@
-package de.monticore.sipythonunits;
+package de.monticore.sipython;
 
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;

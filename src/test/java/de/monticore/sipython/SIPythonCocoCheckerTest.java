@@ -1,8 +1,6 @@
-package de.monticore.sipythonunits;
+package de.monticore.sipython;
 
 import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.sipython.SIPythonMill;
-import de.monticore.sipython._cocos.SIPythonCommonExpressionTypeCheckCoco;
 import de.monticore.sipython._cocos.SIPythonCoCoChecker;
 import de.monticore.sipython._cocos.SIPythonSIUnitConversionTypeCheckCoco;
 import de.monticore.siunits.SIUnitsMill;

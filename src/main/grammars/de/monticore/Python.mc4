@@ -28,7 +28,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   interface VariableDeclarator ;
 
-  VariableDeclaration implements Variable, VariableDeclarator = Name "=" VariableInit ;
+  VariableDeclaration implements VariableDeclarator = Name "=" VariableInit ;
 
   interface VariableInit ;
 
@@ -53,7 +53,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // function declaration
 
-  FunctionDeclaration implements Statement, Function = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
+  FunctionDeclaration implements Statement = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
                                                         StatementBlock;
 
   interface FunctionDeclarationArguments ;

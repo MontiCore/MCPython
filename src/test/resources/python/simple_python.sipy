@@ -29,7 +29,5 @@ for x in range(3):
             print(i)
     print(z)
 
-# comment
-
 while 1:
     z = 4
