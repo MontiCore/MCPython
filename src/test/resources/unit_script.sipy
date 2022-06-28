@@ -1,6 +1,7 @@
 # This is an example script of a unit type supporting python-like language
 
 def calculate_time(velocity_par, distance_par):
+    print("x")
     return distance_par / velocity_par
 
 velocity = 3 dm/h

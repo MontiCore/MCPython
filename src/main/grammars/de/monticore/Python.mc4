@@ -18,11 +18,8 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   interface Statement ;
 
-  interface StatementBlock;
-
-  //SingleLineStatementBlock implements StatementBlock = Statement ;
-  MultiLineStatementBody implements StatementBlock = EOL? MultiLineStatementBlock {decreaseIndent()}? EOL?;
-  MultiLineStatementBlock = Indent {isIndented()}? Indent* Statement {increaseIndent()}? ({isIndented()}? Indent+ Statement)*;
+  StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
+  StatementBlockBody = Indent {isIndentedCorrectly()}? Indent* Statement {increaseIndent()}? ({isIndentedCorrectly()}? Indent+ Statement)*;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
@@ -57,11 +54,11 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // function declaration
 
   FunctionDeclaration implements Statement, Function = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
-                                                        StatementBlock? ReturnStatement?;
+                                                        StatementBlock;
 
   interface FunctionDeclarationArguments ;
 
-  SimpleFunctionDeclarationArguments implements FunctionDeclarationArguments = (Expression  || ",")* ;
+  SimpleFunctionDeclarationArguments implements FunctionDeclarationArguments = (Expression  || ",")*;
 
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
@@ -76,16 +73,22 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   concept antlr {
     parserjava {
-      public static int indentCounter = 0;
+      public int indentCounter = 0;
 
-      public boolean isIndented() {
-        if (indentCounter == 0 && !cmpTokenRegEx(1, "    |\t")) return true;
+      public boolean isIndentedCorrectly() {
+        if (indentCounter == 0) {
+          if (!cmpTokenRegEx(1, "    |\t")) {
+            return true;
+          } else {
+            return false;
+          }
+        }
         return cmpTokenRegEx(indentCounter, "    |\t") && !cmpTokenRegEx(indentCounter + 1, "    |\t");
       }
 
 
       public boolean decreaseIndent() {
-        if (isIndented() || (cmpTokenRegEx(1, "\n|\r") && cmpTokenRegEx(indentCounter, "    |\t")) || indentCounter <= 0) {
+        if (isIndentedCorrectly() || (cmpTokenRegEx(1, "\n|\r") && cmpTokenRegEx(indentCounter, "    |\t"))) {
           return false;
         }
         indentCounter--;

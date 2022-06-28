@@ -2,6 +2,7 @@ package de.monticore.sipythonunits;
 
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
+import de.monticore.sipython._cocos.SIPythonCommonExpressionTypeCheckCoco;
 import de.monticore.sipython._cocos.SIPythonCoCoChecker;
 import de.monticore.sipython._cocos.SIPythonSIUnitConversionTypeCheckCoco;
 import de.monticore.siunits.SIUnitsMill;
@@ -12,7 +13,7 @@ import org.junit.Test;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 
-public class SIPythonCocoTest extends AbstractTest{
+public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	@Before
 	public void init() {
@@ -35,6 +36,7 @@ public class SIPythonCocoTest extends AbstractTest{
 		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
 		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
+		// checker.addCoCo(SIPythonCommonExpressionTypeCheckCoco.getCoCo());
 
 		try {
 			checker.checkAll(model);
@@ -52,14 +54,23 @@ public class SIPythonCocoTest extends AbstractTest{
 	}
 
 	@Test
-	public void parseSimpleSIPython() {
+	public void parseUnitScript() {
 		String model = "unit_script.sipy";
 		typeCheckCoCo(model, false);
 	}
 
 	@Test
 	public void parseSimpleSkriptWithTypeCoCoError() {
-		String model = "simpleSkript_WithTypeCoCoError.sipy";
+		String model = "sipythonWithTypeCoCoError.sipy";
 		typeCheckCoCo(model, true);
 	}
+
+	/*
+	@Test
+	public void parseSIPythonCommonExpressionsTypeCocoError() {
+		String model = "sipythonExpressionsTypeCocoError.sipy";
+		typeCheckCoCo(model, true);
+	}
+
+	 */
 }
