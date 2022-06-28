@@ -6,6 +6,7 @@ import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython._visitor.SIPythonTraverser;
 import de.monticore.sipython.generator.prettyprint.MySIUnitLiteralsPrettyPrinter;
+import de.monticore.sipython.generator.prettyprint.PythonPrettyPrinter;
 import de.monticore.sipython.generator.prettyprint.SIPythonPrettyPrinter;
 
 public class PrintAsSIPythonScript {
@@ -15,11 +16,13 @@ public class PrintAsSIPythonScript {
     public PrintAsSIPythonScript(IndentPrinter indentPrinter) {
         traverser = SIPythonMill.traverser();
 
+        PythonPrettyPrinter pythonPrettyPrinter = new PythonPrettyPrinter(indentPrinter);
+        traverser.add4Python(pythonPrettyPrinter);
+        traverser.add4Python(pythonPrettyPrinter);
+
         SIPythonPrettyPrinter siPythonPrettyPrinter = new SIPythonPrettyPrinter(indentPrinter);
-        traverser.add4SIPython(siPythonPrettyPrinter);
-        traverser.add4Python(siPythonPrettyPrinter);
         traverser.setSIPythonHandler(siPythonPrettyPrinter);
-        traverser.setPythonHandler(siPythonPrettyPrinter);
+        traverser.setSIPythonHandler(siPythonPrettyPrinter);
 
 //        MyCommonExpressionsPrettyPrinter commonExpressionsPrettyPrinter = new MyCommonExpressionsPrettyPrinter(indentPrinter);
 //        traverser.add4CommonExpressions(commonExpressionsPrettyPrinter);
