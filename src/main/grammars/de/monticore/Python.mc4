@@ -6,7 +6,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
                         de.monticore.literals.MCCommonLiterals,
                         de.monticore.symbols.BasicSymbols {
 
-  // token Indent = "    ";
+  token Indent = "    ";
 
   start PythonScript ;
 
@@ -20,8 +20,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   interface StatementBlock;
 
-  SingleLineStatementBlock implements StatementBlock = Statement ;
-  MultiLineStatementBlock implements StatementBlock = EOL? "{" EOL? Statement* EOL? "}" EOL?;
+  //SingleLineStatementBlock implements StatementBlock = Statement ;
+  MultiLineStatementBody implements StatementBlock = EOL? MultiLineStatementBlock {decreaseIndent()}? EOL?;
+  MultiLineStatementBlock = Indent {isIndented()}? Indent* Statement {increaseIndent()}? ({isIndented()}? Indent+ Statement)*;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
@@ -38,10 +39,10 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
 
   // if-else
-  IfStatement implements Statement = "if" condition:Expression ":" EOL? thenStatement:StatementBlock ("else" ":" EOL? elseStatement:StatementBlock)? ;
+  IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("else" ":" elseStatement:StatementBlock)? ;
 
   // for-loop
-  scope ForStatement implements Statement = "for" ForControl ":" EOL? StatementBlock ;
+  scope ForStatement implements Statement = "for" ForControl ":" StatementBlock ;
 
   interface ForControl ;
 
@@ -72,4 +73,30 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ExpressionStatement implements Statement = Expression EOL;
 
   // TODO: statement at file end,
+
+  concept antlr {
+    parserjava {
+      public static int indentCounter = 0;
+
+      public boolean isIndented() {
+        if (indentCounter == 0 && !cmpTokenRegEx(1, "    |\t")) return true;
+        return cmpTokenRegEx(indentCounter, "    |\t") && !cmpTokenRegEx(indentCounter + 1, "    |\t");
+      }
+
+
+      public boolean decreaseIndent() {
+        if (isIndented() || (cmpTokenRegEx(1, "\n|\r") && cmpTokenRegEx(indentCounter, "    |\t")) || indentCounter <= 0) {
+          return false;
+        }
+        indentCounter--;
+        return true;
+      }
+
+      public boolean increaseIndent() {
+        indentCounter++;
+        return true;
+      }
+
+    }
+  }
 }

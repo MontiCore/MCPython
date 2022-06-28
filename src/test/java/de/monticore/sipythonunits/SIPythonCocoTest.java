@@ -3,21 +3,16 @@ package de.monticore.sipythonunits;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython._cocos.SIPythonCoCoChecker;
-import de.monticore.sipython._cocos.SIPythonTypeCheckCoco;
-import de.monticore.sipython._parser.SIPythonParser;
+import de.monticore.sipython._cocos.SIPythonSIUnitConversionTypeCheckCoco;
 import de.monticore.siunits.SIUnitsMill;
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.Optional;
-
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertTrue;
 
-public class SIPythonCocoTest {
+public class SIPythonCocoTest extends AbstractTest{
 
 	@Before
 	public void init() {
@@ -34,24 +29,12 @@ public class SIPythonCocoTest {
 		);
 	}
 
-	private ASTPythonScript parseModel(String input) {
-		SIPythonParser parser = new SIPythonParser();
-		Optional<ASTPythonScript> res = Optional.empty();
-		try {
-			res = parser.parsePythonScript("src/test/resources/" + input);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		assertTrue(res.isPresent());
-		return res.get();
-	}
-
 	private void typeCheckCoCo(String input, boolean expectedError) {
 		Log.getFindings().clear();
 		ASTPythonScript model = parseModel(input);
 		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
-		checker.addCoCo(SIPythonTypeCheckCoco.getCoCo());
+		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 
 		try {
 			checker.checkAll(model);
@@ -64,7 +47,7 @@ public class SIPythonCocoTest {
 
 	@Test
 	public void parseSimplePython() {
-		String model = "simple_python.sipy";
+		String model = "python/simple_python.sipy";
 		typeCheckCoCo(model, false);
 	}
 

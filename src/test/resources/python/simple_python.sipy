@@ -8,6 +8,7 @@ print("1")
 
 if x == 1:
     print("one")
+    print("ok")
 else:
     print("not one")
 
@@ -20,12 +21,14 @@ def calcVelocity(distance, time):
 for x in [0,1,2]:
     print(x)
 
-for x in range(3): {
+for x in range(3):
     print(x)
     for y in range(4):
         print(y)
+        for i in range(5):
+            print(i)
     print(z)
-}
+
 # comment
 
 while 1:
