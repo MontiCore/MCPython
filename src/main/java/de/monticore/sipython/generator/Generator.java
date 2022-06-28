@@ -1,4 +1,4 @@
-package de.monticore.siphytonunits.generator;
+package de.monticore.sipython.generator;
 
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;

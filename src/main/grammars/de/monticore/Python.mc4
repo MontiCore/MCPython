@@ -6,7 +6,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
                         de.monticore.literals.MCCommonLiterals,
                         de.monticore.symbols.BasicSymbols {
 
-  // token Indent = "    ";
+  token Indent = "    ";
 
   start PythonScript ;
 
@@ -18,22 +18,17 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   interface Statement ;
 
-  interface StatementBlock;
-
-  SingleLineStatementBlock implements StatementBlock = Statement ;
-  MultiLineStatementBlock implements StatementBlock = EOL? "{" EOL? Statement* EOL? "}" EOL?;
+  StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
+  StatementBlockBody = Indent {isIndentedCorrectly()}? Indent* Statement {increaseIndent()}? ({isIndentedCorrectly()}? Indent+ Statement)*;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
   // variable declaration
-  LocalVariableDeclarationStatement implements Statement = LocalVariableDeclaration EOL;
-  LocalVariableDeclaration = VariableDeclarator ;
+  LocalVariableDeclarationStatement implements Statement = VariableDeclarator EOL;
 
-  VariableDeclarator = Declarator "=" VariableInit ;
+  interface VariableDeclarator ;
 
-  interface Declarator = Name ;
-
-  DeclaratorId implements Declarator = Name ;
+  VariableDeclaration implements VariableDeclarator = Name "=" VariableInit ;
 
   interface VariableInit ;
 
@@ -41,10 +36,10 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
 
   // if-else
-  IfStatement implements Statement = "if" condition:Expression ":" EOL? thenStatement:StatementBlock ("else" ":" EOL? elseStatement:StatementBlock)? ;
+  IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("else" ":" elseStatement:StatementBlock)? ;
 
   // for-loop
-  scope ForStatement implements Statement = "for" ForControl ":" EOL? StatementBlock ;
+  scope ForStatement implements Statement = "for" ForControl ":" StatementBlock ;
 
   interface ForControl ;
 
@@ -58,12 +53,12 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // function declaration
 
-  FunctionDeclaration implements Statement = "def" Name@Function "(" FunctionDeclarationArguments ")" ":" EOL
-                                                        StatementBlock? ReturnStatement?;
+  FunctionDeclaration implements Statement = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
+                                                        StatementBlock;
 
   interface FunctionDeclarationArguments ;
 
-  SimpleFunctionDeclarationArguments implements FunctionDeclarationArguments = (Expression  || ",")* ;
+  SimpleFunctionDeclarationArguments implements FunctionDeclarationArguments = (Expression  || ",")*;
 
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
@@ -75,4 +70,36 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ExpressionStatement implements Statement = Expression EOL;
 
   // TODO: statement at file end,
+
+  concept antlr {
+    parserjava {
+      public int indentCounter = 0;
+
+      public boolean isIndentedCorrectly() {
+        if (indentCounter == 0) {
+          if (!cmpTokenRegEx(1, "    |\t")) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+        return cmpTokenRegEx(indentCounter, "    |\t") && !cmpTokenRegEx(indentCounter + 1, "    |\t");
+      }
+
+
+      public boolean decreaseIndent() {
+        if (isIndentedCorrectly() || (cmpTokenRegEx(1, "\n|\r") && cmpTokenRegEx(indentCounter, "    |\t"))) {
+          return false;
+        }
+        indentCounter--;
+        return true;
+      }
+
+      public boolean increaseIndent() {
+        indentCounter++;
+        return true;
+      }
+
+    }
+  }
 }

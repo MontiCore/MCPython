@@ -1,13 +1,12 @@
-package de.monticore.siphytonunits.generator;
+package de.monticore.sipython.generator;
 
 import de.monticore.literals.prettyprint.MCCommonLiteralsPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.siphytonunits.generator.prettyprint.MyAssignmentExpressionsPrettyPrinter;
-import de.monticore.siphytonunits.generator.prettyprint.SIPythonPrettyPrinter;
+import de.monticore.sipython.generator.prettyprint.MyAssignmentExpressionsPrettyPrinter;
+import de.monticore.sipython.generator.prettyprint.SIPythonPrettyPrinter;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython._visitor.SIPythonTraverser;
-import de.monticore.types.prettyprint.MCBasicTypesPrettyPrinter;
 
 public class PrintAsSIPythonScript {
 

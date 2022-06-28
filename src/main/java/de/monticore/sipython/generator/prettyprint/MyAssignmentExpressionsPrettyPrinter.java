@@ -1,8 +1,8 @@
 /* (c) https://github.com/MontiCore/monticore */
-package de.monticore.siphytonunits.generator.prettyprint;
+package de.monticore.sipython.generator.prettyprint;
 
-import static de.monticore.siphytonunits.generator.prettyprint.SIPythonPrettyPrinter.factorEndSimple;
-import static de.monticore.siphytonunits.generator.prettyprint.SIPythonPrettyPrinter.factorStartSimple;
+import static de.monticore.sipython.generator.prettyprint.SIPythonPrettyPrinter.factorEndSimple;
+import static de.monticore.sipython.generator.prettyprint.SIPythonPrettyPrinter.factorStartSimple;
 
 import de.monticore.expressions.assignmentexpressions._ast.ASTAssignmentExpression;
 import de.monticore.expressions.assignmentexpressions._visitor.AssignmentExpressionsHandler;

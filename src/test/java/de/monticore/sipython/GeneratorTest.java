@@ -1,8 +1,8 @@
-package de.monticore.sipythonunits;
+package de.monticore.sipython;
 
 import static org.junit.Assert.assertNotEquals;
 
-import de.monticore.siphytonunits.generator.Generator;
+import de.monticore.sipython.generator.Generator;
 import org.junit.Test;
 
 public class GeneratorTest {
