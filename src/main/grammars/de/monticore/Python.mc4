@@ -6,11 +6,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
                         de.monticore.literals.MCCommonLiterals,
                         de.monticore.symbols.BasicSymbols {
 
-  token Indent = "    ";
-
-  start PythonScript ;
-
   PythonScript = (Statement)*;
+
+  token Indent = "    ";
 
   EOL = ("\n" | "\r" | "<EOF>")+ ;
 
@@ -26,7 +24,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // variable declaration
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL;
 
-  VariableDeclaration = Name "=" VariableInit ;
+  VariableDeclaration = Declarator "=" VariableInit ;
+
+  Declarator implements Variable = Name ;
 
   interface VariableInit ;
 
@@ -37,7 +37,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("else" ":" elseStatement:StatementBlock)? ;
 
   // for-loop
-  scope ForStatement implements Statement = "for" ForControl ":" StatementBlock ;
+  ForStatement implements Statement = "for" ForControl ":" StatementBlock ;
 
   interface ForControl ;
 
@@ -51,8 +51,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // function declaration
 
-  FunctionDeclaration implements Statement = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
+  FunctionDeclaration implements Statement = "def" FunctionName "(" FunctionDeclarationArguments ")" ":" EOL
                                                         StatementBlock;
+  FunctionName = Name ;
 
   interface FunctionDeclarationArguments ;
 

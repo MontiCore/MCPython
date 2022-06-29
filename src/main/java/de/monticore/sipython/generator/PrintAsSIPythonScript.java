@@ -5,9 +5,7 @@ import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython._visitor.SIPythonTraverser;
-import de.monticore.sipython.generator.prettyprint.MySIUnitLiteralsPrettyPrinter;
-import de.monticore.sipython.generator.prettyprint.PythonPrettyPrinter;
-import de.monticore.sipython.generator.prettyprint.SIPythonPrettyPrinter;
+import de.monticore.sipython.generator.prettyprint.*;
 
 public class PrintAsSIPythonScript {
 
@@ -16,26 +14,23 @@ public class PrintAsSIPythonScript {
     public PrintAsSIPythonScript(IndentPrinter indentPrinter) {
         traverser = SIPythonMill.traverser();
 
+        SIPythonPrettyPrinter siPythonPrettyPrinter = new SIPythonPrettyPrinter(indentPrinter);
+        traverser.add4SIPython(siPythonPrettyPrinter);
+        traverser.setSIPythonHandler(siPythonPrettyPrinter);
+
         PythonPrettyPrinter pythonPrettyPrinter = new PythonPrettyPrinter(indentPrinter);
         traverser.add4Python(pythonPrettyPrinter);
-        traverser.add4Python(pythonPrettyPrinter);
+        traverser.setPythonHandler(pythonPrettyPrinter);
 
-        SIPythonPrettyPrinter siPythonPrettyPrinter = new SIPythonPrettyPrinter(indentPrinter);
-        traverser.setSIPythonHandler(siPythonPrettyPrinter);
-        traverser.setSIPythonHandler(siPythonPrettyPrinter);
 
-//        MyCommonExpressionsPrettyPrinter commonExpressionsPrettyPrinter = new MyCommonExpressionsPrettyPrinter(indentPrinter);
+//        SIPythonCommonExpressionsPrettyPrinter commonExpressionsPrettyPrinter = new SIPythonCommonExpressionsPrettyPrinter(indentPrinter);
 //        traverser.add4CommonExpressions(commonExpressionsPrettyPrinter);
 //        traverser.setCommonExpressionsHandler(commonExpressionsPrettyPrinter);
-//
-//        MyExpressionsBasisPrettyPrinter expressionsBasisPrettyPrinter = new MyExpressionsBasisPrettyPrinter(indentPrinter);
-//        traverser.add4ExpressionsBasis(expressionsBasisPrettyPrinter);
-//        traverser.setExpressionsBasisHandler(expressionsBasisPrettyPrinter);
 
-//        TestSIJavaPrettyPrinter testSIJavaPrettyPrinter = new TestSIJavaPrettyPrinter(indentPrinter);
-//        traverser.add4TestSIJava(testSIJavaPrettyPrinter);
-//        traverser.setTestSIJavaHandler(testSIJavaPrettyPrinter);
-//
+        SIPythonExpressionsBasisPrettyPrinter expressionsBasisPrettyPrinter = new SIPythonExpressionsBasisPrettyPrinter(indentPrinter);
+        traverser.add4ExpressionsBasis(expressionsBasisPrettyPrinter);
+        traverser.setExpressionsBasisHandler(expressionsBasisPrettyPrinter);
+
         MySIUnitLiteralsPrettyPrinter siUnitLiteralsPrettyPrinter = new MySIUnitLiteralsPrettyPrinter(indentPrinter);
         traverser.setSIUnitLiteralsHandler(siUnitLiteralsPrettyPrinter);
 

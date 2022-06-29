@@ -30,14 +30,12 @@ public class SynthesizeSymTypeFromSIPython extends AbstractSynthesize implements
 
 	@Override
 	public void traverse(ASTSIUnitConversion node) {
-		SymTypeExpression numericType = SymTypeExpressionFactory.createWildcard();
 		SymTypeExpression siunitType;
 
 		siunitType = SIUnitSymTypeExpressionFactory.createSIUnit(
 				UnitPrettyPrinter.printUnit(node.getSIUnit()), node.getEnclosingScope());
 
-		typeCheckResult.setResult(SIUnitSymTypeExpressionFactory.createNumericWithSIUnitType(numericType, siunitType,
-				node.getEnclosingScope()));
+		typeCheckResult.setResult(siunitType);
 	}
 
 }
