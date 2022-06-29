@@ -1,9 +1,7 @@
 package de.monticore.sipython;
 
 import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.sipython._cocos.PythonFunctionDeclarationInFunctionCoco;
-import de.monticore.sipython._cocos.SIPythonCoCoChecker;
-import de.monticore.sipython._cocos.SIPythonSIUnitConversionTypeCheckCoco;
+import de.monticore.sipython._cocos.*;
 import de.monticore.siunits.SIUnitsMill;
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
@@ -36,6 +34,10 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
 		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo(new PythonFunctionDeclarationInFunctionCoco());
+		checker.addCoCo(new PythonFunctionDeclarationInForStatementCoco());
+		checker.addCoCo(new PythonFunctionDeclarationInWhileStatementCoco());
+		checker.addCoCo(new PythonFunctionDeclarationInIfStatementCoco());
+
 
 		try {
 			checker.checkAll(model);
@@ -66,7 +68,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	@Test
 	public void parseSimpleSkriptWithFunctionInsideFunctionCoCoError() {
-		String model = "python/pythonFunctionInsideFunctionCocoError.sipy";
+		String model = "python/pythonFunctionInsideStatementBlockCocoError.sipy";
 		typeCheckCoCo(model, true);
 	}
 

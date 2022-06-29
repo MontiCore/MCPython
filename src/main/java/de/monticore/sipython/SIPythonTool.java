@@ -1,9 +1,7 @@
 package de.monticore.sipython;
 
 import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.sipython._cocos.PythonFunctionDeclarationInFunctionCoco;
-import de.monticore.sipython._cocos.SIPythonCoCoChecker;
-import de.monticore.sipython._cocos.SIPythonSIUnitConversionTypeCheckCoco;
+import de.monticore.sipython._cocos.*;
 
 public class SIPythonTool extends SIPythonToolTOP {
 
@@ -13,6 +11,9 @@ public class SIPythonTool extends SIPythonToolTOP {
 
 		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo(new PythonFunctionDeclarationInFunctionCoco());
+		checker.addCoCo(new PythonFunctionDeclarationInForStatementCoco());
+		checker.addCoCo(new PythonFunctionDeclarationInWhileStatementCoco());
+		checker.addCoCo(new PythonFunctionDeclarationInIfStatementCoco());
 
 		checker.checkAll(ast);
 	}
