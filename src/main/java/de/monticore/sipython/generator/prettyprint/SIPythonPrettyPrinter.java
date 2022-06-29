@@ -7,7 +7,7 @@ import de.monticore.sipython._visitor.SIPythonHandler;
 import de.monticore.sipython._visitor.SIPythonTraverser;
 import de.monticore.sipython._visitor.SIPythonVisitor2;
 
-public class SIPythonPrettyPrinter extends PythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 {
+public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 {
 
 	protected SIPythonTraverser traverser;
 
@@ -21,8 +21,10 @@ public class SIPythonPrettyPrinter extends PythonPrettyPrinter implements SIPyth
 		this.traverser = traverser;
 	}
 
+	IndentPrinter printer;
+
 	public SIPythonPrettyPrinter(IndentPrinter printer) {
-		super(printer);
+		this.printer = printer;
 	}
 
 	@Override
