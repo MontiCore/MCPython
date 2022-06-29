@@ -1,6 +1,5 @@
 package de.monticore.sipython;
 
-import de.monticore.AbstractTest;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython._cocos.SIPythonCoCoChecker;
 import de.monticore.sipython._cocos.SIPythonSIUnitConversionTypeCheckCoco;
