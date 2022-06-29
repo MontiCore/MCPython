@@ -18,11 +18,6 @@ public class PrintAsSIPythonScript {
         traverser.add4SIPython(siPythonPrettyPrinter);
         traverser.setSIPythonHandler(siPythonPrettyPrinter);
 
-        PythonPrettyPrinter pythonPrettyPrinter = new PythonPrettyPrinter(indentPrinter);
-        traverser.add4Python(pythonPrettyPrinter);
-        traverser.setPythonHandler(pythonPrettyPrinter);
-
-
         SIPythonCommonExpressionsPrettyPrinter commonExpressionsPrettyPrinter = new SIPythonCommonExpressionsPrettyPrinter(indentPrinter);
         traverser.add4CommonExpressions(commonExpressionsPrettyPrinter);
         traverser.setCommonExpressionsHandler(commonExpressionsPrettyPrinter);
