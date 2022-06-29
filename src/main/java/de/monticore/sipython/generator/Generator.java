@@ -27,10 +27,10 @@ public class Generator {
         }
 
 
-        /*String print = PrintAsSIPythonScript.printAsSIPythonScript(ast);
+        String print = PrintAsSIPythonScript.printAsSIPythonScript(ast);
 
         String filePath = outputPath;
-        String scriptName = "";
+        String scriptName;
         if (fullName.contains("/")) {
             scriptName = fullName.substring(fullName.lastIndexOf("/") + 1, fullName.lastIndexOf("."));
             filePath += "/" + fullName.substring(0, fullName.lastIndexOf("/"));
@@ -49,8 +49,6 @@ public class Generator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-         */
     }
 
     private static ASTPythonScript parseModel(String modelPath, String name) {

@@ -23,9 +23,13 @@ public class PrintAsSIPythonScript {
         traverser.setPythonHandler(pythonPrettyPrinter);
 
 
-//        SIPythonCommonExpressionsPrettyPrinter commonExpressionsPrettyPrinter = new SIPythonCommonExpressionsPrettyPrinter(indentPrinter);
-//        traverser.add4CommonExpressions(commonExpressionsPrettyPrinter);
-//        traverser.setCommonExpressionsHandler(commonExpressionsPrettyPrinter);
+        SIPythonCommonExpressionsPrettyPrinter commonExpressionsPrettyPrinter = new SIPythonCommonExpressionsPrettyPrinter(indentPrinter);
+        traverser.add4CommonExpressions(commonExpressionsPrettyPrinter);
+        traverser.setCommonExpressionsHandler(commonExpressionsPrettyPrinter);
+
+        SIPythonAssignmentExpressionsPrettyPrinter assignmentExpressionsPrettyPrinter = new SIPythonAssignmentExpressionsPrettyPrinter(indentPrinter);
+        traverser.add4AssignmentExpressions(assignmentExpressionsPrettyPrinter);
+        traverser.setAssignmentExpressionsHandler(assignmentExpressionsPrettyPrinter);
 
         SIPythonExpressionsBasisPrettyPrinter expressionsBasisPrettyPrinter = new SIPythonExpressionsBasisPrettyPrinter(indentPrinter);
         traverser.add4ExpressionsBasis(expressionsBasisPrettyPrinter);

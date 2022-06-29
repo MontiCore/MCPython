@@ -31,6 +31,7 @@ public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPre
 		this.preDefined.add(basevalue);
 	}
 
+	/*
 	@Override
 	public void handle(ASTCallExpression node) {
 		CommentPrettyPrinter.printPreComments(node, this.getPrinter());
@@ -66,6 +67,8 @@ public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPre
 		} else
 			super.handle(node);
 	}
+
+ */
 
 	private void handlePlusMinusModulo(ASTInfixExpression node, String operator, SymTypeOfNumericWithSIUnit symType) {
 		/*CommentPrettyPrinter.printPreComments(node, this.getPrinter());
