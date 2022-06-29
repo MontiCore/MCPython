@@ -1,4 +1,4 @@
-package de.monticore.sipython;
+package de.monticore;
 
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython._parser.SIPythonParser;

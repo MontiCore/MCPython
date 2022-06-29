@@ -1,5 +1,6 @@
 package de.monticore.sipython;
 
+import de.monticore.AbstractTest;
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;

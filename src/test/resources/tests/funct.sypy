@@ -1,0 +1,10 @@
+
+def func1():
+     v1 = cm(5 dm)
+     v2 = mm(v1)
+     return func2(v2)/1 m
+
+def func2(x):
+     return dm/h(x / 2 ms)
+
+func1()
