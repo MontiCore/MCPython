@@ -1,0 +1,13 @@
+def calcVelocity(distance, time):
+    print("calculating...")
+    def calcDistance(velocity, time):
+        print("calculating...")
+        return velocity * time
+
+def calc():
+    print("calculating...")
+    for x in range(1):
+        def calc2():
+            print("calculating 2...")
+            return velocity * time
+

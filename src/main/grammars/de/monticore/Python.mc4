@@ -17,7 +17,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   interface Statement ;
 
   StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
-  StatementBlockBody = Indent {isIndentedCorrectly()}? Indent* Statement {increaseIndent()}? ({isIndentedCorrectly()}? Indent+ Statement)*;
+  StatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* Statement ({isIndentedCorrectly()}? Indent+ Statement)*;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
@@ -87,7 +87,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
 
       public boolean decreaseIndent() {
-        if (isIndentedCorrectly() || (cmpTokenRegEx(1, "\n|\r") && cmpTokenRegEx(indentCounter, "    |\t"))) {
+        if (isIndentedCorrectly()) {
           return false;
         }
         indentCounter--;
