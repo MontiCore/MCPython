@@ -171,7 +171,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		printer.print("def ");
-		printer.print(node.getFunctionName().getName());
+		printer.print(node.getName());
 		printer.print("(");
 		node.getFunctionDeclarationArguments().accept(getTraverser());
 		printer.print("):");
