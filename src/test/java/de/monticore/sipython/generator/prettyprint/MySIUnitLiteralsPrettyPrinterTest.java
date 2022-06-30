@@ -1,0 +1,47 @@
+package de.monticore.sipython.generator.prettyprint;
+
+import de.monticore.literals.mcliteralsbasis._ast.ASTLiteral;
+import de.monticore.siunitliterals._ast.ASTSIUnitLiteralsNode;
+import de.monticore.testsiunitliterals._parser.TestSIUnitLiteralsParser;
+import org.junit.Test;
+
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Optional;
+
+import static org.junit.Assert.*;
+
+public class MySIUnitLiteralsPrettyPrinterTest {
+    @Test
+    public void printLiteralWithDivisionTest() {
+        parsePrintAndAssert("3 m/h", "(3, m/h)");
+    }
+
+//    @Test
+//    public void printLiteralWithExponentTest() {
+//        parsePrintAndAssert("4 m/ns^2", "(4, m/ns^2)");
+//    }
+
+    /**
+     * Parses the given string to ast node, prints the ast node and asserts if the print and the input string are equal.
+     * @param sitUnitLiteralString string to parsed and printed
+     */
+    private static void parsePrintAndAssert(String sitUnitLiteralString, String expectedPrintString) {
+        ASTSIUnitLiteralsNode astsiUnitLiteralsNode = parseSIUnitLiteralsNode(sitUnitLiteralString);
+        String printerResultSkript = MySIUnitLiteralsPrettyPrinter.prettyprint(astsiUnitLiteralsNode);
+        assertEquals(expectedPrintString, printerResultSkript);
+    }
+
+    private static ASTSIUnitLiteralsNode parseSIUnitLiteralsNode(String siUnitLiteralString) {
+        TestSIUnitLiteralsParser parser = new TestSIUnitLiteralsParser();
+        Optional<ASTLiteral> res = Optional.empty();
+        try {
+            res = parser.parseLiteral(new StringReader(siUnitLiteralString));
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+        assertTrue(res.isPresent());
+        return (ASTSIUnitLiteralsNode) res.get();
+    }
+}
