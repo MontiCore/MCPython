@@ -14,28 +14,28 @@ before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
 stages:
-  - build
+#  - build
   - test
   - check
 
-build:
-  stage: build
-  script:
-    - "gradle assemble --refresh-dependencies $GRADLE_OPTS $ARGS1"
-  artifacts:
-    paths:
-      - "."
-    expire_in: 1 week
-#  except:
-#    changes:
-#    - .gitignore
-#    - README.md
-#    - .gitlab-ci.yml
+#build:
+#  stage: build
+#  script:
+#    - "gradle assemble --refresh-dependencies $GRADLE_OPTS $ARGS1"
+#  artifacts:
+#    paths:
+#      - "."
+#    expire_in: 1 week
+##  except:
+##    changes:
+##    - .gitignore
+##    - README.md
+##    - .gitlab-ci.yml
 
 test:
   stage: test
-  dependencies:
-    - build
+#  dependencies:
+#    - build
   script:
     - "gradle check $GRADLE_OPTS $ARGS2"
 #  except:
