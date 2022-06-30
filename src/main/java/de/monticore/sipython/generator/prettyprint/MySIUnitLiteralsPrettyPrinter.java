@@ -16,6 +16,7 @@ import de.monticore.siunitliterals.utility.SIUnitLiteralDecoder;
 import de.monticore.siunits._ast.ASTSIUnitGroupPrimitive;
 import de.monticore.siunits._ast.ASTSIUnitKindGroupWithExponent;
 import de.monticore.siunits._ast.ASTSIUnitPrimitive;
+import de.monticore.siunits._ast.ASTSIUnitWithPrefix;
 import de.monticore.siunits.prettyprint.SIUnitsPrettyPrinter;
 
 public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
@@ -28,7 +29,7 @@ public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
     public void traverse(ASTSIUnitLiteral node) {
         printer.print("(");
         traverse(node.getNumericLiteral());
-        printer.print(", ");
+        printer.print(", \"");
         if(node.getSIUnit().isPresentNumerator()) {
             traverse(node.getSIUnit().getNumerator());
         }
@@ -39,7 +40,7 @@ public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
         if(node.getSIUnit().isPresentSIUnitPrimitive()) {
             traverse(node.getSIUnit().getSIUnitPrimitive());
         }
-        printer.print(")");
+        printer.print("\")");
     }
 
     private void traverse(ASTNumericLiteral node) {
@@ -56,7 +57,7 @@ public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
             traverse(node.getSIUnitKindGroupWithExponent());
         }
         if(node.isPresentSIUnitWithPrefix()) {
-            printer.print(node.getSIUnitWithPrefix().getName());
+            traverse(node.getSIUnitWithPrefix());
         }
         if(node.isPresentSIUnitDimensionless()) {
             printer.print(node.getSIUnitDimensionless().getUnit());
@@ -64,6 +65,15 @@ public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
         if(node.isPresentCelsiusFahrenheit()) {
             printer.print("°");
             printer.print(node.getCelsiusFahrenheit().getUnit());
+        }
+    }
+
+    private void traverse(ASTSIUnitWithPrefix node) {
+        if(node.isPresentName()) {
+            printer.print(node.getName());
+        }
+        if(node.isPresentNonNameUnit()) {
+            printer.print(node.getNonNameUnit());
         }
     }
 

@@ -47,6 +47,7 @@ public class MySIUnitLiteralsPrettyPrinterTest {
         parsePrintAndAssert("30.4 rad");
         parsePrintAndAssert("5 °C");
         parsePrintAndAssert("5 °F");
+        parsePrintAndAssert("5 µm");
     }
 
     /**
@@ -57,7 +58,7 @@ public class MySIUnitLiteralsPrettyPrinterTest {
         String[] splitString = sitUnitLiteralString.split(" ");
         String literal = splitString[0];
         String unit = splitString[1];
-        String expectedPrintString = "(" + literal + ", " + unit + ")";
+        String expectedPrintString = "(" + literal + ", \"" + unit + "\")";
         ASTSIUnitLiteralsNode astsiUnitLiteralsNode = parseSIUnitLiteralsNode(sitUnitLiteralString);
         String printerResultSkript = MySIUnitLiteralsPrettyPrinter.prettyprint(astsiUnitLiteralsNode);
         assertEquals(expectedPrintString, printerResultSkript);
