@@ -1,7 +1,9 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore.sipython.generator.prettyprint;
 
+import de.monticore.literals.mccommonliterals._ast.ASTBasicDoubleLiteral;
 import de.monticore.literals.mccommonliterals._ast.ASTNatLiteral;
+import de.monticore.literals.mccommonliterals._ast.ASTNumericLiteral;
 import de.monticore.literals.prettyprint.MCCommonLiteralsPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.siunitliterals.SIUnitLiteralsMill;
@@ -11,6 +13,9 @@ import de.monticore.siunitliterals._ast.ASTSignedSIUnitLiteral;
 import de.monticore.siunitliterals._visitor.SIUnitLiteralsTraverser;
 import de.monticore.siunitliterals.prettyprint.SIUnitLiteralsPrettyPrinter;
 import de.monticore.siunitliterals.utility.SIUnitLiteralDecoder;
+import de.monticore.siunits._ast.ASTSIUnitGroupPrimitive;
+import de.monticore.siunits._ast.ASTSIUnitKindGroupWithExponent;
+import de.monticore.siunits._ast.ASTSIUnitPrimitive;
 import de.monticore.siunits.prettyprint.SIUnitsPrettyPrinter;
 
 public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
@@ -22,19 +27,53 @@ public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
     @Override
     public void traverse(ASTSIUnitLiteral node) {
         printer.print("(");
-        printer.print(((ASTNatLiteral)node.getNumericLiteral()).getDigits() + ", ");
+        traverse(node.getNumericLiteral());
+        printer.print(", ");
         if(node.getSIUnit().isPresentNumerator()) {
-            if(node.getSIUnit().getNumerator().isPresentSIUnitWithPrefix()) {
-                printer.print(node.getSIUnit().getNumerator().getSIUnitWithPrefix().getName());
-            }
+            traverse(node.getSIUnit().getNumerator());
         }
         if(node.getSIUnit().isPresentDenominator()) {
-            if(node.getSIUnit().getDenominator().isPresentSIUnitWithPrefix()) {
-                printer.print("/");
-                printer.print(node.getSIUnit().getDenominator().getSIUnitWithPrefix().getName());
-            }
+            printer.print("/");
+            traverse(node.getSIUnit().getDenominator());
+        }
+        if(node.getSIUnit().isPresentSIUnitPrimitive()) {
+            traverse(node.getSIUnit().getSIUnitPrimitive());
         }
         printer.print(")");
+    }
+
+    private void traverse(ASTNumericLiteral node) {
+        if(node instanceof ASTNatLiteral) {
+            printer.print(((ASTNatLiteral)node).getDigits());
+        }
+        if(node instanceof ASTBasicDoubleLiteral) {
+            printer.print(((ASTBasicDoubleLiteral)node).getValue());
+        }
+    }
+
+    private void traverse(ASTSIUnitPrimitive node) {
+        if(node.isPresentSIUnitKindGroupWithExponent()) {
+            traverse(node.getSIUnitKindGroupWithExponent());
+        }
+        if(node.isPresentSIUnitWithPrefix()) {
+            printer.print(node.getSIUnitWithPrefix().getName());
+        }
+        if(node.isPresentSIUnitDimensionless()) {
+            printer.print(node.getSIUnitDimensionless().getUnit());
+        }
+        if(node.isPresentCelsiusFahrenheit()) {
+            printer.print("°");
+            printer.print(node.getCelsiusFahrenheit().getUnit());
+        }
+    }
+
+    private void traverse(ASTSIUnitKindGroupWithExponent node) {
+        printer.print(node.getSIUnitGroupPrimitive(0).getSIUnitWithPrefix().getName());
+        printer.print("^");
+        printer.print(node.getExponent(0).getDigits());
+        for(int i = 1; i < node.getSIUnitGroupPrimitiveList().size(); i++) {
+            printer.print(node.getSIUnitGroupPrimitive(i).getSIUnitWithPrefix().getName());
+        }
     }
 
     @Override
