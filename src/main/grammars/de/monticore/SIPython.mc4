@@ -7,6 +7,4 @@ grammar SIPython extends de.monticore.SIUnitLiterals, de.monticore.Python {
 
   SIUnitConversion implements VariableInit, Expression = SIUnit "(" Expression ")" ;
 
-  @Override
-  FunctionDeclaration implements Function, Statement = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL StatementBlock;
 }
