@@ -51,9 +51,8 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // function declaration
 
-  FunctionDeclaration implements Statement = "def" FunctionName "(" FunctionDeclarationArguments ")" ":" EOL
+  FunctionDeclaration implements Function, Statement = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
                                                         StatementBlock;
-  FunctionName = Name ;
 
   interface FunctionDeclarationArguments ;
 
