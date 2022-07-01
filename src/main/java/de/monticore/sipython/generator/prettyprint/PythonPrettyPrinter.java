@@ -2,12 +2,26 @@
 package de.monticore.sipython.generator.prettyprint;
 
 import de.monticore.expressions.expressionsbasis._ast.ASTExpression;
+import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
 import de.monticore.prettyprint.CommentPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.python._ast.*;
 import de.monticore.python._visitor.PythonHandler;
 import de.monticore.python._visitor.PythonTraverser;
 import de.monticore.python._visitor.PythonVisitor2;
+import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
+import de.monticore.siunits.utility.Converter;
+import de.monticore.siunits.utility.UnitPrettyPrinter;
+import de.monticore.symbols.basicsymbols._symboltable.IBasicSymbolsArtifactScope;
+import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
+import de.monticore.types.check.SymTypeExpression;
+import de.monticore.types.check.SymTypeOfNumericWithSIUnit;
+import de.monticore.types.check.SymTypeOfSIUnit;
+import de.monticore.types.check.TypeCalculator;
+
+import javax.measure.converter.UnitConverter;
+import javax.measure.unit.Unit;
+import java.util.Optional;
 
 public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
@@ -50,18 +64,55 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTLocalVariableDeclarationStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
-		printer.print(node.getVariableDeclaration().getDeclarator().getName());
+		printer.print(node.getVariableDeclaration().getName());
 		printer.print(" = ");
-		ASTVariableInit astVariableInit = node.getVariableDeclaration().getVariableInit();
-		astVariableInit.accept(getTraverser());
+
+		ASTVariableDeclaration astVariableDeclaration = node.getVariableDeclaration();
+		ASTVariableInit astVariableInit = astVariableDeclaration.getVariableInit();
+
+		if (astVariableInit instanceof ASTSimpleInit) {
+			ASTSimpleInit simpleInit = ((ASTSimpleInit) astVariableInit);
+
+			String nameToResolve = astVariableDeclaration.getName();
+			IBasicSymbolsArtifactScope enclosingScope = (IBasicSymbolsArtifactScope) node.getEnclosingScope();
+			Optional<VariableSymbol> variable = enclosingScope.resolveVariable(nameToResolve);
+			Optional<SymTypeExpression> type = Optional.empty();
+			if (variable.isPresent())
+				type = Optional.of(variable.get().getType());
+
+			TypeCalculator tc = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
+
+			UnitConverter converter = UnitConverter.IDENTITY;
+			if (type.isPresent() && type.get() instanceof SymTypeOfNumericWithSIUnit) {
+				Unit unit = ((SymTypeOfNumericWithSIUnit) type.get()).getUnit();
+				SymTypeExpression rightType = tc.typeOf(simpleInit.getExpression());
+				if (rightType instanceof SymTypeOfNumericWithSIUnit)
+					converter = Converter.getConverter(((SymTypeOfNumericWithSIUnit) rightType).getUnit(), unit);
+			}
+
+			if (type.get() instanceof SymTypeOfNumericWithSIUnit) {
+				printer.print("(");
+			}
+
+			printer.print(SIPythonPrettyPrinter.factorStartSimple(converter));
+
+			simpleInit.getExpression().accept(this.getTraverser());
+
+			printer.print(SIPythonPrettyPrinter.factorEndSimple(converter));
+
+			if (type.get() instanceof SymTypeOfNumericWithSIUnit) {
+				SymTypeOfNumericWithSIUnit siUnitType = ((SymTypeOfNumericWithSIUnit) type.get());
+				printer.print(", \"" + siUnitType.getSIUnit().print() + "\")");
+			}
+
+
+			CommentPrettyPrinter.printPostComments(node, printer);
+
+		}
+
 		printer.println();
 
 		CommentPrettyPrinter.printPostComments(node, printer);
-	}
-
-	@Override
-	public void traverse(ASTSimpleInit node) {
-		node.getExpression().accept(getTraverser());
 	}
 
 	@Override

@@ -24,9 +24,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // variable declaration
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL;
 
-  VariableDeclaration = Declarator "=" VariableInit ;
+  VariableDeclaration implements Variable = Name "=" VariableInit ;
 
-  Declarator implements Variable = Name ;
+
 
   interface VariableInit ;
 

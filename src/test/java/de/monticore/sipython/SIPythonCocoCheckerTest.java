@@ -19,12 +19,6 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		SIPythonMill.reset();
 		SIPythonMill.init();
 		SIUnitsMill.initializeSIUnits();
-		SIPythonMill.globalScope().add(SIPythonMill.typeSymbolBuilder()
-				.setName("si")
-				.setEnclosingScope(SIPythonMill.globalScope())
-				.setSpannedScope(SIPythonMill.scope())
-				.build()
-		);
 	}
 
 	private void typeCheckCoCo(String input, boolean expectedError) {

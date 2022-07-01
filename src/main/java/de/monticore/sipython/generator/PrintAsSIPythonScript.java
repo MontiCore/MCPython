@@ -34,12 +34,18 @@ public class PrintAsSIPythonScript {
         traverser.add4ExpressionsBasis(expressionsBasisPrettyPrinter);
         traverser.setExpressionsBasisHandler(expressionsBasisPrettyPrinter);
 
-        MySIUnitLiteralsPrettyPrinter siUnitLiteralsPrettyPrinter = new MySIUnitLiteralsPrettyPrinter(indentPrinter);
+        SIPythonSIUnitsPrettyPrinter siPythonSIUnitsPrettyPrinter = new SIPythonSIUnitsPrettyPrinter(indentPrinter);
+        traverser.add4SIUnits(siPythonSIUnitsPrettyPrinter);
+        traverser.setSIUnitsHandler(siPythonSIUnitsPrettyPrinter);
+
+        SIPythonSIUnitLiteralsPrettyPrinter siUnitLiteralsPrettyPrinter = new SIPythonSIUnitLiteralsPrettyPrinter(indentPrinter);
         traverser.setSIUnitLiteralsHandler(siUnitLiteralsPrettyPrinter);
 
         MCCommonLiteralsPrettyPrinter mcCommonLiteralsPrettyPrinter = new MCCommonLiteralsPrettyPrinter(indentPrinter);
         traverser.add4MCCommonLiterals(mcCommonLiteralsPrettyPrinter);
         traverser.setMCCommonLiteralsHandler(mcCommonLiteralsPrettyPrinter);
+
+
     }
 
     public static String printAsSIPythonScript(ASTPythonScript astPythonScript) {

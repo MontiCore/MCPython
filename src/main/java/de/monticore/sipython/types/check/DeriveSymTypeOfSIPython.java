@@ -10,7 +10,7 @@ public class DeriveSymTypeOfSIPython extends AbstractDerive {
 
 	private DeriveSymTypeOfCommonExpressionsWithSIUnitTypes deriveSymTypeOfCommonExpressions;
 
-	private DeriveSymTypeOfExpression deriveSymTypeOfExpression;
+	private DeriveSymTypeOfSIPythonExpression deriveSymTypeOfSIPythonExpression;
 
 	private DeriveSymTypeOfLiterals deriveSymTypeOfLiterals;
 
@@ -35,7 +35,7 @@ public class DeriveSymTypeOfSIPython extends AbstractDerive {
 		deriveSymTypeOfAssignmentExpressions.setTypeCheckResult(typeCheckResult);
 		deriveSymTypeOfMCCommonLiterals.setTypeCheckResult(typeCheckResult);
 		deriveSymTypeOfCommonExpressions.setTypeCheckResult(typeCheckResult);
-		deriveSymTypeOfExpression.setTypeCheckResult(typeCheckResult);
+		deriveSymTypeOfSIPythonExpression.setTypeCheckResult(typeCheckResult);
 		deriveSymTypeOfLiterals.setTypeCheckResult(typeCheckResult);
 		deriveSymTypeOfSIUnitLiterals.setTypeCheckResult(typeCheckResult);
 	}
@@ -52,9 +52,9 @@ public class DeriveSymTypeOfSIPython extends AbstractDerive {
 		traverser.add4AssignmentExpressions(deriveSymTypeOfAssignmentExpressions);
 		traverser.setAssignmentExpressionsHandler(deriveSymTypeOfAssignmentExpressions);
 
-		deriveSymTypeOfExpression = new DeriveSymTypeOfExpression();
-		traverser.add4ExpressionsBasis(deriveSymTypeOfExpression);
-		traverser.setExpressionsBasisHandler(deriveSymTypeOfExpression);
+		deriveSymTypeOfSIPythonExpression = new DeriveSymTypeOfSIPythonExpression();
+		traverser.add4ExpressionsBasis(deriveSymTypeOfSIPythonExpression);
+		traverser.setExpressionsBasisHandler(deriveSymTypeOfSIPythonExpression);
 
 		deriveSymTypeOfLiterals = new DeriveSymTypeOfLiterals();
 		traverser.add4MCLiteralsBasis(deriveSymTypeOfLiterals);

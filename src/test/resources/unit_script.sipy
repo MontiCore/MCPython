@@ -5,6 +5,7 @@ def calculate_time(velocity_par, distance_par):
     return distance_par / velocity_par
 
 velocity = 3 dm/h
+y = velocity + 1 m/s
 
 # casting/parsing
 velocity = km/h(3 dm/h)
