@@ -12,6 +12,7 @@ public class SIPythonSIUnitConversionTypeCheckCoco extends TypeCheckCoCo impleme
 		TypeCalculator typeCalculator = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
 		return new SIPythonSIUnitConversionTypeCheckCoco(typeCalculator);
 	}
+
 	public SIPythonSIUnitConversionTypeCheckCoco(TypeCalculator typeCheck) {
 		super(typeCheck);
 	}

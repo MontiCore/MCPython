@@ -1,19 +1,25 @@
 package de.monticore.sipython.generator.prettyprint;
 
+import de.monticore.expressions.expressionsbasis._ast.ASTLiteralExpression;
 import de.monticore.prettyprint.CommentPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.sipython._ast.ASTSIUnitConversion;
 import de.monticore.sipython._visitor.SIPythonHandler;
 import de.monticore.sipython._visitor.SIPythonTraverser;
 import de.monticore.sipython._visitor.SIPythonVisitor2;
-import de.monticore.types.check.SymTypeExpression;
-import de.monticore.types.check.SymTypeOfNumericWithSIUnit;
+import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
+import de.monticore.siunitliterals._ast.ASTSIUnitLiteral;
+import de.monticore.siunits.utility.Converter;
+import de.monticore.siunits.utility.UnitPrettyPrinter;
+import de.monticore.types.check.*;
 
 import javax.measure.converter.UnitConverter;
+import javax.measure.unit.Unit;
 
 public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 {
 
 	protected SIPythonTraverser traverser;
+	protected TypeCalculator tc;
 
 	@Override
 	public SIPythonTraverser getTraverser() {
@@ -29,16 +35,45 @@ public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 
 
 	public SIPythonPrettyPrinter(IndentPrinter printer) {
 		this.printer = printer;
+		this.tc = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
+	}
+
+	public IndentPrinter getPrinter() {
+		return printer;
 	}
 
 	@Override
 	public void traverse(ASTSIUnitConversion node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
-		node.getSIUnit().accept(getTraverser());
 
-		printer.print("(");
+		SymTypeOfSIUnit conversionType = (SymTypeOfSIUnit)
+				SIUnitSymTypeExpressionFactory.createSIUnit(UnitPrettyPrinter.printUnit(node.getSIUnit()), node.getEnclosingScope());
 
-		printer.print(")");
+		UnitConverter converter = UnitConverter.IDENTITY;
+		Unit conversionUnit = conversionType.getUnit();
+		Unit expressionUnit = ((SymTypeOfNumericWithSIUnit) tc.typeOf(node.getExpression())).getUnit();
+
+
+		if (!expressionUnit.equals(conversionUnit)) {
+			converter = Converter.getConverter(expressionUnit, conversionUnit);
+		}
+
+		getPrinter().print("(");
+		getPrinter().print(SIPythonPrettyPrinter.factorStart(converter));
+
+		if (node.getExpression() instanceof ASTLiteralExpression) {
+			ASTLiteralExpression literalExpression = ((ASTLiteralExpression) node.getExpression());
+			if (literalExpression.getLiteral() instanceof ASTSIUnitLiteral) {
+				ASTSIUnitLiteral astsiUnitLiteral = ((ASTSIUnitLiteral) literalExpression.getLiteral());
+				astsiUnitLiteral.getNumericLiteral().accept(getTraverser());
+			}
+		} else {
+			node.getExpression().accept(this.getTraverser());
+		}
+
+		getPrinter().print(SIPythonPrettyPrinter.factorEnd(converter));
+
+		printer.print(", \"" + conversionType.print() + "\")");
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}

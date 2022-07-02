@@ -51,18 +51,17 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // function declaration
 
-  FunctionDeclaration implements Function, Statement = "def" Name "(" FunctionDeclarationArguments ")" ":" EOL
+  FunctionDeclaration implements Function, Statement = "def" Name "(" FunctionParameters ")" ":" EOL
                                                         StatementBlock;
 
-  interface FunctionDeclarationArguments ;
+  FunctionParameters = (FunctionParameter  || ",")*;
 
-  SimpleFunctionDeclarationArguments implements FunctionDeclarationArguments = (Expression  || ",")*;
+  FunctionParameter implements Variable = Name;
 
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
   // function call
-  FunctionCall implements Statement = Name@Function "(" FunctionArguments ")" EOL?;
-  FunctionArguments = (Expression || ",")* ;
+  FunctionCall implements Statement = Name@Function "(" (Expression || ",")* ")" EOL?;
 
 
   ExpressionStatement implements Statement = Expression EOL;

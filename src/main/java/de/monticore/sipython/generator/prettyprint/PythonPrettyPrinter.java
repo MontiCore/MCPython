@@ -108,6 +108,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 			CommentPrettyPrinter.printPostComments(node, printer);
 
+		} else {
+			astVariableInit.accept(getTraverser());
 		}
 
 		printer.println();
@@ -202,7 +204,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print("(");
 
 		boolean first = true;
-		for (ASTExpression expression : node.getFunctionArguments().getExpressionList()) {
+		for (ASTExpression expression : node.getExpressionList()) {
 			if (!first) {
 				printer.print(", ");
 			} else {
@@ -224,7 +226,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print("def ");
 		printer.print(node.getName());
 		printer.print("(");
-		node.getFunctionDeclarationArguments().accept(getTraverser());
+		node.getFunctionParameters().accept(getTraverser());
 		printer.print("):");
 		printer.println();
 		node.getStatementBlock().accept(getTraverser());
@@ -233,15 +235,15 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
-	public void traverse(ASTSimpleFunctionDeclarationArguments node) {
+	public void traverse(ASTFunctionParameters node) {
 		boolean first = true;
-		for (ASTExpression expressionStatement : node.getExpressionList()) {
+		for (ASTFunctionParameter argument : node.getFunctionParameterList()) {
 			if (!first) {
 				printer.print(", ");
 			} else {
 				first = false;
 			}
-			expressionStatement.accept(getTraverser());
+			printer.print(argument.getName());
 
 		}
 	}

@@ -1,14 +1,14 @@
 # This is an example script of a unit type supporting python-like language
 
-def calculate_time(velocity_par, distance_par):
-    print("x")
-    return distance_par / velocity_par
+def calculate_velocity(distance, time):
+    return distance / time
 
 velocity = 3 dm/h
 y = velocity + 1 m/s
 
 # casting/parsing
-velocity = km/h(3 dm/h)
+v = km/h(3 dm/h)
+v1 = km/h(y)
 
 v2 = 4 m/ns^2
 
@@ -16,10 +16,10 @@ print(velocity)
 
 distance = 200000 µm
 
-print(distance_dm)
+print(distance)
 
 time = 3 min
 
 print(time)
 
-print(calculate_time(velocity, distance))
+print(calculate_time(distance, time))

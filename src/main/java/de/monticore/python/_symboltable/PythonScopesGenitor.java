@@ -2,7 +2,10 @@ package de.monticore.python._symboltable;
 
 import de.monticore.python._ast.*;
 import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
+import de.monticore.sipython.types.check.SIPythonSymTypeExpressionFactory;
 import de.monticore.types.check.*;
+
+import java.util.List;
 
 public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 
@@ -32,6 +35,35 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 			symTypeExpression = getSymTypeOfVariableInit(((ASTArrayInit) node).getVariableInit(0));
 		}
 		return symTypeExpression;
+	}
+
+	@Override
+	public void endVisit(ASTFunctionDeclaration node) {
+		super.endVisit(node);
+
+		List<ASTStatement> statements = node.getStatementBlock().getStatementBlockBody().getStatementList();
+
+		for (ASTFunctionParameter parameter : node.getFunctionParameters().getFunctionParameterList()) {
+			parameter.accept(getTraverser());
+		}
+
+		for (ASTStatement statement : statements) {
+			statement.accept(getTraverser());
+		}
+
+		ASTStatement lastStatement = statements.get(statements.size() - 1);
+
+		if (lastStatement instanceof ASTReturnStatement) {
+			SymTypeExpression symTypeExpression = tc.typeOf(((ASTReturnStatement) lastStatement).getExpression());
+			node.getSymbol().setType(symTypeExpression);
+		} else {
+			node.getSymbol().setType(SymTypeExpressionFactory.createTypeVoid());
+		}
+	}
+
+	@Override
+	public void endVisit(ASTFunctionParameter node) {
+		node.getSymbol().setType(SIPythonSymTypeExpressionFactory.createPrimitive());
 	}
 
 }
