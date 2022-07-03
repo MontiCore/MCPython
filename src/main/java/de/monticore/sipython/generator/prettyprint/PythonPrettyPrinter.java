@@ -31,6 +31,9 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	@Override
 	public void traverse(ASTPythonScript node) {
+		printer.println("from pint import UnitRegistry");
+		printer.println("ureg = UnitRegistry()");
+
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		for (ASTStatement astStatement : node.getStatementList()) {

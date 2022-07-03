@@ -27,9 +27,9 @@ public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
 
     @Override
     public void traverse(ASTSIUnitLiteral node) {
-        printer.print("(");
+//        printer.print("(");
         traverse(node.getNumericLiteral());
-        printer.print(", \"");
+        printer.print(" * ureg('");
         if(node.getSIUnit().isPresentNumerator()) {
             traverse(node.getSIUnit().getNumerator());
         }
@@ -40,7 +40,7 @@ public class MySIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
         if(node.getSIUnit().isPresentSIUnitPrimitive()) {
             traverse(node.getSIUnit().getSIUnitPrimitive());
         }
-        printer.print("\")");
+        printer.print("')");
     }
 
     private void traverse(ASTNumericLiteral node) {
