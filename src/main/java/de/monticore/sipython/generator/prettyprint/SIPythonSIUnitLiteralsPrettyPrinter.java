@@ -26,32 +26,68 @@ public class SIPythonSIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPri
 
     @Override
     public void traverse(ASTSIUnitLiteral node) {
-        node.getNumericLiteral().accept(getTraverser());
+//        printer.print("(");
+        traverse(node.getNumericLiteral());
+        printer.print(" * ureg('");
+        if(node.getSIUnit().isPresentNumerator()) {
+            traverse(node.getSIUnit().getNumerator());
+        }
+        if(node.getSIUnit().isPresentDenominator()) {
+            printer.print("/");
+            traverse(node.getSIUnit().getDenominator());
+        }
+        if(node.getSIUnit().isPresentSIUnitPrimitive()) {
+            traverse(node.getSIUnit().getSIUnitPrimitive());
+        }
+        printer.print("')");
     }
 
+    private void traverse(ASTNumericLiteral node) {
+        if(node instanceof ASTNatLiteral) {
+            printer.print(((ASTNatLiteral)node).getDigits());
+        }
+        if(node instanceof ASTBasicDoubleLiteral) {
+            printer.print(((ASTBasicDoubleLiteral)node).getValue());
+        }
+    }
+
+    private void traverse(ASTSIUnitPrimitive node) {
+        if(node.isPresentSIUnitKindGroupWithExponent()) {
+            traverse(node.getSIUnitKindGroupWithExponent());
+        }
+        if(node.isPresentSIUnitWithPrefix()) {
+            traverse(node.getSIUnitWithPrefix());
+        }
+        if(node.isPresentSIUnitDimensionless()) {
+            printer.print(node.getSIUnitDimensionless().getUnit());
+        }
+        if(node.isPresentCelsiusFahrenheit()) {
+            printer.print("°");
+            printer.print(node.getCelsiusFahrenheit().getUnit());
+        }
+    }
+
+    private void traverse(ASTSIUnitWithPrefix node) {
+        if(node.isPresentName()) {
+            printer.print(node.getName());
+        }
+        if(node.isPresentNonNameUnit()) {
+            printer.print(node.getNonNameUnit());
+        }
+    }
+
+    private void traverse(ASTSIUnitKindGroupWithExponent node) {
+        printer.print(node.getSIUnitGroupPrimitive(0).getSIUnitWithPrefix().getName());
+        printer.print("^");
+        printer.print(node.getExponent(0).getDigits());
+        for(int i = 1; i < node.getSIUnitGroupPrimitiveList().size(); i++) {
+            printer.print(node.getSIUnitGroupPrimitive(i).getSIUnitWithPrefix().getName());
+        }
+    }
 
     @Override
     public void traverse(ASTSignedSIUnitLiteral node) {
         printer.print(SIUnitLiteralDecoder.doubleOf(node));
     }
 
-    /**
-     * Only used for test.
-     */
-    public static String prettyprint(ASTSIUnitLiteralsNode node) {
-        SIUnitLiteralsTraverser traverser = SIUnitLiteralsMill.traverser();
-
-        IndentPrinter printer = new IndentPrinter();
-        SIUnitsPrettyPrinter siUnitsPrettyPrinter = new SIUnitsPrettyPrinter(printer);
-        SIPythonSIUnitLiteralsPrettyPrinter SIPythonSIUnitLiteralsPrettyPrinter = new SIPythonSIUnitLiteralsPrettyPrinter(printer);
-        MCCommonLiteralsPrettyPrinter mcCommonLiteralsPrettyPrinter = new MCCommonLiteralsPrettyPrinter(printer);
-
-        traverser.setSIUnitsHandler(siUnitsPrettyPrinter);
-        traverser.add4SIUnits(siUnitsPrettyPrinter);
-        traverser.setSIUnitLiteralsHandler(SIPythonSIUnitLiteralsPrettyPrinter);
-        traverser.add4MCCommonLiterals(mcCommonLiteralsPrettyPrinter);
-
-        node.accept(traverser);
-        return printer.getContent();
-    }
 }

@@ -2,6 +2,7 @@ package de.monticore.sipython.generator;
 
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
+import de.monticore.sipython.SIPythonTool;
 import de.monticore.sipython._parser.SIPythonParser;
 import de.se_rwth.commons.logging.Log;
 
@@ -19,13 +20,17 @@ public class Generator {
             .replace("\\","/")
             + ".sipy";
         ASTPythonScript ast = parseModel(modelPath, name);
+
+        SIPythonTool tool = new SIPythonTool();
+
+        tool.runDefaultCoCos(ast);
+
         try {
             SIPythonMill.scopesGenitorDelegator().createFromAST(ast);
         } catch (Exception e) {
             e.printStackTrace();
             Log.error("0xE6548322 Cannot build symbol table");
         }
-
 
         String print = PrintAsSIPythonScript.printAsSIPythonScript(ast);
 
