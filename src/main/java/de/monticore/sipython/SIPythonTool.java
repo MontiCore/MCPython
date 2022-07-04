@@ -19,7 +19,6 @@ public class SIPythonTool extends SIPythonToolTOP {
 		checker.addCoCo(new PythonFunctionDeclarationInIfStatementCoco());
 		checker.addCoCo(new PythonFunctionCallArgumentsSizeCoco());
 		checker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
-		checker.addCoCo(SIPythonFunctionCallTypeCheckCoco.getCoCo());
 		checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) PythonCommonExpressionsTypeCheckCoco.getCoco());
 		checker.addCoCo((CommonExpressionsASTMinusExpressionCoCo) PythonCommonExpressionsTypeCheckCoco.getCoco());
 		checker.addCoCo((CommonExpressionsASTModuloExpressionCoCo) PythonCommonExpressionsTypeCheckCoco.getCoco());

@@ -9,12 +9,15 @@ public class PythonFunctionCallArgumentsSizeCoco implements PythonASTFunctionCal
 
 	@Override
 	public void check(ASTFunctionCall node) {
-		FunctionSymbol functionSymbol = node.getNameSymbol();
 
-		if (functionSymbol.getParameterList().size() > node.getExpressionList().size()) {
-			Log.error( "Too few arguments for function " + functionSymbol.getName() + node.get_SourcePositionStart());
-		} else if (functionSymbol.getParameterList().size() < node.getExpressionList().size()) {
-			Log.error( "Too many arguments for function " + functionSymbol.getName() + node.get_SourcePositionStart());
+		if (node.isPresentNameSymbol()) {
+			FunctionSymbol functionSymbol = node.getNameSymbol();
+
+			if (functionSymbol.getParameterList().size() > node.getExpressionList().size()) {
+				Log.error( "Too few arguments for function " + functionSymbol.getName() + node.get_SourcePositionStart());
+			} else if (functionSymbol.getParameterList().size() < node.getExpressionList().size()) {
+				Log.error( "Too many arguments for function " + functionSymbol.getName() + node.get_SourcePositionStart());
+			}
 		}
 	}
 }
