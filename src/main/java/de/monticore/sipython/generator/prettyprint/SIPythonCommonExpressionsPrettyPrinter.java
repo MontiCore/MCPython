@@ -1,6 +1,7 @@
 package de.monticore.sipython.generator.prettyprint;
 
 import de.monticore.expressions.commonexpressions._ast.*;
+import de.monticore.expressions.expressionsbasis._ast.ASTExpression;
 import de.monticore.expressions.expressionsbasis._ast.ASTLiteralExpression;
 import de.monticore.expressions.prettyprint.CommonExpressionsPrettyPrinter;
 import de.monticore.prettyprint.CommentPrettyPrinter;
@@ -36,7 +37,23 @@ public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPre
 	public void handle(ASTCallExpression node) {
 		CommentPrettyPrinter.printPreComments(node, this.getPrinter());
 
+		CommentPrettyPrinter.printPreComments(node, printer);
 
+		node.getExpression().accept(getTraverser());
+
+		printer.print("(");
+
+		boolean first = true;
+		for (ASTExpression expression : node.getArguments().getExpressionList()) {
+			if (!first) {
+				printer.print(", ");
+			} else {
+				first = false;
+			}
+			expression.accept(getTraverser());
+		}
+
+		printer.print(")");
 
 		CommentPrettyPrinter.printPostComments(node, this.getPrinter());
 	}
@@ -71,45 +88,11 @@ public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPre
 	private void handlePlusMinusModulo(ASTInfixExpression node, String operator, SymTypeOfNumericWithSIUnit symType) {
 		CommentPrettyPrinter.printPreComments(node, this.getPrinter());
 
-		UnitConverter leftConverter = UnitConverter.IDENTITY;
-		UnitConverter rightConverter = UnitConverter.IDENTITY;
-		Unit unit = symType.getUnit();
-		Unit leftUnit = ((SymTypeOfNumericWithSIUnit) tc.typeOf(node.getLeft())).getUnit();
-		Unit rightUnit = ((SymTypeOfNumericWithSIUnit) tc.typeOf(node.getRight())).getUnit();
-
-		if (!leftUnit.equals(unit)) {
-			leftConverter = Converter.getConverter(leftUnit, unit);
-		}
-		if (!rightUnit.equals(unit)) {
-			rightConverter = Converter.getConverter(rightUnit, unit);
-		}
-
-		getPrinter().print(SIPythonPrettyPrinter.factorStart(leftConverter));
-		if (node.getLeft() instanceof ASTLiteralExpression) {
-			ASTLiteralExpression literalExpression = ((ASTLiteralExpression) node.getLeft());
-			if (literalExpression.getLiteral() instanceof ASTSIUnitLiteral) {
-				ASTSIUnitLiteral astsiUnitLiteral = ((ASTSIUnitLiteral) literalExpression.getLiteral());
-				astsiUnitLiteral.getNumericLiteral().accept(getTraverser());
-			}
-		} else {
-			node.getLeft().accept(this.getTraverser());
-		}
-
-		getPrinter().print(SIPythonPrettyPrinter.factorEnd(leftConverter));
+		getPrinter().print("(");
+		node.getLeft().accept(this.getTraverser());
 		this.getPrinter().print(" " + operator + " ");
-		getPrinter().print(SIPythonPrettyPrinter.factorStart(rightConverter));
-
-		if (node.getRight() instanceof ASTLiteralExpression) {
-			ASTLiteralExpression literalExpression = ((ASTLiteralExpression) node.getRight());
-			if (literalExpression.getLiteral() instanceof ASTSIUnitLiteral) {
-				ASTSIUnitLiteral astsiUnitLiteral = ((ASTSIUnitLiteral) literalExpression.getLiteral());
-				astsiUnitLiteral.getNumericLiteral().accept(getTraverser());
-			}
-		} else {
-			node.getRight().accept(this.getTraverser());
-		}
-
-		getPrinter().print(SIPythonPrettyPrinter.factorEnd(rightConverter));
+		node.getRight().accept(this.getTraverser());
+		getPrinter().print(")");
 
 		CommentPrettyPrinter.printPostComments(node, this.getPrinter());
 

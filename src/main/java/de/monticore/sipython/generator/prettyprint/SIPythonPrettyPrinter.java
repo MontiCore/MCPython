@@ -46,21 +46,6 @@ public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 
 	public void traverse(ASTSIUnitConversion node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
-		SymTypeOfSIUnit conversionType = (SymTypeOfSIUnit)
-				SIUnitSymTypeExpressionFactory.createSIUnit(UnitPrettyPrinter.printUnit(node.getSIUnit()), node.getEnclosingScope());
-
-		UnitConverter converter = UnitConverter.IDENTITY;
-		Unit conversionUnit = conversionType.getUnit();
-		Unit expressionUnit = ((SymTypeOfNumericWithSIUnit) tc.typeOf(node.getExpression())).getUnit();
-
-
-		if (!expressionUnit.equals(conversionUnit)) {
-			converter = Converter.getConverter(expressionUnit, conversionUnit);
-		}
-
-		getPrinter().print("(");
-		getPrinter().print(SIPythonPrettyPrinter.factorStart(converter));
-
 		if (node.getExpression() instanceof ASTLiteralExpression) {
 			ASTLiteralExpression literalExpression = ((ASTLiteralExpression) node.getExpression());
 			if (literalExpression.getLiteral() instanceof ASTSIUnitLiteral) {
@@ -71,9 +56,9 @@ public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 
 			node.getExpression().accept(this.getTraverser());
 		}
 
-		getPrinter().print(SIPythonPrettyPrinter.factorEnd(converter));
-
-		printer.print(", \"" + conversionType.print() + "\")");
+		printer.print(" * ureg('");
+		node.getSIUnit().accept(getTraverser());
+		printer.print("')");
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}

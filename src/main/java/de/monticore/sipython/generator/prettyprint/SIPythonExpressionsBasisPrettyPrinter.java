@@ -18,21 +18,7 @@ public class SIPythonExpressionsBasisPrettyPrinter extends ExpressionsBasisPrett
 	@Override
 	public void handle(ASTNameExpression node) {
 		CommentPrettyPrinter.printPreComments(node, getPrinter());
-		if (node.getDefiningSymbol().isPresent()) {
-			ISymbol symbol = node.getDefiningSymbol().get();
-			if (symbol instanceof VariableSymbol) {
-				VariableSymbol varSymbol = ((VariableSymbol) symbol);
-
-				getPrinter().print(node.getName());
-
-				if (varSymbol.getType() instanceof SymTypeOfNumericWithSIUnit) {
-					getPrinter().print("[0]");
-				}
-			}
-		} else {
-			getPrinter().print(node.getName());
-		}
-
+		getPrinter().print(node.getName());
 		CommentPrettyPrinter.printPostComments(node, getPrinter());
 	}
 

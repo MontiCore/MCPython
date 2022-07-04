@@ -60,9 +60,6 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
-  // function call
-  FunctionCall implements Statement = Name@Function "(" (Expression || ",")* ")" EOL?;
-
 
   ExpressionStatement implements Statement = Expression EOL;
 

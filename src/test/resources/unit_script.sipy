@@ -22,4 +22,4 @@ time = 3 min
 
 print(time)
 
-print(calculate_time(distance, time))
+print(calculate_velocity(distance, time))

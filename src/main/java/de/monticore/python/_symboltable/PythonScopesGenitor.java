@@ -7,6 +7,7 @@ import de.monticore.types.check.*;
 
 import java.util.List;
 
+
 public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 
 	private TypeCalculator tc;

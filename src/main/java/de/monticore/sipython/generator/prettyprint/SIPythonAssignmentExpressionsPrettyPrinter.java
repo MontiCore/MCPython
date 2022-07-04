@@ -31,13 +31,6 @@ public class SIPythonAssignmentExpressionsPrettyPrinter extends AssignmentExpres
 			Log.error("0xE725687 Left side of AssignmentExpression is not a NameExpression");
 		}
 
-		String nameToResolve = ((ASTNameExpression) node.getLeft()).getName();
-		IBasicSymbolsArtifactScope enclosingScope = (IBasicSymbolsArtifactScope) node.getEnclosingScope();
-		Optional<VariableSymbol> variable = enclosingScope.resolveVariable(nameToResolve);
-		Optional<SymTypeExpression> type = Optional.empty();
-		if (variable.isPresent())
-			type = Optional.of(variable.get().getType());
-
 		this.getPrinter().print(((ASTNameExpression) node.getLeft()).getName());
 
 		this.getPrinter().print(" ");
@@ -82,22 +75,7 @@ public class SIPythonAssignmentExpressionsPrettyPrinter extends AssignmentExpres
 				Log.error("0xA0114 Missing implementation for RegularAssignmentExpression");
 		}
 
-		TypeCalculator tc = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
-
-		UnitConverter converter = UnitConverter.IDENTITY;
-		if (type.isPresent() && type.get() instanceof SymTypeOfNumericWithSIUnit) {
-			Unit unit = ((SymTypeOfNumericWithSIUnit) type.get()).getUnit();
-			SymTypeExpression rightType = tc.typeOf(node.getRight());
-			if (rightType instanceof SymTypeOfNumericWithSIUnit)
-				converter = Converter.getConverter(((SymTypeOfNumericWithSIUnit) rightType).getUnit(), unit);
-		}
-
-		this.getPrinter().print(SIPythonPrettyPrinter.factorStartSimple(converter));
-
 		node.getRight().accept(this.getTraverser());
-
-		this.getPrinter().print(SIPythonPrettyPrinter.factorEndSimple(converter));
-		this.getPrinter().print("\"" + type.get().print() + "\"");
 
 		CommentPrettyPrinter.printPostComments(node, this.getPrinter());
 	}

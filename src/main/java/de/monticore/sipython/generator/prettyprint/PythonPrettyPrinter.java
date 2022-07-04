@@ -76,38 +76,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		if (astVariableInit instanceof ASTSimpleInit) {
 			ASTSimpleInit simpleInit = ((ASTSimpleInit) astVariableInit);
 
-			String nameToResolve = astVariableDeclaration.getName();
-			IBasicSymbolsArtifactScope enclosingScope = (IBasicSymbolsArtifactScope) node.getEnclosingScope();
-			Optional<VariableSymbol> variable = enclosingScope.resolveVariable(nameToResolve);
-			Optional<SymTypeExpression> type = Optional.empty();
-			if (variable.isPresent())
-				type = Optional.of(variable.get().getType());
-
-			TypeCalculator tc = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
-
-			UnitConverter converter = UnitConverter.IDENTITY;
-			if (type.isPresent() && type.get() instanceof SymTypeOfNumericWithSIUnit) {
-				Unit unit = ((SymTypeOfNumericWithSIUnit) type.get()).getUnit();
-				SymTypeExpression rightType = tc.typeOf(simpleInit.getExpression());
-				if (rightType instanceof SymTypeOfNumericWithSIUnit)
-					converter = Converter.getConverter(((SymTypeOfNumericWithSIUnit) rightType).getUnit(), unit);
-			}
-
-			if (type.get() instanceof SymTypeOfNumericWithSIUnit) {
-				printer.print("(");
-			}
-
-			printer.print(SIPythonPrettyPrinter.factorStartSimple(converter));
-
 			simpleInit.getExpression().accept(this.getTraverser());
-
-			printer.print(SIPythonPrettyPrinter.factorEndSimple(converter));
-
-			if (type.get() instanceof SymTypeOfNumericWithSIUnit) {
-				SymTypeOfNumericWithSIUnit siUnitType = ((SymTypeOfNumericWithSIUnit) type.get());
-				printer.print(", \"" + siUnitType.getSIUnit().print() + "\")");
-			}
-
 
 			CommentPrettyPrinter.printPostComments(node, printer);
 
@@ -199,30 +168,6 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
-	public void traverse(ASTFunctionCall node) {
-		CommentPrettyPrinter.printPreComments(node, printer);
-
-		printer.print(node.getName());
-
-		printer.print("(");
-
-		boolean first = true;
-		for (ASTExpression expression : node.getExpressionList()) {
-			if (!first) {
-				printer.print(", ");
-			} else {
-				first = false;
-			}
-			expression.accept(getTraverser());
-		}
-
-		printer.print(")");
-		printer.println();
-
-		CommentPrettyPrinter.printPostComments(node, printer);
-	}
-
-	@Override
 	public void traverse(ASTFunctionDeclaration node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
@@ -266,11 +211,26 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	@Override
 	public void traverse(ASTStatementBlock node) {
+		CommentPrettyPrinter.printPreComments(node, printer);
+
+
 		ASTStatementBlockBody blockBody = node.getStatementBlockBody();
 		printer.indent();
 		for (ASTStatement statement : blockBody.getStatementList()) {
 			statement.accept(getTraverser());
 		}
 		printer.unindent();
+
+		CommentPrettyPrinter.printPostComments(node, printer);
+	}
+
+	@Override
+	public void traverse(ASTExpressionStatement node) {
+		CommentPrettyPrinter.printPreComments(node, printer);
+
+		node.getExpression().accept(getTraverser());
+		printer.println();
+
+		CommentPrettyPrinter.printPostComments(node, printer);
 	}
 }
