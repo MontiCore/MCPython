@@ -21,16 +21,16 @@ public class Generator {
             + ".sipy";
         ASTPythonScript ast = parseModel(modelPath, name);
 
-        SIPythonTool tool = new SIPythonTool();
-
-        tool.runDefaultCoCos(ast);
-
         try {
             SIPythonMill.scopesGenitorDelegator().createFromAST(ast);
         } catch (Exception e) {
             e.printStackTrace();
             Log.error("0xE6548322 Cannot build symbol table");
         }
+
+        SIPythonTool tool = new SIPythonTool();
+
+        tool.runDefaultCoCos(ast);
 
         String print = PrintAsSIPythonScript.printAsSIPythonScript(ast);
 
