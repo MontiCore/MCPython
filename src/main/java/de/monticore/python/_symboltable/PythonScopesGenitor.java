@@ -2,7 +2,6 @@ package de.monticore.python._symboltable;
 
 import de.monticore.python._ast.*;
 import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
-import de.monticore.sipython.types.check.SIPythonSymTypeExpressionFactory;
 import de.monticore.types.check.*;
 
 import java.util.List;
@@ -21,6 +20,7 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 		tc = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
 	}
 
+	/*
 	@Override
 	public void endVisit(ASTVariableDeclaration node) {
 		super.endVisit(node);
@@ -62,9 +62,6 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 		}
 	}
 
-	@Override
-	public void endVisit(ASTFunctionParameter node) {
-		node.getSymbol().setType(SIPythonSymTypeExpressionFactory.createPrimitive());
-	}
+ */
 
 }

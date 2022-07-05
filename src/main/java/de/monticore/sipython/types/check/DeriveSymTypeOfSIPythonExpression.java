@@ -5,6 +5,7 @@ import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
 import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
 import de.monticore.types.check.DeriveSymTypeOfExpression;
 import de.monticore.types.check.SymTypeExpression;
+import de.monticore.types.check.SymTypeExpressionFactory;
 
 import java.util.Optional;
 
@@ -24,9 +25,11 @@ public class DeriveSymTypeOfSIPythonExpression extends DeriveSymTypeOfExpression
 		}else if (optVar.isPresent()) {
 			VariableSymbol var = optVar.get();
 			expr.setDefiningSymbol(var);
-			SymTypeExpression res = var.getType().deepClone();
-			getTypeCheckResult().setField();
-			return Optional.of(res);
+			if (var.getType() != null) {
+				SymTypeExpression res = var.getType().deepClone();
+				getTypeCheckResult().setField();
+				return Optional.of(res);
+			}
 		}
 		return Optional.empty();
 	}

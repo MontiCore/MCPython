@@ -60,41 +60,23 @@ public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPre
 
 	@Override
 	public void handle(ASTPlusExpression node) {
-		SymTypeExpression symType = tc.typeOf(node);
-		if (symType instanceof SymTypeOfNumericWithSIUnit) {
-			handlePlusMinusModulo(node, "+", (SymTypeOfNumericWithSIUnit) symType);
-		} else
-			super.handle(node);
+		getPrinter().print("(");
+		super.handle(node);
+		getPrinter().print(")");
 	}
 
 	@Override
 	public void handle(ASTMinusExpression node) {
-		SymTypeExpression symType = tc.typeOf(node);
-		if (symType instanceof SymTypeOfNumericWithSIUnit) {
-			handlePlusMinusModulo(node, "-", (SymTypeOfNumericWithSIUnit) symType);
-		} else
-			super.handle(node);
+		getPrinter().print("(");
+		super.handle(node);
+		getPrinter().print(")");
 	}
 
 	@Override
 	public void handle(ASTModuloExpression node) {
-		SymTypeExpression symType = tc.typeOf(node);
-		if (symType instanceof SymTypeOfNumericWithSIUnit) {
-			handlePlusMinusModulo(node, "%", (SymTypeOfNumericWithSIUnit) symType);
-		} else
-			super.handle(node);
-	}
-
-	private void handlePlusMinusModulo(ASTInfixExpression node, String operator, SymTypeOfNumericWithSIUnit symType) {
-		CommentPrettyPrinter.printPreComments(node, this.getPrinter());
-
 		getPrinter().print("(");
-		node.getLeft().accept(this.getTraverser());
-		this.getPrinter().print(" " + operator + " ");
-		node.getRight().accept(this.getTraverser());
+		super.handle(node);
 		getPrinter().print(")");
-
-		CommentPrettyPrinter.printPostComments(node, this.getPrinter());
-
 	}
+
 }

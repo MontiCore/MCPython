@@ -21,6 +21,7 @@ public class SIPythonSIUnitConversionTypeCheckCoco extends TypeCheckCoCo impleme
 	@Override
 	public void check(de.monticore.sipython._ast.ASTSIUnitConversion node) {
 		checkExpression(node.getExpression());
+
 		SymTypeExpression typeOfExpression = this.tc.typeOf(node.getExpression());
 
 		SymTypeExpression siunitType =

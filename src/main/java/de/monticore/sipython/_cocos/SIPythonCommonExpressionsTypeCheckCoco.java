@@ -10,14 +10,14 @@ import de.monticore.types.check.TypeCheck;
 import de.monticore.types.check.cocos.TypeCheckCoCo;
 import de.se_rwth.commons.logging.Log;
 
-public class PythonCommonExpressionsTypeCheckCoco extends TypeCheckCoCo implements
+public class SIPythonCommonExpressionsTypeCheckCoco extends TypeCheckCoCo implements
 		CommonExpressionsASTPlusExpressionCoCo, CommonExpressionsASTMinusExpressionCoCo, CommonExpressionsASTModuloExpressionCoCo {
 
-	public static PythonCommonExpressionsTypeCheckCoco getCoco() {
-		return new PythonCommonExpressionsTypeCheckCoco(new TypeCalculator(null, new DeriveSymTypeOfSIPython()));
+	public static SIPythonCommonExpressionsTypeCheckCoco getCoco() {
+		return new SIPythonCommonExpressionsTypeCheckCoco(new TypeCalculator(null, new DeriveSymTypeOfSIPython()));
 	}
 
-	public PythonCommonExpressionsTypeCheckCoco(TypeCalculator typeCheck) {
+	public SIPythonCommonExpressionsTypeCheckCoco(TypeCalculator typeCheck) {
 		super(typeCheck);
 	}
 
