@@ -64,6 +64,18 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
+	public void traverse(ASTImportStatement node) {
+		if (node.isPresentModule()) {
+			printer.print("from ");
+			printer.print(node.getModule());
+			printer.print(" ");
+		}
+		printer.print("import ");
+		printer.print(node.getName());
+		printer.println();
+	}
+
+	@Override
 	public void traverse(ASTLocalVariableDeclarationStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 

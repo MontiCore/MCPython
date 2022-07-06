@@ -12,21 +12,23 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   EOL = ("\n" | "\r" | "<EOF>")+ ;
 
-  EmptyStatement implements Statement = EOL ;
 
   interface Statement ;
+
+  EmptyStatement implements Statement = EOL ;
 
   StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
   StatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* Statement ({isIndentedCorrectly()}? Indent+ Statement)*;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
+  // imports
+  ImportStatement implements Statement = ( "from" module:Name )? "import" Name EOL ;
+
   // variable declaration
-  LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL;
+  LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL ;
 
   VariableDeclaration implements Variable = Name "=" VariableInit ;
-
-
 
   interface VariableInit ;
 
