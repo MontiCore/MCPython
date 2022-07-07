@@ -24,8 +24,9 @@ public class AbstractTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		return (int)Log.getErrorCount();
+		int errorCount = (int)Log.getErrorCount();
+		Log.clearFindings();
+		return errorCount;
 	}
 
 	public void parseModelAndExpectErrors(String modelFileName, int expectedErrorCount) {
@@ -55,7 +56,9 @@ public class AbstractTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return (int)Log.getErrorCount();
+		int errorCount = (int)Log.getErrorCount();
+		Log.clearFindings();
+		return errorCount;
 	}
 
 	public void parseCodeStringAndExpectErrorCount(String codeString, int expectedErrorCount) {
@@ -64,5 +67,9 @@ public class AbstractTest {
 
 	public void parseCodeStringAndExpectSuccess(String codeString) {
 		parseCodeStringAndExpectErrorCount(codeString,0);
+	}
+
+	public void parseCodeStringAndExpectFail(String codeString) {
+		assertTrue(parseCodeStringAndReturnErrorCount(codeString) > 0);
 	}
 }
