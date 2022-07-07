@@ -103,6 +103,151 @@ public class PythonTest extends AbstractTest {
 		);
 	}
 
+	@Test
+	public void parseValidForLoop() {
+		parseModelFromStringAndExpectSuccess(
+				"for x in [0,1,2]:\n" +
+				"    print(x)"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"for x in range(0, 3):\n" +
+						"    print(x)"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"for x in range(3):\n" +
+						"    print(x)"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"for x in collection_var:\n" +
+						"    print(x)"
+		);
+	}
+
+	@Test
+	public void parseInvalidForLoop() {
+		//missing ":"
+		parseModelFromStringAndExpectFail(
+				"for x in [0,1,2]\n" +
+						"    print(x)"
+		);
+		//missing "in"
+		parseModelFromStringAndExpectFail(
+				"for x [0,1,2]:\n" +
+						"    print(x)"
+		);
+		//missing "for"
+		parseModelFromStringAndExpectFail(
+				"x in [0,1,2]:\n" +
+						"    print(x)"
+		);
+	}
+
+	@Test
+	public void parseValidWhileLoop() {
+		parseModelFromStringAndExpectSuccess(
+				"while i < 6:\n" +
+				"    print(i)\n" +
+				"    i += 1"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"while i < 6:\n" +
+				"    break"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"while i < 6:\n" +
+						"    print(i)\n" +
+						"    if i == 3:\n" +
+						"        break\n" +
+						"    i += 1"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"while i < 6:\n" +
+						"    i += 1\n" +
+						"    if i == 3:\n" +
+						"        continue\n" +
+						"    print(i)"
+		);
+	}
+
+	@Test
+	public void parseInvalidWhileLoop() {
+		//missing "while"
+		parseModelFromStringAndExpectFail(
+				" i < 6:\n" +
+						"    print(i)\n" +
+						"    i += 1"
+		);
+		//missing condition
+		parseModelFromStringAndExpectFail(
+				"while :\n" +
+						"    print(i)\n" +
+						"    i += 1"
+		);
+		//missing ":"
+		parseModelFromStringAndExpectFail(
+				"while i < 6\n" +
+						"    print(i)\n" +
+						"    i += 1"
+		);
+
+		//else statements for while loops should not fail: has to be added in the grammar
+		parseModelFromStringAndExpectFail(
+				"while i < 6:\n" +
+						"    i += 1\n" +
+						" else:" +
+						"    print(x)"
+		);
+	}
+
+	@Test
+	public void parseValidFunctionDeclaration() {
+		parseModelFromStringAndExpectSuccess(
+				"def function_name(x):\n" +
+				"    print(x)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def function_name(x,y,z):\n" +
+				"    print(x,y,z)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def absolute_value(num):\n" +
+						"    if num >= 0:\n" +
+						"        return num"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"def absolute_value():\n" +
+						"    return"
+		);
+	}
+
+	@Test
+	public void parseInvalidFunctionDeclaration() {
+		//missing "def"
+		parseModelFromStringAndExpectFail(
+				" function_name(x):\n" +
+						"    print(x)"
+		);
+		//missing function name
+		parseModelFromStringAndExpectFail(
+				"def (x):\n" +
+						"    print(x)"
+		);
+		//missing function parameters
+		parseModelFromStringAndExpectFail(
+				"def function_name:\n" +
+						"    print(x)"
+		);
+		//missing ":"
+		parseModelFromStringAndExpectFail(
+				"def function_name(x)\n" +
+						"    print(x)"
+		);
+	}
+
 //	---------------------------------------------------------------
 //	Tests for whole scripts from files.
 //	---------------------------------------------------------------
