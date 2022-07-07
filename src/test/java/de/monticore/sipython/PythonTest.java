@@ -15,13 +15,18 @@ public class PythonTest extends AbstractTest {
 	@Test
 	public void parseSimplePython() {
 		String model = "python/simple_python.sipy";
-		parseModel(model, false);
+		parseModelAndExpectSuccess(model);
 	}
 
+	/**
+	 * In some cases the parser only recognises only one intendtation error at once (although the file contains multiple).
+	 * However, if the recognized error is fixed, the next error is detected.
+	 * Thus, the test cases at least for indentation errors must include only one error.
+	 */
 	@Test
 	public void parsePythonWithIndentError() {
 		String model = "python/python_IndentError.sipy";
-		parseModel(model, true);
+		parseModelAndExpectErrors(model, 1);
 	}
 
 }

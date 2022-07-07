@@ -12,17 +12,24 @@ import static org.junit.Assert.assertTrue;
 
 public class AbstractTest {
 
-	public void parseModel(String input, boolean expectedError) {
+	public int parseModelAndReturnErrors(String modelFileName) {
 		Log.getFindings().clear();
 		SIPythonParser parser = new SIPythonParser();
-		Optional<ASTPythonScript> res = Optional.empty();
 		try {
-			res = parser.parsePythonScript("src/test/resources/" + input);
+			parser.parsePythonScript("src/test/resources/" + modelFileName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		assertEquals(expectedError, Log.getErrorCount() > 0);
+		return (int)Log.getErrorCount();
+	}
+
+	public void parseModelAndExpectErrors(String modelFileName, int expectedErrorCount) {
+		assertEquals(expectedErrorCount, parseModelAndReturnErrors(modelFileName));
+	}
+
+	public void parseModelAndExpectSuccess(String modelFileName) {
+		parseModelAndExpectErrors(modelFileName, 0);
 	}
 
 	public ASTPythonScript parseModel(String input) {

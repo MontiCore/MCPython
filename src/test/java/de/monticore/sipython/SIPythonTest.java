@@ -21,24 +21,24 @@ public class SIPythonTest extends AbstractTest {
 	@Test
 	public void parseSyntaxError() {
 		String model = "tests/textSyntaxErrors.sipy";
-		parseModel(model, true);
+		parseModelAndExpectErrors(model, 3);
 	}
 
 	@Test
 	public void parseSyntaxNoError() {
 		String model = "tests/textSyntaxNoErrors.sipy";
-		parseModel(model, false);
+		parseModelAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parseFunctions() {
 		String model = "tests/funct.sipy";
-		parseModel(model, false);
+		parseModelAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parsePrints() {
 		String model = "tests/prints.sipy";
-		parseModel(model, false);
+		parseModelAndExpectSuccess(model);
 	}
 }

@@ -1,9 +1,9 @@
 y = [1, 2, 3]
 
 for x in range(3):
-    print(x)
+        print(x)
     for y in range(4):
-            print(y)
+        print(y)
         for i in range(5):
             print(i)
     print(z)
