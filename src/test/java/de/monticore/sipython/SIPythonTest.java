@@ -15,40 +15,6 @@ public class SIPythonTest extends AbstractTest {
 	}
 
 //	---------------------------------------------------------------
-//	Tests for whole scripts from files.
-//	---------------------------------------------------------------
-
-	@Test
-	public void parseSimpleSIPython() {
-		String model = "unit_script.sipy";
-		parseModelAndExpectSuccess(model);
-	}
-
-	@Test
-	public void parseSyntaxError() {
-		String model = "tests/textSyntaxErrors.sipy";
-		parseModelAndExpectErrors(model, 3);
-	}
-
-	@Test
-	public void parseSyntaxNoError() {
-		String model = "tests/textSyntaxNoErrors.sipy";
-		parseModelAndExpectSuccess(model);
-	}
-
-	@Test
-	public void parseFunctions() {
-		String model = "tests/funct.sipy";
-		parseModelAndExpectSuccess(model);
-	}
-
-	@Test
-	public void parsePrints() {
-		String model = "tests/prints.sipy";
-		parseModelAndExpectSuccess(model);
-	}
-
-//	---------------------------------------------------------------
 //	Tests for single code snippets from strings.
 //	---------------------------------------------------------------
 
@@ -81,5 +47,39 @@ public class SIPythonTest extends AbstractTest {
 	public void parseInvalidSIUnitConversion() {
 		parseCodeStringAndExpectFail("km/h(5 dm/h\n");
 		parseCodeStringAndExpectFail("km/h5 dm/h)\n");
+	}
+
+//	---------------------------------------------------------------
+//	Tests for whole scripts from files.
+//	---------------------------------------------------------------
+
+	@Test
+	public void parseSimpleSIPython() {
+		String model = "unit_script.sipy";
+		parseModelAndExpectSuccess(model);
+	}
+
+	@Test
+	public void parseSyntaxError() {
+		String model = "tests/textSyntaxErrors.sipy";
+		parseModelAndExpectErrors(model, 3);
+	}
+
+	@Test
+	public void parseSyntaxNoError() {
+		String model = "tests/textSyntaxNoErrors.sipy";
+		parseModelAndExpectSuccess(model);
+	}
+
+	@Test
+	public void parseFunctions() {
+		String model = "tests/funct.sipy";
+		parseModelAndExpectSuccess(model);
+	}
+
+	@Test
+	public void parsePrints() {
+		String model = "tests/prints.sipy";
+		parseModelAndExpectSuccess(model);
 	}
 }
