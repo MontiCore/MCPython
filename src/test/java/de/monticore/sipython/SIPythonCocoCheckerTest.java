@@ -1,6 +1,5 @@
 package de.monticore.sipython;
 
-import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTPlusExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.PythonASTFunctionDeclarationCoCo;
 import de.monticore.sipython._cocos.*;
@@ -25,7 +24,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	private void typeCheckCoCo(String input, boolean expectedError) {
 		Log.getFindings().clear();
-		ASTPythonScript model = parseModel(input);
+		ASTPythonScript model = parseModelAndReturnASTPythonScript(input);
 		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
 		// checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());

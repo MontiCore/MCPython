@@ -4,6 +4,8 @@ import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class SIPythonTest extends AbstractTest {
 
 	@Before
@@ -15,7 +17,7 @@ public class SIPythonTest extends AbstractTest {
 	@Test
 	public void parseSimpleSIPython() {
 		String model = "unit_script.sipy";
-		parseModel(model);
+		parseModelAndExpectSuccess(model);
 	}
 
 	@Test
@@ -40,5 +42,19 @@ public class SIPythonTest extends AbstractTest {
 	public void parsePrints() {
 		String model = "tests/prints.sipy";
 		parseModelAndExpectSuccess(model);
+	}
+
+	@Test
+	public void parseValidCodeString() {
+		String codeString =
+				"velocity = 5 dm/h\n";
+		parseCodeStringAndExpectSuccess(codeString);
+	}
+
+	@Test
+	public void parseInvalidCodeString() {
+		String codeString =
+				"velocity = 5 m/h 5 km\n";
+		parseCodeStringAndExpectErrorCount(codeString,2);
 	}
 }
