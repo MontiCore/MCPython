@@ -20,33 +20,33 @@ public class SIPythonTest extends AbstractTest {
 
 	@Test
 	public void parseValidUnit() {
-		parseCodeStringAndExpectSuccess("3 km/h\n");
+		parseModelFromStringAndExpectSuccess("3 km/h\n");
 	}
 
 	@Test
 	public void parseInvalidUnit() {
-		parseCodeStringAndExpectFail("3 xxx\n");
-		parseCodeStringAndExpectFail("3 y/h\n");
+		parseModelFromStringAndExpectFail("3 xxx\n");
+		parseModelFromStringAndExpectFail("3 y/h\n");
 	}
 
 	@Test
 	public void parseValidVariableAssignment() {
-		parseCodeStringAndExpectSuccess("velocity = 5 dm/h\n");
+		parseModelFromStringAndExpectSuccess("velocity = 5 dm/h\n");
 	}
 
 	@Test
 	public void parseInvalidAssignment() {
-		parseCodeStringAndExpectFail("velocity = \n");
+		parseModelFromStringAndExpectFail("velocity = \n");
 	}
 
 	@Test
 	public void parseValidSIUnitConversion() {
-		parseCodeStringAndExpectSuccess("km/h(5 dm/h)\n");
+		parseModelFromStringAndExpectSuccess("km/h(5 dm/h)\n");
 	}
 	@Test
 	public void parseInvalidSIUnitConversion() {
-		parseCodeStringAndExpectFail("km/h(5 dm/h\n");
-		parseCodeStringAndExpectFail("km/h5 dm/h)\n");
+		parseModelFromStringAndExpectFail("km/h(5 dm/h\n");
+		parseModelFromStringAndExpectFail("km/h5 dm/h)\n");
 	}
 
 //	---------------------------------------------------------------
@@ -56,30 +56,30 @@ public class SIPythonTest extends AbstractTest {
 	@Test
 	public void parseSimpleSIPython() {
 		String model = "unit_script.sipy";
-		parseModelAndExpectSuccess(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parseSyntaxError() {
 		String model = "tests/textSyntaxErrors.sipy";
-		parseModelAndExpectErrors(model, 3);
+		parseModelFromFileAndExpectErrors(model, 3);
 	}
 
 	@Test
 	public void parseSyntaxNoError() {
 		String model = "tests/textSyntaxNoErrors.sipy";
-		parseModelAndExpectSuccess(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parseFunctions() {
 		String model = "tests/funct.sipy";
-		parseModelAndExpectSuccess(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parsePrints() {
 		String model = "tests/prints.sipy";
-		parseModelAndExpectSuccess(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 }

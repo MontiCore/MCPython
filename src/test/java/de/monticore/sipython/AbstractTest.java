@@ -1,8 +1,6 @@
 package de.monticore.sipython;
 
-import de.monticore.literals.mcliteralsbasis._ast.ASTLiteral;
 import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.python._parser.PythonParser;
 import de.monticore.sipython._parser.SIPythonParser;
 import de.se_rwth.commons.logging.Log;
 
@@ -16,28 +14,23 @@ import static org.junit.Assert.fail;
 
 public class AbstractTest {
 
-	public int parseModelAndReturnErrorsCount(String modelFileName) {
+	public int parseModelFromFileAndReturnErrorsCount(String modelFileName) {
 		Log.getFindings().clear();
-		SIPythonParser parser = new SIPythonParser();
-		try {
-			parser.parsePythonScript("src/test/resources/" + modelFileName);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		parseModelFromFileAndReturnASTPythonScript(modelFileName);
 		int errorCount = (int)Log.getErrorCount();
 		Log.clearFindings();
 		return errorCount;
 	}
 
-	public void parseModelAndExpectErrors(String modelFileName, int expectedErrorCount) {
-		assertEquals(expectedErrorCount, parseModelAndReturnErrorsCount(modelFileName));
+	public void parseModelFromFileAndExpectErrors(String modelFileName, int expectedErrorCount) {
+		assertEquals(expectedErrorCount, parseModelFromFileAndReturnErrorsCount(modelFileName));
 	}
 
-	public void parseModelAndExpectSuccess(String modelFileName) {
-		parseModelAndExpectErrors(modelFileName, 0);
+	public void parseModelFromFileAndExpectSuccess(String modelFileName) {
+		parseModelFromFileAndExpectErrors(modelFileName, 0);
 	}
 
-	public ASTPythonScript parseModelAndReturnASTPythonScript(String input) {
+	public Optional<ASTPythonScript> parseModelFromFileAndReturnASTPythonScript(String input) {
 		SIPythonParser parser = new SIPythonParser();
 		Optional<ASTPythonScript> res = Optional.empty();
 		try {
@@ -45,31 +38,42 @@ public class AbstractTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		assertTrue(res.isPresent());
-		return res.get();
+
+		if(res.isPresent()) {
+			SIPythonTool tool = new SIPythonTool();
+			tool.runDefaultCoCos(res.get());
+		}
+
+		return res;
 	}
 
-	public int parseCodeStringAndReturnErrorCount(String codeString) {
+	public int parseModelFromStringAndReturnErrorCount(String codeString) {
+		Log.getFindings().clear();
 		SIPythonParser siPythonParser = new SIPythonParser();
+		Optional<ASTPythonScript> res = Optional.empty();
 		try {
-			siPythonParser.parse(new StringReader(codeString));
+			res = siPythonParser.parse(new StringReader(codeString + "\n"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		int errorCount = (int)Log.getErrorCount();
-		Log.clearFindings();
-		return errorCount;
+
+		if(res.isPresent()) {
+			SIPythonTool tool = new SIPythonTool();
+			tool.runDefaultCoCos(res.get());
+		}
+
+		return (int)Log.getErrorCount();
 	}
 
-	public void parseCodeStringAndExpectErrorCount(String codeString, int expectedErrorCount) {
-		assertEquals(expectedErrorCount, parseCodeStringAndReturnErrorCount(codeString));
+	public void parseModelFromStringAndExpectErrorCount(String codeString, int expectedErrorCount) {
+		assertEquals(expectedErrorCount, parseModelFromStringAndReturnErrorCount(codeString));
 	}
 
-	public void parseCodeStringAndExpectSuccess(String codeString) {
-		parseCodeStringAndExpectErrorCount(codeString,0);
+	public void parseModelFromStringAndExpectSuccess(String codeString) {
+		parseModelFromStringAndExpectErrorCount(codeString,0);
 	}
 
-	public void parseCodeStringAndExpectFail(String codeString) {
-		assertTrue(parseCodeStringAndReturnErrorCount(codeString) > 0);
+	public void parseModelFromStringAndExpectFail(String codeString) {
+		assertTrue("Expected some errors here, but no occurred!", parseModelFromStringAndReturnErrorCount(codeString) > 0);
 	}
 }

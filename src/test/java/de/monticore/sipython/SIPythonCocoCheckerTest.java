@@ -8,6 +8,8 @@ import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Optional;
+
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 
@@ -24,7 +26,11 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	private void typeCheckCoCo(String input, boolean expectedError) {
 		Log.getFindings().clear();
-		ASTPythonScript model = parseModelAndReturnASTPythonScript(input);
+		Optional<ASTPythonScript> modelOptional = parseModelFromFileAndReturnASTPythonScript(input);
+		if(modelOptional.isEmpty()) {
+			fail("Failed to parse the model: The ASTTree is empty!");
+		}
+		ASTPythonScript model = modelOptional.get();
 		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
 		// checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
