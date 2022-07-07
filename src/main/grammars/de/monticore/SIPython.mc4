@@ -1,10 +1,10 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore;
 
-grammar SIPython extends de.monticore.SIUnitLiterals, de.monticore.Python {
+grammar SIPython extends de.monticore.SIUnitLiterals, de.monticore.Python, de.monticore.SIUnitTypes4Math {
 
   start PythonScript ;
 
-  SIUnitConversion implements VariableInit, Expression = SIUnit "(" Expression ")" ;
+  SIUnitConversion implements VariableInit, Expression = SIUnitType "(" Expression ")" ;
 
 }

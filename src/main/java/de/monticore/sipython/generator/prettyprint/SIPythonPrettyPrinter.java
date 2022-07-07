@@ -57,7 +57,7 @@ public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 
 		}
 
 		printer.print(" * ureg('");
-		node.getSIUnit().accept(getTraverser());
+		node.getSIUnitType().accept(getTraverser());
 		printer.print("')");
 
 		CommentPrettyPrinter.printPostComments(node, printer);
