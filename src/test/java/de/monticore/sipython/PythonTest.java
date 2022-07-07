@@ -114,8 +114,8 @@ public class PythonTest extends AbstractTest {
 	}
 
 	/**
-	 * In some cases the parser only recognises only one intendtation error at once (although the file contains multiple).
-	 * However, if the recognized error is fixed, the next error is detected.
+	 * In some cases the parser only recognises one indentation error at once (although the file contains multiple).
+	 * However, if the recognised error is fixed, the next error is detected.
 	 * Thus, the test cases at least for indentation errors must include only one error.
 	 */
 	@Test
