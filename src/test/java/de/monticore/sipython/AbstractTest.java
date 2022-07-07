@@ -14,12 +14,30 @@ import static org.junit.Assert.fail;
 
 public class AbstractTest {
 
-	public int parseModelFromFileAndReturnErrorsCount(String modelFileName) {
+	private static final SIPythonTool siPythonTool = new SIPythonTool();
+
+	private static void runCocos(ASTPythonScript astPythonScript) {
+		siPythonTool.runDefaultCoCos(astPythonScript);
+	}
+
+	public Optional<ASTPythonScript> parseModelFromFileAndReturnASTPythonScript(String input) {
 		Log.getFindings().clear();
+		SIPythonParser parser = new SIPythonParser();
+		Optional<ASTPythonScript> astPythonScriptOptional = Optional.empty();
+		try {
+			astPythonScriptOptional = parser.parsePythonScript("src/test/resources/" + input);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		astPythonScriptOptional.ifPresent(AbstractTest::runCocos);
+
+		return astPythonScriptOptional;
+	}
+
+	public int parseModelFromFileAndReturnErrorsCount(String modelFileName) {
 		parseModelFromFileAndReturnASTPythonScript(modelFileName);
-		int errorCount = (int)Log.getErrorCount();
-		Log.clearFindings();
-		return errorCount;
+		return (int)Log.getErrorCount();
 	}
 
 	public void parseModelFromFileAndExpectErrors(String modelFileName, int expectedErrorCount) {
@@ -30,37 +48,17 @@ public class AbstractTest {
 		parseModelFromFileAndExpectErrors(modelFileName, 0);
 	}
 
-	public Optional<ASTPythonScript> parseModelFromFileAndReturnASTPythonScript(String input) {
-		SIPythonParser parser = new SIPythonParser();
-		Optional<ASTPythonScript> res = Optional.empty();
-		try {
-			res = parser.parsePythonScript("src/test/resources/" + input);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		if(res.isPresent()) {
-			SIPythonTool tool = new SIPythonTool();
-			tool.runDefaultCoCos(res.get());
-		}
-
-		return res;
-	}
-
 	public int parseModelFromStringAndReturnErrorCount(String codeString) {
 		Log.getFindings().clear();
 		SIPythonParser siPythonParser = new SIPythonParser();
-		Optional<ASTPythonScript> res = Optional.empty();
+		Optional<ASTPythonScript> astPythonScriptOptional = Optional.empty();
 		try {
-			res = siPythonParser.parse(new StringReader(codeString + "\n"));
+			astPythonScriptOptional = siPythonParser.parse(new StringReader(codeString + "\n"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		if(res.isPresent()) {
-			SIPythonTool tool = new SIPythonTool();
-			tool.runDefaultCoCos(res.get());
-		}
+		astPythonScriptOptional.ifPresent(AbstractTest::runCocos);
 
 		return (int)Log.getErrorCount();
 	}
