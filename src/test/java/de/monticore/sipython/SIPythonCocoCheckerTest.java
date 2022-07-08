@@ -1,9 +1,9 @@
 package de.monticore.sipython;
 
-import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTPlusExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.PythonASTFunctionDeclarationCoCo;
 import de.monticore.sipython._cocos.*;
+import de.monticore.sipython._symboltable.ISIPythonArtifactScope;
 import de.monticore.siunits.SIUnitsMill;
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
@@ -26,11 +26,13 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	private void typeCheckCoCo(String input, boolean expectedError) {
 		Log.getFindings().clear();
 		ASTPythonScript model = parseModel(input);
-		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
+		ISIPythonArtifactScope scope = SIPythonMill.scopesGenitorDelegator().createFromAST(model);
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
 		// checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo((PythonASTFunctionDeclarationCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		checker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
+		checker.addCoCo(new PythonFunctionCallParameterSizeCoco());
+		checker.addCoCo(new PythonVariableOrFunctionExistsCoco());
 		// checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 
 
@@ -73,6 +75,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	@Test
 	public void parsePythonDuplicateFunctionParameterCocoError() {
 		String model = "cocos/pythonDuplicateFunctionParameterCocoError.sipy";
+		typeCheckCoCo(model, true);
+	}
+
+	@Test
+	public void parsePythonVariableOrFunctionNotExistsCocoError() {
+		String model = "cocos/pythonVariableOrFunctionExistsCocoError.sipy";
 		typeCheckCoCo(model, true);
 	}
 

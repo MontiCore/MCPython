@@ -12,7 +12,6 @@ public class SIPythonTool extends SIPythonToolTOP {
 	@Override
 	public void runDefaultCoCos(ASTPythonScript ast) {
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
-
 		//checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo((PythonASTIfStatementCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		checker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
