@@ -1,8 +1,11 @@
 import time
 
+def print(text):
+    print(text)
+
 x = 1
 x1 = x + 1
-x2 += 1
+x += 1
 
 y = [1, 2, 3]
 
@@ -23,13 +26,13 @@ calcVelocity(1, 1)
 for x in [0,1,2]:
     print(x)
 
-for x in range(3):
+for x in [0,1,2]:
     print(x)
-    for y in range(4):
+    for y in [0,1,2,3]:
         print(y)
-        for i in range(5):
+        for i in [0,1]:
             print(i)
-    print(z)
+    print(x)
 
 while 1:
     z = 4

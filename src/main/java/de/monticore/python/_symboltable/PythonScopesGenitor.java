@@ -1,67 +1,33 @@
 package de.monticore.python._symboltable;
 
-import de.monticore.python._ast.*;
-import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
-import de.monticore.types.check.*;
+import de.monticore.sipython._symboltable.ISIPythonArtifactScope;
+import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
+import de.se_rwth.commons.logging.Log;
 
-import java.util.List;
+import java.util.Optional;
 
 
 public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 
-	private TypeCalculator tc;
-
 	public PythonScopesGenitor() {
 		super();
-		initTypeCheck();
-	}
-
-	private void initTypeCheck() {
-		tc = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
-	}
-
-	/*
-	@Override
-	public void endVisit(ASTVariableDeclaration node) {
-		super.endVisit(node);
-		SymTypeExpression symTypeExpression = getSymTypeOfVariableInit(node.getVariableInit());
-		node.getSymbol().setType(symTypeExpression);
-	}
-
-	private SymTypeExpression getSymTypeOfVariableInit(ASTVariableInit node) {
-		SymTypeExpression symTypeExpression = null;
-		if (node instanceof ASTSimpleInit) {
-			symTypeExpression = tc.typeOf(((ASTSimpleInit) node).getExpression());
-		} else if (node instanceof ASTArrayInit) {
-			symTypeExpression = getSymTypeOfVariableInit(((ASTArrayInit) node).getVariableInit(0));
-		}
-		return symTypeExpression;
 	}
 
 	@Override
-	public void endVisit(ASTFunctionDeclaration node) {
-		super.endVisit(node);
-
-		List<ASTStatement> statements = node.getStatementBlock().getStatementBlockBody().getStatementList();
-
-		for (ASTFunctionParameter parameter : node.getFunctionParameters().getFunctionParameterList()) {
-			parameter.accept(getTraverser());
-		}
-
-		for (ASTStatement statement : statements) {
-			statement.accept(getTraverser());
-		}
-
-		ASTStatement lastStatement = statements.get(statements.size() - 1);
-
-		if (lastStatement instanceof ASTReturnStatement) {
-			SymTypeExpression symTypeExpression = tc.typeOf(((ASTReturnStatement) lastStatement).getExpression());
-			node.getSymbol().setType(symTypeExpression);
+	public void visit(de.monticore.python._ast.ASTVariableDeclaration node) {
+		Optional<IPythonScope> scope = getCurrentScope();
+		if (getCurrentScope().isPresent()) {
+			Optional<VariableSymbol> variableSymbolOptional = getCurrentScope().get().resolveVariable(node.getName());
+			if (variableSymbolOptional.isPresent()) {
+				node.setSymbol(variableSymbolOptional.get());
+				node.setEnclosingScope(variableSymbolOptional.get().getEnclosingScope());
+				initVariableHP1(node.getSymbol());
+			} else {
+				super.visit(node);
+			}
 		} else {
-			node.getSymbol().setType(SymTypeExpressionFactory.createTypeVoid());
+			Log.warn("0xA5021x71517 Symbol cannot be added to current scope, since no scope exists.");
 		}
 	}
-
- */
 
 }
