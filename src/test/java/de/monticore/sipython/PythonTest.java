@@ -72,7 +72,7 @@ public class PythonTest extends AbstractTest {
 		);
 
 		//this test case should not be possible: use of empty body in this case has to be fixed in the grammar
-		parseModelFromStringAndExpectSuccess(
+		parseModelFromStringAndExpectFail(
 				"if x == 1:\n" +
 						"    "
 		);

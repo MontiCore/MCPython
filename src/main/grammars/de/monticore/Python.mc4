@@ -6,7 +6,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
                         de.monticore.literals.MCCommonLiterals,
                         de.monticore.symbols.BasicSymbols {
 
-  PythonScript = (Statement)*;
+  PythonScript = (Statement | EOL)*;
 
   token Indent = "    ";
 
@@ -14,8 +14,6 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
 
   interface Statement ;
-
-  EmptyStatement implements Statement = EOL ;
 
   scope StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
   StatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* Statement ({isIndentedCorrectly()}? Indent+ Statement)*;

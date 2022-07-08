@@ -1,27 +1,12 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore.sipython.generator.prettyprint;
 
-import de.monticore.expressions.expressionsbasis._ast.ASTExpression;
-import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
 import de.monticore.prettyprint.CommentPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.python._ast.*;
 import de.monticore.python._visitor.PythonHandler;
 import de.monticore.python._visitor.PythonTraverser;
 import de.monticore.python._visitor.PythonVisitor2;
-import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
-import de.monticore.siunits.utility.Converter;
-import de.monticore.siunits.utility.UnitPrettyPrinter;
-import de.monticore.symbols.basicsymbols._symboltable.IBasicSymbolsArtifactScope;
-import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
-import de.monticore.types.check.SymTypeExpression;
-import de.monticore.types.check.SymTypeOfNumericWithSIUnit;
-import de.monticore.types.check.SymTypeOfSIUnit;
-import de.monticore.types.check.TypeCalculator;
-
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.Unit;
-import java.util.Optional;
 
 public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
@@ -44,6 +29,11 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
+	public void traverse(ASTEOL node) {
+		printer.println();
+	}
+
+	@Override
 	public void traverse(ASTPythonScript node) {
 		printer.println("from pint import UnitRegistry");
 		printer.println("ureg = UnitRegistry()");
@@ -51,9 +41,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		for (ASTStatement astStatement : node.getStatementList()) {
-			if (astStatement instanceof ASTEmptyStatement) {
-				printer.println();
-			} else if (astStatement instanceof ASTExpressionStatement) {
+			if (astStatement instanceof ASTExpressionStatement) {
 				astStatement.accept(getTraverser());
 				printer.println();
 			} else {
@@ -72,7 +60,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		}
 		printer.print("import ");
 		printer.print(node.getName());
-		printer.println();
+		node.getEOL().accept(getTraverser());
 	}
 
 	@Override
@@ -96,7 +84,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			astVariableInit.accept(getTraverser());
 		}
 
-		printer.println();
+		node.getEOL().accept(getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
@@ -188,7 +176,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print("(");
 		node.getFunctionParameters().accept(getTraverser());
 		printer.print("):");
-		printer.println();
+		node.getEOL().accept(getTraverser());
 		node.getStatementBlock().accept(getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, printer);
@@ -216,7 +204,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		if (node.isPresentExpression()) {
 			node.getExpression().accept(getTraverser());
 		}
-		printer.println();
+		node.getEOL().accept(getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
@@ -241,7 +229,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		node.getExpression().accept(getTraverser());
-		printer.println();
+		node.getEOL().accept(getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
