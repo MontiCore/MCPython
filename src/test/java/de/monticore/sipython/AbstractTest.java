@@ -48,7 +48,7 @@ public class AbstractTest {
 		parseModelFromFileAndExpectErrors(modelFileName, 0);
 	}
 
-	public int parseModelFromStringAndReturnErrorCount(String codeString) {
+	public Optional<ASTPythonScript> parseModelFromStringAndReturnASTPythonScript(String codeString) {
 		Log.getFindings().clear();
 		SIPythonParser siPythonParser = new SIPythonParser();
 		Optional<ASTPythonScript> astPythonScriptOptional = Optional.empty();
@@ -59,6 +59,11 @@ public class AbstractTest {
 		}
 
 		astPythonScriptOptional.ifPresent(AbstractTest::runCocos);
+		return astPythonScriptOptional;
+	}
+
+	public int parseModelFromStringAndReturnErrorCount(String codeString) {
+		parseModelFromStringAndReturnASTPythonScript(codeString);
 
 		return (int)Log.getErrorCount();
 	}
