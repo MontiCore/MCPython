@@ -69,12 +69,14 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // class declaration
 
   ClassDeclaration implements Class, Statement = "class" Name ":" EOL
+                                                      StatementBlock;
 
   Constructor implements Function, Statement = "def" "__init__" "(" ClassFunctionParameters ")" ":" EOL
 
   ClassFunctionParameters = ("self," (FunctionParameter  || ",")*);
 
   ClassAttributes implements Statement = "self." VariableDeclaration EOL;
+
 
   // TODO: statement at file end,
 
