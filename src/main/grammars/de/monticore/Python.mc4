@@ -36,7 +36,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
 
   // if-else
-  IfStatement implements Statement = ("if" condition:Expression ":" thenStatement:StatementBlock ("elif" ":" elseStatement:StatementBlock)?)* ("else" ":" elseStatement:StatementBlock)? ;
+  IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("elif" ":" elseStatement:StatementBlock)* ("else" ":" elseStatement:StatementBlock)?;
 
 
   // for-loop
@@ -63,15 +63,14 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
-
   ExpressionStatement implements Statement = Expression EOL;
 
   // class declaration
 
-  ClassDeclaration implements Class, Statement = "class" Name ":" EOL
-                                                      StatementBlock;
+  ClassDeclaration implements Statement = "class" Name ":" EOL
+                                             StatementBlock;
 
-  Constructor implements Function, Statement = "def" "__init__" "(" ClassFunctionParameters ")" ":" EOL
+  Constructor implements Statement = "def" "__init__" "(" ClassFunctionParameters ")" ":" EOL;
 
   ClassFunctionParameters = ("self," (FunctionParameter  || ",")*);
 
