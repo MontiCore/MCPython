@@ -19,7 +19,7 @@ public class PythonFunctionDeclarationInStatementBlockCheck implements PythonAST
 			} else if (statement instanceof ASTWhileStatement) {
 				checkStatementBlock(((ASTWhileStatement) statement).getStatementBlock());
 			} else if (statement instanceof ASTIfStatement) {
-				checkStatementBlock(((ASTIfStatement) statement).getElseStatement());
+				checkStatementBlock(((ASTIfStatement) statement).getThenStatement());
 				if (((ASTIfStatement) statement).isPresentElseStatement()) {
 					checkStatementBlock(((ASTIfStatement) statement).getElseStatement());
 				}

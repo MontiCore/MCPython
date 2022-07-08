@@ -4,6 +4,8 @@ import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class SIPythonTest extends AbstractTest {
 
 	@Before
@@ -12,33 +14,72 @@ public class SIPythonTest extends AbstractTest {
 		Log.enableFailQuick(false);
 	}
 
+//	---------------------------------------------------------------
+//	Tests for single code snippets from strings.
+//	---------------------------------------------------------------
+
+	@Test
+	public void parseValidUnit() {
+		parseModelFromStringAndExpectSuccess("3 km/h\n");
+	}
+
+	@Test
+	public void parseInvalidUnit() {
+		parseModelFromStringAndExpectFail("3 xxx\n");
+		parseModelFromStringAndExpectFail("3 y/h\n");
+	}
+
+	@Test
+	public void parseValidVariableAssignment() {
+		parseModelFromStringAndExpectSuccess("velocity = 5 dm/h\n");
+	}
+
+	@Test
+	public void parseInvalidAssignment() {
+		parseModelFromStringAndExpectFail("velocity = \n");
+	}
+
+	@Test
+	public void parseValidSIUnitConversion() {
+		parseModelFromStringAndExpectSuccess("km/h(5 dm/h)\n");
+	}
+	@Test
+	public void parseInvalidSIUnitConversion() {
+		parseModelFromStringAndExpectFail("km/h(5 dm/h\n");
+		parseModelFromStringAndExpectFail("km/h5 dm/h)\n");
+	}
+
+//	---------------------------------------------------------------
+//	Tests for whole scripts from files.
+//	---------------------------------------------------------------
+
 	@Test
 	public void parseSimpleSIPython() {
 		String model = "unit_script.sipy";
-		parseModel(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parseSyntaxError() {
 		String model = "tests/textSyntaxErrors.sipy";
-		parseModelAndExpectErrors(model, 3);
+		parseModelFromFileAndExpectErrors(model, 3);
 	}
 
 	@Test
 	public void parseSyntaxNoError() {
 		String model = "tests/textSyntaxNoErrors.sipy";
-		parseModelAndExpectSuccess(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parseFunctions() {
 		String model = "tests/funct.sipy";
-		parseModelAndExpectSuccess(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 
 	@Test
 	public void parsePrints() {
 		String model = "tests/prints.sipy";
-		parseModelAndExpectSuccess(model);
+		parseModelFromFileAndExpectSuccess(model);
 	}
 }
