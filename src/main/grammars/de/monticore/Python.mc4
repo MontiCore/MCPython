@@ -17,7 +17,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   EmptyStatement implements Statement = EOL ;
 
-  StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
+  scope StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
   StatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* Statement ({isIndentedCorrectly()}? Indent+ Statement)*;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
@@ -43,8 +43,8 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   interface ForControl ;
 
-  CommonForControl implements ForControl = forVariable:Name "in" Expression ;
-  ArrayForControl implements ForControl = forVariable:Name "in" ArrayInit ;
+  CommonForControl implements ForControl, Variable = Name "in" Expression ;
+  ArrayForControl implements ForControl, Variable = Name "in" ArrayInit ;
 
 
   // while-loop

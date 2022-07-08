@@ -1,0 +1,8 @@
+x1 = 1
+y = 1 + z
+
+def calculate():
+    return 1 + 1
+
+calculate()
+square(1)
