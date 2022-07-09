@@ -14,6 +14,7 @@ import de.monticore.siunits.utility.Converter;
 import de.monticore.siunits.utility.UnitPrettyPrinter;
 import de.monticore.symbols.basicsymbols._symboltable.IBasicSymbolsArtifactScope;
 import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
+import de.monticore.tf.odrulegeneration._ast.ASTCondition;
 import de.monticore.types.check.SymTypeExpression;
 import de.monticore.types.check.SymTypeOfNumericWithSIUnit;
 import de.monticore.types.check.SymTypeOfSIUnit;
@@ -79,26 +80,22 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTLocalVariableDeclarationStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
-		printer.print(node.getVariableDeclaration().getName());
-		printer.print(" = ");
-
-		ASTVariableDeclaration astVariableDeclaration = node.getVariableDeclaration();
-		ASTVariableInit astVariableInit = astVariableDeclaration.getVariableInit();
-
-		if (astVariableInit instanceof ASTSimpleInit) {
-			ASTSimpleInit simpleInit = ((ASTSimpleInit) astVariableInit);
-
-			simpleInit.getExpression().accept(this.getTraverser());
-
-			CommentPrettyPrinter.printPostComments(node, printer);
-
-		} else {
-			astVariableInit.accept(getTraverser());
-		}
-
+		node.getVariableDeclaration().accept(getTraverser());
 		printer.println();
 
 		CommentPrettyPrinter.printPostComments(node, printer);
+	}
+
+	@Override
+	public void traverse(ASTVariableDeclaration node) {
+		printer.print(node.getName());
+		printer.print(" = ");
+		node.getVariableInit().accept(getTraverser());
+	}
+
+	@Override
+	public void traverse(ASTSimpleInit node) {
+		node.getExpression().accept(getTraverser());
 	}
 
 	@Override
@@ -127,6 +124,18 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print(":");
 		printer.println();
 		node.getThenStatement().accept(getTraverser());
+
+		for(int i = 0; i < node.getElifStatementList().size(); i++) {
+			ASTExpression condition = node.getElifCondition(i);
+			ASTStatementBlock statementBlock = node.getElifStatement(i);
+
+			printer.print("elif ");
+			condition.accept(getTraverser());
+			printer.print(":");
+			printer.println();
+			statementBlock.accept(getTraverser());
+		}
+
 		if (node.isPresentElseStatement()) {
 			printer.print("else:");
 			printer.println();
@@ -192,6 +201,57 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		node.getStatementBlock().accept(getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, printer);
+	}
+	@Override
+	public void traverse(ASTClassDeclaration node){
+		CommentPrettyPrinter.printPreComments(node, printer);
+
+		printer.print("class ");
+		printer.print(node.getName());
+		printer.print(":");
+		printer.println();
+		node.getStatementBlock().accept(getTraverser());
+		CommentPrettyPrinter.printPostComments(node, printer);
+
+	}
+
+	@Override
+	public void traverse(ASTClassFunction node) {
+		CommentPrettyPrinter.printPreComments(node, printer);
+
+		printer.print("def ");
+		printer.print(node.getName());
+		printer.print("(");
+		node.getClassFunctionParameters().accept(getTraverser());
+		printer.print("):");
+		printer.println();
+		node.getStatementBlock().accept(getTraverser());
+
+		CommentPrettyPrinter.printPostComments(node, printer);
+	}
+
+	@Override
+	public void traverse(ASTClassAttributes node){
+
+		CommentPrettyPrinter.printPreComments(node, printer);
+		printer.print("self");
+		printer.print(".");
+
+		node.getVariableDeclaration().accept(getTraverser());
+
+		printer.println();
+
+		CommentPrettyPrinter.printPostComments(node, printer);
+
+	}
+
+	@Override
+	public void traverse(ASTClassFunctionParameters node) {
+		printer.print(node.getSelfParameter());
+		for (ASTFunctionParameter argument : node.getFunctionParameterList()) {
+			printer.print(", ");
+			printer.print(argument.getName());
+		}
 	}
 
 	@Override

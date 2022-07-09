@@ -10,7 +10,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   token Indent = "    ";
 
-  EOL = ("\n" | "\r" | "<EOF>")+ ;
+  EOL = ("\n" | "\r")+ ;
 
 
   interface Statement ;
@@ -36,7 +36,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
 
   // if-else
-  IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("elif" ":" elseStatement:StatementBlock)* ("else" ":" elseStatement:StatementBlock)?;
+  IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("elif" elifCondition:Expression ":" elifStatement:StatementBlock)* ("else" ":" elseStatement:StatementBlock)?;
 
 
   // for-loop
@@ -67,14 +67,21 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // class declaration
 
-  ClassDeclaration implements Statement = "class" Name ":" EOL
+  interface scope symbol Class = Name;
+
+  ClassDeclaration implements Class, Statement = "class" Name "()"? ":" EOL
                                              StatementBlock;
 
-  Constructor implements Statement = "def" "__init__" "(" ClassFunctionParameters ")" ":" EOL;
+  interface ClassStatement extends Statement;
 
-  ClassFunctionParameters = ("self," (FunctionParameter  || ",")*);
+  ClassStatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
+  ClassStatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* ClassStatement ({isIndentedCorrectly()}? Indent+ ClassStatement)*;
 
-  ClassAttributes implements Statement = "self." VariableDeclaration EOL;
+  ClassFunction implements Function, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL?;
+
+  ClassFunctionParameters = (selfParameter:Name "," (FunctionParameter  || ",")*);
+
+  ClassAttributes implements ClassStatement = Name "." VariableDeclaration EOL;
 
 
   // TODO: statement at file end,
