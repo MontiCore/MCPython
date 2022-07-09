@@ -124,6 +124,13 @@ public class PythonTest extends AbstractTest {
 				"for x in collection_var:\n" +
 						"    print(x)"
 		);
+
+		parseModelFromStringAndExpectSuccess(
+				"for x in collection_var:\n" +
+						"    print(x)\n" +
+						"else:\n" +
+						"    print(y)"
+		);
 	}
 
 	@Test
@@ -170,6 +177,14 @@ public class PythonTest extends AbstractTest {
 						"        continue\n" +
 						"    print(i)"
 		);
+
+		//else statements for while loops
+		parseModelFromStringAndExpectSuccess(
+				"while i < 6:\n" +
+						"    i += 1\n" +
+						" else:" +
+						"    print(x)"
+		);
 	}
 
 	@Test
@@ -191,14 +206,6 @@ public class PythonTest extends AbstractTest {
 				"while i < 6\n" +
 						"    print(i)\n" +
 						"    i += 1"
-		);
-
-		//else statements for while loops should not fail: has to be added in the grammar
-		parseModelFromStringAndExpectFail(
-				"while i < 6:\n" +
-						"    i += 1\n" +
-						" else:" +
-						"    print(x)"
 		);
 	}
 

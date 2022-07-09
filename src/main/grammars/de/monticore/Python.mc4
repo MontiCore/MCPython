@@ -37,7 +37,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("else" ":" elseStatement:StatementBlock)? ;
 
   // for-loop
-  ForStatement implements Statement = "for" ForControl ":" StatementBlock ;
+  ForStatement implements Statement = "for" ForControl ":" StatementBlock ("else" ":" elseStatement:StatementBlock)? ;
 
   interface ForControl ;
 
@@ -46,7 +46,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
 
   // while-loop
-  WhileStatement implements Statement = "while" condition:Expression ":" EOL? StatementBlock;
+  WhileStatement implements Statement = "while" condition:Expression ":" EOL? StatementBlock ("else" ":" elseStatement:StatementBlock)?;
 
 
   // function declaration
