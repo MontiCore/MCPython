@@ -1,5 +1,9 @@
 # This is an example script of a unit type supporting python-like language
 
+def print(text):
+    text
+
+
 def calculate_velocity(distance, time):
     return distance / time
 

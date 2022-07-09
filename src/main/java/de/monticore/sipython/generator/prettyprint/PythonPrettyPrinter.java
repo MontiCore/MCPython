@@ -158,7 +158,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	@Override
 	public void traverse(ASTCommonForControl node) {
 		printer.print("for ");
-		printer.print(node.getForVariable());
+		printer.print(node.getName());
 		printer.print(" in ");
 		node.getExpression().accept(getTraverser());
 		printer.print(":");
@@ -168,7 +168,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	@Override
 	public void traverse(ASTArrayForControl node) {
 		printer.print("for ");
-		printer.print(node.getForVariable());
+		printer.print(node.getName());
 		printer.print(" in ");
 		node.getArrayInit().accept(getTraverser());
 		printer.print(":");
