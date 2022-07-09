@@ -32,6 +32,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   SimpleInit implements VariableInit = Expression ;
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
+  TupleInit implements VariableInit = "(" (VariableInit || ",")* ")" ;
 
   // if-else
   IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("else" ":" elseStatement:StatementBlock)? ;
