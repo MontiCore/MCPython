@@ -19,10 +19,7 @@ public class PythonFunctionDeclarationInStatementBlockCheck implements PythonAST
 			} else if (statement instanceof ASTWhileStatement) {
 				checkStatementBlock(((ASTWhileStatement) statement).getStatementBlock());
 			} else if (statement instanceof ASTIfStatement) {
-				checkStatementBlock(((ASTIfStatement) statement).getThenStatement());
-				if (((ASTIfStatement) statement).isPresentElseStatement()) {
-					checkStatementBlock(((ASTIfStatement) statement).getElseStatement());
-				}
+				check((ASTIfStatement)statement);
 			}
 		}
 	}
@@ -30,6 +27,11 @@ public class PythonFunctionDeclarationInStatementBlockCheck implements PythonAST
 	@Override
 	public void check(ASTIfStatement node) {
 		this.checkStatementBlock(node.getThenStatement());
+
+		for(ASTStatementBlock statementBlock: node.getElifStatementList()){
+			this.checkStatementBlock(statementBlock);
+		}
+
 		if (node.isPresentElseStatement()) {
 			this.checkStatementBlock(node.getElseStatement());
 		}

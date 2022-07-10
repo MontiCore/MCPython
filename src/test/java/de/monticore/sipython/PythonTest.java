@@ -76,6 +76,15 @@ public class PythonTest extends AbstractTest {
 				"if x == 1:\n" +
 						"    "
 		);
+
+		parseModelFromStringAndExpectSuccess(
+				"if x == 1:\n" +
+						"    print(\"one\")\n" +
+						"elif x == 0:\n" +
+						"    print(\"zero\")\n" +
+						"else:\n" +
+						"    print(\"not one or zero\")"
+		);
 	}
 
 	@Test
@@ -100,6 +109,16 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail(
 				"x == 1:\n" +
 						"    print(\"one\")"
+		);
+
+		// missing condition at elif
+		parseModelFromStringAndExpectFail(
+				"if x == 1:\n" +
+						"    print(\"one\")" +
+						"elif:\n" +
+						"    print(\"zero\")" +
+						"else:\n" +
+						"    print(\"not one or zero\""
 		);
 	}
 
