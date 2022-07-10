@@ -202,6 +202,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
 	@Override
 	public void traverse(ASTClassDeclaration node){
 		CommentPrettyPrinter.printPreComments(node, printer);
@@ -210,9 +211,22 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print(node.getName());
 		printer.print(":");
 		printer.println();
-		node.getStatementBlock().accept(getTraverser());
+		node.getClassStatementBlock().accept(getTraverser());
 		CommentPrettyPrinter.printPostComments(node, printer);
+	}
 
+	@Override
+	public void traverse(ASTClassStatementBlock node) {
+		CommentPrettyPrinter.printPreComments(node, printer);
+
+		ASTClassStatementBlockBody blockBody = node.getClassStatementBlockBody();
+		printer.indent();
+		for (ASTClassStatement statement : blockBody.getClassStatementList()) {
+			statement.accept(getTraverser());
+		}
+		printer.unindent();
+
+		CommentPrettyPrinter.printPostComments(node, printer);
 	}
 
 	@Override

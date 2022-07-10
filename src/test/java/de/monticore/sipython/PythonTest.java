@@ -79,11 +79,11 @@ public class PythonTest extends AbstractTest {
 
 		parseModelFromStringAndExpectSuccess(
 				"if x == 1:\n" +
-						"    print(\"one\")" +
+						"    print(\"one\")\n" +
 						"elif x == 0:\n" +
-						"    print(\"zero\")" +
+						"    print(\"zero\")\n" +
 						"else:\n" +
-						"    print(\"not one or zero\""
+						"    print(\"not one or zero\")"
 		);
 	}
 
