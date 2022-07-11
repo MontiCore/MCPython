@@ -283,6 +283,75 @@ public class PythonTest extends AbstractTest {
 		);
 	}
 
+	@Test
+	public void parseInvalidClassFunction() {
+		parseModelFromStringAndExpectSuccess(
+				"class class_name:\n" +
+						"    def function_name(x,y):\n" +
+						"		print(x,y)"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"class class_name:\n" +
+						"	def __init__(self,i=0):\n" +
+						"		self.id = i\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"class myClass():" +
+						"    def function_name(x,y):\n" +
+						"		print(x,y)\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"class Student(Person):" +
+						"id=\"\"" +
+						"    def print_student_name(self,name,age,id):\n" +
+						"			super().__init__(name,age)\n" +
+						"			self.id=id\n" +
+						"	def get_id(self):\n" +
+						"		return self.id"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"class e:\n"+
+						"		count = 0\n" +
+						"		list_x = []\n" +
+						"		def__init__(self, i):\n" +
+						"			self.id=i\n" +
+						"			e.count+=1\n" +
+						"			self.list_x.append(i)"
+		);
+	}
+
+		@Test
+		public void parseInvalidClassDeclaration(){
+			//missing class name
+			parseModelFromStringAndExpectFail(
+					"class:\n"+
+							"		count = 0\n" +
+							"		list_x = []\n" +
+							"		def__init__(self, i):\n" +
+							"			self.id=i\n" +
+							"			e.count+=1\n" +
+							"			self.list_x.append(i)"
+			);
+			//missing parameter in funtion that is in class (normally it's mentioned as the self parameter)
+			parseModelFromStringAndExpectFail(
+					"class ST:\n"+
+							"	eleven = 11\n" +
+							"	def oneLiner():\n" +
+							"		print(eleven)"
+			);
+			//class is written wrong
+			parseModelFromStringAndExpectFail(
+					"class2 myClass:\n" +
+							"    def function_name(x,y):\n" +
+							"		print(x,y)"
+			);
+
+		}
+		//
+
+
+
 //	---------------------------------------------------------------
 //	Tests for whole scripts from files.
 //	---------------------------------------------------------------
