@@ -71,12 +71,6 @@ public class PythonTest extends AbstractTest {
 						"    print(\"one\")"
 		);
 
-		//this test case should not be possible: use of empty body in this case has to be fixed in the grammar
-		parseModelFromStringAndExpectFail(
-				"if x == 1:\n" +
-						"    "
-		);
-
 		parseModelFromStringAndExpectSuccess(
 				"if x == 1:\n" +
 						"    print(\"one\")\n" +
@@ -119,6 +113,12 @@ public class PythonTest extends AbstractTest {
 						"    print(\"zero\")" +
 						"else:\n" +
 						"    print(\"not one or zero\""
+		);
+
+		// empty statement block
+		parseModelFromStringAndExpectFail(
+				"if x == 1:\n" +
+						"    "
 		);
 	}
 
@@ -239,6 +239,10 @@ public class PythonTest extends AbstractTest {
 				"    print(x,y,z)"
 		);
 		parseModelFromStringAndExpectSuccess(
+				"def function_name(x,y,z=1):\n" +
+						"    print(x,y,z)"
+		);
+		parseModelFromStringAndExpectSuccess(
 				"def absolute_value(num):\n" +
 						"    if num >= 0:\n" +
 						"        return num"
@@ -255,6 +259,11 @@ public class PythonTest extends AbstractTest {
 		//missing "def"
 		parseModelFromStringAndExpectFail(
 				" function_name(x):\n" +
+						"    print(x)"
+		);
+		// missing default value
+		parseModelFromStringAndExpectFail(
+				" function_name(x=):\n" +
 						"    print(x)"
 		);
 		//missing function name

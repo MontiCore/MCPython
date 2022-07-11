@@ -229,6 +229,11 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		printer.print("class ");
 		printer.print(node.getName());
+		if (node.isPresentSuperClass()) {
+			printer.print("(");
+			printer.print(node.getSuperClass());
+			printer.print(")");
+		}
 		printer.print(":");
 		printer.println();
 		node.getClassStatementBlock().accept(getTraverser());
@@ -268,8 +273,6 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTClassAttributes node){
 
 		CommentPrettyPrinter.printPreComments(node, printer);
-		printer.print("self");
-		printer.print(".");
 
 		node.getVariableDeclaration().accept(getTraverser());
 

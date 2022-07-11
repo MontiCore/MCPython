@@ -58,7 +58,10 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   FunctionParameters = (FunctionParameter  || ",")*;
 
-  FunctionParameter implements Variable = Name;
+  interface FunctionParameter extends Variable;
+
+  SimpleFunctionParameter implements FunctionParameter = Name;
+  OptionalFunctionParameter implements FunctionParameter = Name "=" Expression ;
 
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
@@ -68,7 +71,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   interface scope symbol Class = Name;
 
-  ClassDeclaration implements Class, Statement = "class" Name "(" ")"? ":" EOL ClassStatementBlock;
+  ClassDeclaration implements Class, Statement = "class" Name ( "(" superClass:Name@Class? ")" )? ":" EOL ClassStatementBlock;
 
   interface ClassStatement;
 
