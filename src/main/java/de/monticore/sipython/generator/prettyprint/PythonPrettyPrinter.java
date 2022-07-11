@@ -287,22 +287,34 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print(node.getSelfParameter());
 		for (ASTFunctionParameter argument : node.getFunctionParameterList()) {
 			printer.print(", ");
-			printer.print(argument.getName());
+			argument.accept(getTraverser());
 		}
 	}
 
 	@Override
 	public void traverse(ASTFunctionParameters node) {
 		boolean first = true;
-		for (ASTFunctionParameter argument : node.getFunctionParameterList()) {
+		for (ASTFunctionParameter parameter : node.getFunctionParameterList()) {
 			if (!first) {
 				printer.print(", ");
 			} else {
 				first = false;
 			}
-			printer.print(argument.getName());
+			parameter.accept(getTraverser());
 
 		}
+	}
+
+	@Override
+	public void traverse(ASTSimpleFunctionParameter node) {
+		printer.print(node.getName());
+	}
+
+	@Override
+	public void traverse(ASTOptionalFunctionParameter node) {
+		printer.print(node.getName());
+		printer.print("=");
+		node.getExpression().accept(getTraverser());
 	}
 
 	@Override
