@@ -34,6 +34,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
   TupleInit implements VariableInit = "(" (VariableInit || ",")* ")" ;
 
+   //trenary-operator
+   TrenaryOperatorInit implements VariableInit = (Expression "if" condition:Expression "else" Expression)+;
+
   // if-else
   IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("elif" elifCondition:Expression ":" elifStatement:StatementBlock)* ("else" ":" elseStatement:StatementBlock)?;
 
