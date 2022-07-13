@@ -42,6 +42,7 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("var = [1,4]");
 		parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]");
 		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]");
+		parseModelFromStringAndExpectSuccess("var = (1,4)");
 	}
 
 	@Test
@@ -57,7 +58,6 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("var = [,]");
 
 		//tuples should be allowed as variable declaration: must be fixed in the grammar
-		parseModelFromStringAndExpectFail("var = (1,4)");
 		parseModelFromStringAndExpectFail("var = 1,4");
 
 		//to define strings '' should also be allowed: must be fixed in the grammar
@@ -71,10 +71,13 @@ public class PythonTest extends AbstractTest {
 						"    print(\"one\")"
 		);
 
-		//this test case should not be possible: use of empty body in this case has to be fixed in the grammar
 		parseModelFromStringAndExpectSuccess(
 				"if x == 1:\n" +
-						"    "
+						"    print(\"one\")\n" +
+						"elif x == 0:\n" +
+						"    print(\"zero\")\n" +
+						"else:\n" +
+						"    print(\"not one or zero\")"
 		);
 	}
 
@@ -101,6 +104,22 @@ public class PythonTest extends AbstractTest {
 				"x == 1:\n" +
 						"    print(\"one\")"
 		);
+
+		// missing condition at elif
+		parseModelFromStringAndExpectFail(
+				"if x == 1:\n" +
+						"    print(\"one\")" +
+						"elif:\n" +
+						"    print(\"zero\")" +
+						"else:\n" +
+						"    print(\"not one or zero\""
+		);
+
+		// empty statement block
+		parseModelFromStringAndExpectFail(
+				"if x == 1:\n" +
+						"    "
+		);
 	}
 
 	@Test
@@ -123,6 +142,13 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
 						"    print(x)"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"for x in collection_var:\n" +
+						"    print(x)\n" +
+						"else:\n" +
+						"    print(y)"
 		);
 	}
 
@@ -170,6 +196,14 @@ public class PythonTest extends AbstractTest {
 						"        continue\n" +
 						"    print(i)"
 		);
+
+		//else statements for while loops
+		parseModelFromStringAndExpectSuccess(
+				"while i < 6:\n" +
+						"    i += 1\n" +
+						" else:" +
+						"    print(x)"
+		);
 	}
 
 	@Test
@@ -192,14 +226,6 @@ public class PythonTest extends AbstractTest {
 						"    print(i)\n" +
 						"    i += 1"
 		);
-
-		//else statements for while loops should not fail: has to be added in the grammar
-		parseModelFromStringAndExpectFail(
-				"while i < 6:\n" +
-						"    i += 1\n" +
-						" else:" +
-						"    print(x)"
-		);
 	}
 
 	@Test
@@ -211,6 +237,10 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess(
 				"def function_name(x,y,z):\n" +
 				"    print(x,y,z)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def function_name(x,y,z=1):\n" +
+						"    print(x,y,z)"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"def absolute_value(num):\n" +
@@ -231,6 +261,11 @@ public class PythonTest extends AbstractTest {
 				" function_name(x):\n" +
 						"    print(x)"
 		);
+		// missing default value
+		parseModelFromStringAndExpectFail(
+				" function_name(x=):\n" +
+						"    print(x)"
+		);
 		//missing function name
 		parseModelFromStringAndExpectFail(
 				"def (x):\n" +
@@ -247,6 +282,63 @@ public class PythonTest extends AbstractTest {
 						"    print(x)"
 		);
 	}
+
+	@Test
+	public void parseValidClassFunction() {
+		parseModelFromStringAndExpectSuccess(
+				"class class_name:\n" +
+						"    def function_name(x,y):\n" +
+						"        print(x,y)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"class class_name:\n" +
+						"    def __init__(self,i=0):\n" +
+						"        self.id = i\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"class myClass(MySuperClass):\n" +
+						"    id=\"\"\n" +
+						"    def function_name(x,y):\n" +
+						"        print(x,y)\n" +
+						"        self.id=id\n" +
+						"    def function_name1(x,y):\n" +
+						"        print(x,y)\n"
+		);
+
+	}
+
+		@Test
+		public void parseInvalidClassDeclaration(){
+			//missing class name
+			parseModelFromStringAndExpectFail(
+					"class:\n"+
+							"    count = 0\n" +
+							"    list_x = []\n" +
+							"    def__init__(self, i):\n" +
+							"        self.id=i\n" +
+							"    	   e.count+=1\n" +
+							"    	   self.list_x.append(i)"
+			);
+			//missing parameter in funtion that is in class (normally it's mentioned as the self parameter)
+			parseModelFromStringAndExpectFail(
+					"class ST:\n"+
+							"    eleven = 11\n" +
+							"    def oneLiner():\n" +
+							"        print(eleven)"
+			);
+			//for loop in class
+			parseModelFromStringAndExpectFail(
+					"class myClass:\n" +
+							"    def function_name(x,y):\n" +
+							"        print(x,y)" +
+							"    for i in range(4):" +
+							"        print(i)"
+			);
+
+		}
+		//
+
+
 
 //	---------------------------------------------------------------
 //	Tests for whole scripts from files.

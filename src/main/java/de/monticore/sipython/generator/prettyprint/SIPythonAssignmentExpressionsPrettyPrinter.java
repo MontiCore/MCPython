@@ -75,6 +75,8 @@ public class SIPythonAssignmentExpressionsPrettyPrinter extends AssignmentExpres
 				Log.error("0xA0114 Missing implementation for RegularAssignmentExpression");
 		}
 
+		getPrinter().print(" ");
+
 		node.getRight().accept(this.getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, this.getPrinter());

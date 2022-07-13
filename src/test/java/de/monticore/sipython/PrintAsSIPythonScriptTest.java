@@ -34,7 +34,7 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
        );
        assertEquals(
                "from pint import UnitRegistry\n" +
-                       "ureg = UnitRegistry()\n\n",
+                       "ureg = UnitRegistry()\n",
                printedPythonCode);
     }
 
@@ -81,7 +81,7 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
     public void printWhileStatement() {
         parsePrintAndAssertEqualityOfOutputCode(
                 "while i < 6:\n" +
-                        "    i +=1"
+                        "    i += 1"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "while i < 6:\n" +
@@ -92,14 +92,15 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
                         "    print(i)\n" +
                         "    if i == 3:\n" +
                         "        break\n" +
-                        "    i +=1"
+                        "    i += 1"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "while i < 6:\n" +
-                        "    i +=1\n" +
+                        "    i += 1\n" +
                         "    if i == 3:\n" +
                         "        continue\n" +
-                        "    print(i)"        );
+                        "    print(i)"
+        );
     }
 
     @Test

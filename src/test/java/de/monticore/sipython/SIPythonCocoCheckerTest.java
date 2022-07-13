@@ -36,7 +36,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		// checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo((PythonASTFunctionDeclarationCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		checker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
-		checker.addCoCo(new PythonFunctionCallParameterSizeCoco());
+		checker.addCoCo(new PythonFunctionArgumentSizeCoco());
 		checker.addCoCo(new PythonVariableOrFunctionExistsCoco());
 		// checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 
@@ -86,6 +86,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	@Test
 	public void parsePythonVariableOrFunctionNotExistsCocoError() {
 		String model = "cocos/pythonVariableOrFunctionExistsCocoError.sipy";
+		typeCheckCoCo(model, true);
+	}
+
+	@Test
+	public void parsePythonFunctionArgumentSizeCocoError() {
+		String model = "cocos/pythonFunctionArgumentSizeCocoError.sipy";
 		typeCheckCoCo(model, true);
 	}
 
