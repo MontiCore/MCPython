@@ -124,6 +124,14 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
         );
     }
 
+    // --------------------------------------------------------------
+    //  Test cases for PythonPrettyPrinter
+    // --------------------------------------------------------------
+
+    @Test
+    public void printSIUnitConversion() {
+        parsePrintAndExpect("var = km/h(5 dm/h)","var = 5 * ureg('km/h')");
+    }
 
     /**
      * This method parses the given inputCodeString, prints the parsed ast tree as string and asserts that the result is
@@ -131,9 +139,13 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
      * Note: The static import statment for the pint library is added to the output code.
      */
     private void parsePrintAndAssertEqualityOfOutputCode(String inputCodeString) {
+        parsePrintAndExpect(inputCodeString, inputCodeString);
+    }
+
+    private void parsePrintAndExpect(String inputCodeString, String expectedOutputCodeString) {
         String printedPythonCode = parseAndReturnPrintedPythonCode(inputCodeString);
         assertEquals(
-                addPintLibImportCodeLines(inputCodeString),
+                addPintLibImportCodeLines(expectedOutputCodeString),
                 printedPythonCode);
     }
 
