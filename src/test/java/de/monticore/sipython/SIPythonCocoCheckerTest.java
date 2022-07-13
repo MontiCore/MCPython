@@ -10,10 +10,11 @@ import org.junit.Test;
 
 import java.util.Optional;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static org.junit.Assert.*;
 
 public class SIPythonCocoCheckerTest extends AbstractTest {
+
+	private SIPythonCoCoChecker checker;
 
 	@Before
 	public void init() {
@@ -22,85 +23,81 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		SIPythonMill.reset();
 		SIPythonMill.init();
 		SIUnitsMill.initializeSIUnits();
-	}
-
-	private void typeCheckCoCo(String input, boolean expectedError) {
-		Log.getFindings().clear();
-		Optional<ASTPythonScript> modelOptional = parseModelFromFileAndReturnASTPythonScript(input);
-		if(modelOptional.isEmpty()) {
-			fail("Failed to parse the model: The ASTTree is empty!");
-		}
-		ASTPythonScript model = modelOptional.get();
-		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
-		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
-		// checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
+		checker = new SIPythonCoCoChecker();
+//		 checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo((PythonASTFunctionDeclarationCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		checker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
 		checker.addCoCo(new PythonFunctionArgumentSizeCoco());
 		checker.addCoCo(new PythonVariableOrFunctionExistsCoco());
-		// checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
+//		 checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
+	}
 
+	@Test
+	public void parseSimplePython() {
+		String model = "python/simple_python.sipy";
+		parseFromModelFileAndCheckCoCosAndExpectSuccess(model);
+	}
+
+	@Test
+	public void parseUnitScript() {
+		String model = "unit_script.sipy";
+		parseFromModelFileAndCheckCoCosAndExpectSuccess(model);
+	}
+
+	@Test
+	public void parseSimpleSkriptWithFunctionInsideFunctionCoCoError() {
+		String model = "cocos/pythonFunctionInsideStatementBlockCocoError.sipy";
+		parseFromModelFileAndCheckCoCosAndExpectFail(model);
+	}
+
+	@Test
+	public void parsePythonDuplicateFunctionParameterCocoError() {
+		String model = "cocos/pythonDuplicateFunctionParameterCocoError.sipy";
+		parseFromModelFileAndCheckCoCosAndExpectFail(model);
+	}
+
+	@Test
+	public void parsePythonVariableOrFunctionNotExistsCocoError() {
+		String model = "cocos/pythonVariableOrFunctionExistsCocoError.sipy";
+		parseFromModelFileAndCheckCoCosAndExpectFail(model);
+	}
+
+	@Test
+	public void parsePythonFunctionArgumentSizeCocoError() {
+		String model = "cocos/pythonFunctionArgumentSizeCocoError.sipy";
+		parseFromModelFileAndCheckCoCosAndExpectFail(model);
+	}
+
+	private void parseCodeStringAndCheckCoCosAndExpectSuccess(String codeString) {
+		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromStringAndReturnASTPythonScript(codeString);
+		checkCoCos(astPythonScriptOptional);
+		assertEquals(0, Log.getErrorCount());
+	}
+
+	private void parseFromModelFileAndCheckCoCosAndExpectSuccess(String modelFileName) {
+		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromFileAndReturnASTPythonScript(modelFileName);
+		checkCoCos(astPythonScriptOptional);
+		assertEquals(0, Log.getErrorCount());
+	}
+
+	private void parseFromModelFileAndCheckCoCosAndExpectFail(String modelFileName) {
+		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromFileAndReturnASTPythonScript(modelFileName);
+		checkCoCos(astPythonScriptOptional);
+		assertTrue(Log.getErrorCount() > 0);
+	}
+
+	private void checkCoCos(Optional<ASTPythonScript> astPythonScriptOptional) {
+		Log.getFindings().clear();
+		if(astPythonScriptOptional.isEmpty()) {
+			fail("Failed to parse the model: The ASTTree is empty!");
+		}
+		ASTPythonScript model = astPythonScriptOptional.get();
+		SIPythonMill.scopesGenitorDelegator().createFromAST(model);
 
 		try {
 			checker.checkAll(model);
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
-
-		assertEquals(expectedError, Log.getErrorCount() > 0);
 	}
-
-	@Test
-	public void parseSimplePython() {
-		String model = "python/simple_python.sipy";
-		typeCheckCoCo(model, false);
-	}
-
-	@Test
-	public void parseUnitScript() {
-		String model = "unit_script.sipy";
-		typeCheckCoCo(model, false);
-	}
-
-	/*
-	@Test
-	public void parseSimpleSkriptWithTypeCoCoError() {
-		String model = "cocos/sipythonWithTypeCoCoError.sipy";
-		typeCheckCoCo(model, true);
-	}
-
-	 */
-
-	@Test
-	public void parseSimpleSkriptWithFunctionInsideFunctionCoCoError() {
-		String model = "cocos/pythonFunctionInsideStatementBlockCocoError.sipy";
-		typeCheckCoCo(model, true);
-	}
-
-	@Test
-	public void parsePythonDuplicateFunctionParameterCocoError() {
-		String model = "cocos/pythonDuplicateFunctionParameterCocoError.sipy";
-		typeCheckCoCo(model, true);
-	}
-
-	@Test
-	public void parsePythonVariableOrFunctionNotExistsCocoError() {
-		String model = "cocos/pythonVariableOrFunctionExistsCocoError.sipy";
-		typeCheckCoCo(model, true);
-	}
-
-	@Test
-	public void parsePythonFunctionArgumentSizeCocoError() {
-		String model = "cocos/pythonFunctionArgumentSizeCocoError.sipy";
-		typeCheckCoCo(model, true);
-	}
-
-	/*
-	@Test
-	public void parseSIPythonCommonExpressionsTypeCocoError() {
-		String model = "cocos/sipythonExpressionsTypeCocoError.sipy";
-		typeCheckCoCo(model, true);
-	}
-
-	 */
 }
