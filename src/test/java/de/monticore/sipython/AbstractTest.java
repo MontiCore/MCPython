@@ -20,12 +20,12 @@ public class AbstractTest {
 		siPythonTool.runDefaultCoCos(astPythonScript);
 	}
 
-	public Optional<ASTPythonScript> parseModelFromFileAndReturnASTPythonScript(String input) {
+	public Optional<ASTPythonScript> parseModelFromFileAndReturnASTPythonScript(String modelFileName) {
 		Log.getFindings().clear();
 		SIPythonParser parser = new SIPythonParser();
 		Optional<ASTPythonScript> astPythonScriptOptional = Optional.empty();
 		try {
-			astPythonScriptOptional = parser.parsePythonScript("src/test/resources/" + input);
+			astPythonScriptOptional = parser.parsePythonScript("src/test/resources/" + modelFileName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
