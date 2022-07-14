@@ -32,6 +32,73 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 //		 checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 	}
 
+//	---------------------------------------------------------------
+//	Tests for single code snippets from strings.
+//	---------------------------------------------------------------
+
+	@Test
+	public void checkPythonFunctionArgumentSizeCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"def calcVelocity(x):\n" +
+						"    x++\n" +
+						"calcVelocity(4)"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"def calcVelocity(x):\n" +
+						"    x++\n" +
+						"calcVelocity(4,5)"
+		);
+	}
+
+	@Test
+	public void checkPythonFunctionDeclarationInStatementBlockCheck() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"x = 1\n" +
+				"if(x > 5):\n" +
+				"    x++\n" +
+				"def calcVelocity(x):\n" +
+				"    x++\n"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"x = 1\n" +
+				"if(x > 5):\n" +
+				"    def calcVelocity(x):\n" +
+				"        x++\n"
+		);
+	}
+
+	@Test
+	public void checkPythonFunctionParameterDuplicateNameCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"def calcVelocity(x,y):\n" +
+				"    x++"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"def calcVelocity(x,x):\n" +
+				"    x++"
+		);
+	}
+
+	@Test
+	public void checkPythonVariableOrFunctionExistsCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"x = 1\n" +
+				"x++"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"if(x > 5):" +
+				"    x++"
+		);
+	}
+
+//	---------------------------------------------------------------
+//	Tests for scripts from files.
+//	---------------------------------------------------------------
+
 	@Test
 	public void parseSimplePython() {
 		String model = "python/simple_python.sipy";
@@ -74,6 +141,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		assertEquals(0, Log.getErrorCount());
 	}
 
+	private void parseCodeStringAndCheckCoCosAndExpectError(String codeString) {
+		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromStringAndReturnASTPythonScript(codeString);
+		checkCoCos(astPythonScriptOptional);
+		assertTrue(Log.getErrorCount() > 0);
+	}
+
 	private void parseFromModelFileAndCheckCoCosAndExpectSuccess(String modelFileName) {
 		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromFileAndReturnASTPythonScript(modelFileName);
 		checkCoCos(astPythonScriptOptional);
@@ -99,5 +172,9 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
+
+		//this resets the symbol table beside others, to not affect further coco checkings.
+		SIPythonMill.reset();
+		SIPythonMill.init();
 	}
 }
