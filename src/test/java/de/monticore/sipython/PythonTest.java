@@ -123,7 +123,29 @@ public class PythonTest extends AbstractTest {
 	}
 
 	@Test
-	public void parseValidForLoop() {
+	public void parseValidTrenaryOperator(){
+		parseModelFromStringAndExpectSuccess("print(\"Both a and b are equal\" if a == b else \"a is greater than b\" " +
+				"if a > b else \"b is greater than a\")");
+		parseModelFromStringAndExpectSuccess("min = a if a < b else b");
+		parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c");
+		parseModelFromStringAndExpectSuccess("\"a\" if a < b else \"b\"");
+		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")");
+	}
+	@Test
+	public void parseInvalidTrenaryOperator(){
+		//trenary operator used without initialization or in a print
+		//parseModelFromStringAndExpectFail("a if a < b else b");
+		//trenary operator without if condition
+		parseModelFromStringAndExpectFail("a if else b");
+		//trenary operator without then statement
+		parseModelFromStringAndExpectFail("if a==b else u");
+		//trenary operator without else condition
+		parseModelFromStringAndExpectFail("x if a==b else");
+
+	}
+
+	@Test
+	public void parseValidForLoopStatement() {
 		parseModelFromStringAndExpectSuccess(
 				"for x in [0,1,2]:\n" +
 				"    print(x)"
@@ -153,7 +175,7 @@ public class PythonTest extends AbstractTest {
 	}
 
 	@Test
-	public void parseInvalidForLoop() {
+	public void parseInvalidForLoopStatement() {
 		//missing ":"
 		parseModelFromStringAndExpectFail(
 				"for x in [0,1,2]\n" +
@@ -172,7 +194,7 @@ public class PythonTest extends AbstractTest {
 	}
 
 	@Test
-	public void parseValidWhileLoop() {
+	public void parseValidWhileLoopStatement() {
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
 				"    print(i)\n" +
@@ -207,7 +229,7 @@ public class PythonTest extends AbstractTest {
 	}
 
 	@Test
-	public void parseInvalidWhileLoop() {
+	public void parseInvalidWhileLoopStatement() {
 		//missing "while"
 		parseModelFromStringAndExpectFail(
 				" i < 6:\n" +
