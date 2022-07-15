@@ -113,6 +113,26 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		performCocoChecksForAllBaseUnits(this::parseSIUnitConversionTypeCheckAndCheckCoCosAndExpectError);
 	}
 
+
+	@Test
+	public void checkPythonExpressionCoco(){
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"x = 1 if x==6 else 0"
+		);
+		//trenary operator should be assigned to a variable
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"y = 2\n" +
+						"1 if y==6 else 0\n"
+		);
+
+		//parseCodeStringAndCheckCoCosAndExpectSuccess(
+		//		"print(1 if y==6 else 0)\n"
+		//);
+
+
+
+	}
+
 //	---------------------------------------------------------------
 //	Tests for scripts from files.
 //	---------------------------------------------------------------
@@ -175,6 +195,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	private SIPythonCoCoChecker createSIPythonCoCoChecker() {
 		SIPythonCoCoChecker siPythonCoCoChecker = new SIPythonCoCoChecker();
+		siPythonCoCoChecker.addCoCo(new PythonExpressionCoco());
 		siPythonCoCoChecker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		siPythonCoCoChecker.addCoCo((PythonASTFunctionDeclarationCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());

@@ -128,19 +128,18 @@ public class PythonTest extends AbstractTest {
 				"if a > b else \"b is greater than a\")");
 		parseModelFromStringAndExpectSuccess("min = a if a < b else b");
 		parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c");
-		parseModelFromStringAndExpectSuccess("\"a\" if a < b else \"b\"");
+		parseModelFromStringAndExpectSuccess("x = \"a\" if a < b else \"b\"");
 		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")");
+		parseModelFromStringAndExpectSuccess("x = 1 if True else 0");
 	}
 	@Test
 	public void parseInvalidTrenaryOperator(){
-		//trenary operator used without initialization or in a print
-		//parseModelFromStringAndExpectFail("a if a < b else b");
 		//trenary operator without if condition
-		parseModelFromStringAndExpectFail("a if else b");
+		parseModelFromStringAndExpectFail("x = a if else b");
 		//trenary operator without then statement
-		parseModelFromStringAndExpectFail("if a==b else u");
+		parseModelFromStringAndExpectFail("x = if a==b else u");
 		//trenary operator without else condition
-		parseModelFromStringAndExpectFail("x if a==b else");
+		parseModelFromStringAndExpectFail("x = u if a==b else");
 
 	}
 
