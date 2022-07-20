@@ -23,12 +23,15 @@ public class PythonFunctionArgumentSizeCoco implements CommonExpressionsASTCallE
 		if (optionalFunctionSymbol.isPresent()) {
 			FunctionSymbol symbol = optionalFunctionSymbol.get();
 
+			// can not check parameter size for builtin functions
+			if (symbol.getEnclosingScope().getName().equals("__builtin__")) {
+				return;
+			}
+
 			if (args.size() != symbol.getParameterList().size()) {
 				Log.error("Invalid argument size for function " + symbol.getName() + " " + node.get_SourcePositionStart());
 			}
 		}
-
-
 	}
 
 	private Optional<FunctionSymbol> getFunctionSymbol(ASTExpression node) {

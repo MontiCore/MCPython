@@ -75,7 +75,17 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			printer.print(" ");
 		}
 		printer.print("import ");
-		printer.print(node.getName());
+
+		boolean first = true;
+		for (String name : node.getNameList()) {
+			if (first) {
+				first = false;
+			} else {
+				printer.print(", ");
+			}
+			printer.print(name);
+
+		}
 		node.getEOL().accept(getTraverser());
 	}
 
@@ -315,6 +325,12 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print(node.getName());
 		printer.print("=");
 		node.getExpression().accept(getTraverser());
+	}
+
+	@Override
+	public void traverse(ASTVarArgFunctionParameter node) {
+		printer.print("*");
+		printer.print(node.getName());
 	}
 
 	@Override

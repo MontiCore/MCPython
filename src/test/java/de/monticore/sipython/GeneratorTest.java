@@ -19,6 +19,11 @@ public class GeneratorTest {
 
     @Test
     public void simpleGeneratorTest() {
-        Generator.generate("src/test/resources","unit_script.sipy","target/generate");
+        Generator.generate("src/test/resources", "target/generate", "unit_script.sipy");
+    }
+
+    @Test
+    public void enhancedGeneratorTest() {
+        Generator.generate("src/test/resources","target/generate",  "unit_script.sipy", "unit_script_1.sipy");
     }
 }

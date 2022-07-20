@@ -21,7 +21,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
   // imports
-  ImportStatement implements Statement = ( "from" module:Name )? "import" Name EOL ;
+  ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ EOL ;
 
   // variable declaration
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL ;
@@ -65,6 +65,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   SimpleFunctionParameter implements FunctionParameter = Name;
   OptionalFunctionParameter implements FunctionParameter = Name "=" Expression ;
+  VarArgFunctionParameter implements FunctionParameter = "*" Name ;
 
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
@@ -83,7 +84,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   ClassFunction implements Function, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL?;
 
-  ClassFunctionParameters = (selfParameter:Name "," (FunctionParameter  || ",")*);
+  ClassFunctionParameters = (selfParameter:Name ("," FunctionParameter)*);
 
   ClassAttributes implements ClassStatement = VariableDeclaration EOL;
 

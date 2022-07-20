@@ -64,7 +64,8 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
                         "    x++"
         );
         parsePrintAndAssertEqualityOfOutputCode(
-                "for x in some_collection:\n" +
+                "some_collection = [0, 1, 2]\n" +
+                    "for x in some_collection:\n" +
                         "    x++"
         );
         parsePrintAndAssertEqualityOfOutputCode(

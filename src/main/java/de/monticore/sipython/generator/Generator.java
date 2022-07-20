@@ -4,55 +4,81 @@ import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython.SIPythonTool;
 import de.monticore.sipython._parser.SIPythonParser;
+import de.monticore.sipython._symboltable.ISIPythonGlobalScope;
 import de.se_rwth.commons.logging.Log;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class Generator {
 
-    public static void generate(String modelPath, String fullName, String outputPath) {
-        String name = fullName
-            .substring(0, fullName.lastIndexOf("."))
-            .replace(".","/")
-            .replace("\\","/")
-            + ".sipy";
-        ASTPythonScript ast = parseModel(modelPath, name);
+    public static void generate(String modelPath, String outputPath, String... fullNames) {
+        HashMap<String, ASTPythonScript> astByFullName = new HashMap<>();
 
+        // create asts from files
+        for (String fullName : fullNames) {
+            String name = fullName
+                .substring(0, fullName.lastIndexOf("."))
+                .replace(".","/")
+                .replace("\\","/")
+                + ".sipy";
+            astByFullName.put(fullName, parseModel(modelPath, name));
+        }
+
+        // create symbol table for files and their imports
         try {
-            SIPythonMill.scopesGenitorDelegator().createFromAST(ast);
+            for (ASTPythonScript ast : astByFullName.values()) {
+                SIPythonMill.globalScope().addSubScope(SIPythonMill.scopesGenitorDelegator().createFromAST(ast));
+                SIPythonMill.scopesGenitor().createImportScopes(ast);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Log.error("0xE6548322 Cannot build symbol table");
         }
 
+        // create symbol table for builtin functions
+        SIPythonMill.scopesGenitor().createBuiltinPythonFunctionsScope();
+
+        ISIPythonGlobalScope scope = SIPythonMill.globalScope();
+
         SIPythonTool tool = new SIPythonTool();
 
-        tool.runDefaultCoCos(ast);
-
-        String print = PrintAsSIPythonScript.printAsSIPythonScript(ast);
-
-        String filePath = outputPath;
-        String scriptName;
-        if (fullName.contains("/")) {
-            scriptName = fullName.substring(fullName.lastIndexOf("/") + 1, fullName.lastIndexOf("."));
-            filePath += "/" + fullName.substring(0, fullName.lastIndexOf("/"));
-        } else {
-            scriptName = fullName.substring(0, fullName.lastIndexOf("."));
+        // check cocos
+        for (ASTPythonScript ast : astByFullName.values()) {
+            tool.runDefaultCoCos(ast);
         }
 
-        File pathFile = new File(filePath);
-        if (!pathFile.exists())
-            pathFile.mkdirs();
+        // write output (python) files
+        for (Map.Entry<String, ASTPythonScript> entry : astByFullName.entrySet()) {
+            String fullName = entry.getKey();
+            ASTPythonScript ast = entry.getValue();
 
-        try {
-            FileWriter writer = new FileWriter(filePath + "/" + scriptName + ".py");
-            writer.write(print);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            String print = PrintAsSIPythonScript.printAsSIPythonScript(ast);
+
+            String filePath = outputPath;
+            String scriptName;
+            if (fullName.contains("/")) {
+                scriptName = fullName.substring(fullName.lastIndexOf("/") + 1, fullName.lastIndexOf("."));
+                filePath += "/" + fullName.substring(0, fullName.lastIndexOf("/"));
+            } else {
+                scriptName = fullName.substring(0, fullName.lastIndexOf("."));
+            }
+
+            File pathFile = new File(filePath);
+            if (!pathFile.exists())
+                pathFile.mkdirs();
+
+            try {
+                FileWriter writer = new FileWriter(filePath + "/" + scriptName + ".py");
+                writer.write(print);
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
