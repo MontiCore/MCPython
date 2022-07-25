@@ -357,7 +357,36 @@ public class PythonTest extends AbstractTest {
 			);
 
 		}
-		//
+
+	@Test
+	public void parseValidAssertStatements(){
+		parseModelFromStringAndExpectSuccess(
+				"assert 2 > 3, \"Two is not greater than 3\""
+		);
+		parseModelFromStringAndExpectSuccess(
+				"x = 1\n" +
+						"assert x > 0, \"x is too low \""
+		);
+	}
+
+	@Test
+	public void parseInvalidAssertStatements(){
+		// missing error string
+		parseModelFromStringAndExpectFail(
+				"assert 2 > 3,"
+		);
+
+		// missing condition expression
+		parseModelFromStringAndExpectFail(
+				"assert , \"missing condition \""
+		);
+
+		// missing comma
+		parseModelFromStringAndExpectFail(
+				"assert 2 > 3 \"Twp is not greater than 3\""
+		);
+	}
+
 
 
 
