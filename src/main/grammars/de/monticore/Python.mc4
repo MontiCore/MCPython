@@ -34,19 +34,25 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
   TupleInit implements VariableInit = "(" (VariableInit || ",")* ")" ;
 
-  // string for python
+  // string literals for python
    token StringPython
-      = '\'' (StringCharactersPython)? '\''
+      = "\'" (StringCharactersPython)? "\'"
       : {setText(getText().substring(1, getText().length() - 1));};
 
       fragment token StringCharactersPython
         = (StringCharacterPython)+;
 
       fragment token StringCharacterPython
-        = ~ ('\''| '\\') | EscapeSequence;
+        = ~ ("'"| '\\') | PythonEscapeSequence;
 
-   StringLiteral implements Literal, SignedLiteral =
-       source:String;
+     fragment token PythonEscapeSequence
+         = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
+           | OctalEscape | UnicodeEscape;
+
+   StringLiteralPython implements Literal, SignedLiteral =
+       source:StringPython;
+
+
 
 
   // boolean

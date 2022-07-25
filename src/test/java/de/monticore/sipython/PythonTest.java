@@ -45,6 +45,7 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("var = (1,4)");
 	}
 
+
 	@Test
 	public void parseInvalidLocalVariableDeclarationStatement() {
 		parseModelFromStringAndExpectFail("var =");
@@ -121,6 +122,21 @@ public class PythonTest extends AbstractTest {
 						"    "
 		);
 	}
+
+	@Test
+	public void parseValidStringPython(){
+		parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"");
+		parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'");
+	}
+
+	@Test
+	public void parseInvalidStringPython(){
+		parseModelFromStringAndExpectFail("helloworld = \"Hello World");
+		parseModelFromStringAndExpectFail("helloworld = 'Hello World");
+		parseModelFromStringAndExpectFail("helloworld = Hello World");
+	}
+
+
 
 	@Test
 	public void parseValidTrenaryOperator(){
