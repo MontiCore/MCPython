@@ -34,7 +34,27 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
   TupleInit implements VariableInit = "(" (VariableInit || ",")* ")" ;
 
-   //trenary-operator
+  // string for python
+   token StringPython
+      = '\'' (StringCharactersPython)? '\''
+      : {setText(getText().substring(1, getText().length() - 1));};
+
+      fragment token StringCharactersPython
+        = (StringCharacterPython)+;
+
+      fragment token StringCharacterPython
+        = ~ ('\''| '\\') | EscapeSequence;
+
+   StringLiteral implements Literal, SignedLiteral =
+       source:String;
+
+
+  // boolean
+  BooleanLiteralPython implements Literal, SignedLiteral =
+      source:["True" | "False"];
+
+
+  //trenary-operator
   TrenaryOperatorInit implements Expression = thenCondition:Expression ("if" condition:Expression "else" elifCondition:Expression)+;
 
   // if-else
