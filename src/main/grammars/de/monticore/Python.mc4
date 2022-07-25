@@ -4,7 +4,7 @@ package de.monticore;
 grammar Python extends de.monticore.expressions.CommonExpressions,
                         de.monticore.expressions.AssignmentExpressions,
                         de.monticore.literals.MCCommonLiterals,
-                        de.monticore.symbols.BasicSymbols {
+                        de.monticore.symbols.OOSymbols {
 
   PythonScript = (Statement | EOL)*;
 
@@ -82,9 +82,11 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ClassStatementBlock = EOL? ClassStatementBlockBody {decreaseIndent()}? EOL? ;
   ClassStatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* ClassStatement ({isIndentedCorrectly()}? Indent+ ClassStatement)*;
 
-  ClassFunction implements Function, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL?;
+  ClassFunctionDeclaration implements Function, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL?;
 
-  ClassFunctionParameters = (selfParameter:Name ("," FunctionParameter)*);
+  ClassFunctionParameters = (SelfParameter ("," FunctionParameter)*);
+
+  SelfParameter implements FunctionParameter = Name;
 
   ClassAttributes implements ClassStatement = VariableDeclaration EOL;
 

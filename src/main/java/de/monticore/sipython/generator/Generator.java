@@ -1,10 +1,10 @@
 package de.monticore.sipython.generator;
 
+import de.monticore.python.PythonMill;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython.SIPythonTool;
 import de.monticore.sipython._parser.SIPythonParser;
-import de.monticore.sipython._symboltable.ISIPythonGlobalScope;
 import de.se_rwth.commons.logging.Log;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class Generator {
         try {
             for (ASTPythonScript ast : astByFullName.values()) {
                 SIPythonMill.globalScope().addSubScope(SIPythonMill.scopesGenitorDelegator().createFromAST(ast));
-                SIPythonMill.scopesGenitor().createImportScopes(ast);
+                PythonMill.scopesGenitor().createImportScopes(ast);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,9 +41,7 @@ public class Generator {
         }
 
         // create symbol table for builtin functions
-        SIPythonMill.scopesGenitor().createBuiltinPythonFunctionsScope();
-
-        ISIPythonGlobalScope scope = SIPythonMill.globalScope();
+        PythonMill.scopesGenitor().createBuiltinPythonFunctionsScope();
 
         SIPythonTool tool = new SIPythonTool();
 

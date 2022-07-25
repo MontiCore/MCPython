@@ -1,8 +1,5 @@
 package de.monticore.sipython;
 
-import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTMinusExpressionCoCo;
-import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTModuloExpressionCoCo;
-import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTPlusExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.PythonASTIfStatementCoCo;
 import de.monticore.sipython._cocos.*;

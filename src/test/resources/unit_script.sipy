@@ -29,3 +29,15 @@ time = 3 min
 print(time)
 
 print(calculate_velocity(distance, time))
+
+c = calculator()
+
+print(c.multiply(1))
+
+class calculator:
+
+    def __init__(self):
+        self.factor = 1
+
+    def multiply(self, x):
+        return self.factor * x

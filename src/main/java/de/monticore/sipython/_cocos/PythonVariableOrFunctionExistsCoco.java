@@ -10,8 +10,9 @@ public class PythonVariableOrFunctionExistsCoco implements ExpressionsBasisASTNa
 	@Override
 	public void check(ASTNameExpression node) {
 		if (((SIPythonScope) node.getEnclosingScope()).resolveVariable(node.getName()).isEmpty()
-				&& ((SIPythonScope) node.getEnclosingScope()).resolveFunction(node.getName()).isEmpty()) {
-			Log.error("Variable/Function " + node.getName() + " does not exist " + node.get_SourcePositionStart());
+				&& ((SIPythonScope) node.getEnclosingScope()).resolveFunction(node.getName()).isEmpty()
+				&& ((SIPythonScope) node.getEnclosingScope()).resolveClass(node.getName()).isEmpty()) {
+			Log.error("Variable, Function or Class" + node.getName() + " does not exist " + node.get_SourcePositionStart());
 		}
 	}
 

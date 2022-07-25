@@ -27,11 +27,8 @@ public class SIPythonAssignmentExpressionsPrettyPrinter extends AssignmentExpres
 	@Override
 	public void handle(ASTAssignmentExpression node) {
 		CommentPrettyPrinter.printPreComments(node, this.getPrinter());
-		if (!(node.getLeft() instanceof ASTNameExpression)) {
-			Log.error("0xE725687 Left side of AssignmentExpression is not a NameExpression");
-		}
 
-		this.getPrinter().print(((ASTNameExpression) node.getLeft()).getName());
+		node.getLeft().accept(getTraverser());
 
 		this.getPrinter().print(" ");
 		switch (node.getOperator()) {

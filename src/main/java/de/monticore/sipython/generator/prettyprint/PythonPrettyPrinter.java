@@ -265,7 +265,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
-	public void traverse(ASTClassFunction node) {
+	public void traverse(ASTClassFunctionDeclaration node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		printer.print("def ");
@@ -294,11 +294,16 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	@Override
 	public void traverse(ASTClassFunctionParameters node) {
-		printer.print(node.getSelfParameter());
+		node.getSelfParameter().accept(getTraverser());
 		for (ASTFunctionParameter argument : node.getFunctionParameterList()) {
 			printer.print(", ");
 			argument.accept(getTraverser());
 		}
+	}
+
+	@Override
+	public void traverse(ASTSelfParameter node) {
+		printer.print(node.getName());
 	}
 
 	@Override
