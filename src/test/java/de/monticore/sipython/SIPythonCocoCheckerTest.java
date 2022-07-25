@@ -30,13 +30,13 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	public void checkPythonFunctionArgumentSizeCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x):\n" +
-						"    x++\n" +
+						"    x+=1\n" +
 						"calcVelocity(4)"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x):\n" +
-						"    x++\n" +
+						"    x+=1\n" +
 						"calcVelocity(4,5)"
 		);
 	}
@@ -46,16 +46,16 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"x = 1\n" +
 				"if(x > 5):\n" +
-				"    x++\n" +
+				"    x+=1\n" +
 				"def calcVelocity(x):\n" +
-				"    x++\n"
+				"    x+=1\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"x = 1\n" +
 				"if(x > 5):\n" +
 				"    def calcVelocity(x):\n" +
-				"        x++\n"
+				"        x+=1\n"
 		);
 	}
 
@@ -63,12 +63,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	public void checkPythonFunctionParameterDuplicateNameCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x,y):\n" +
-				"    x++"
+				"    x+=1"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x,x):\n" +
-				"    x++"
+				"    x+=1"
 		);
 	}
 
@@ -76,12 +76,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	public void checkPythonVariableOrFunctionExistsCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"x = 1\n" +
-				"x++"
+				"x+=1"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"if(x > 5):" +
-				"    x++"
+				"    x+=1"
 		);
 	}
 
@@ -111,6 +111,26 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 		//checks that all distinct pairs of base units are not allowed in a unit conversion expression together
 		performCocoChecksForAllBaseUnits(this::parseSIUnitConversionTypeCheckAndCheckCoCosAndExpectError);
+	}
+
+
+	@Test
+	public void checkPythonExpressionCoco(){
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"x = 1 if x==6 else 0"
+		);
+		//trenary operator should be assigned to a variable
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"y = 2\n" +
+						"1 if y==6 else 0\n"
+		);
+
+		//parseCodeStringAndCheckCoCosAndExpectSuccess(
+		//		"print(1 if y==6 else 0)\n"
+		//);
+
+
+
 	}
 
 //	---------------------------------------------------------------
@@ -175,6 +195,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	private SIPythonCoCoChecker createSIPythonCoCoChecker() {
 		SIPythonCoCoChecker siPythonCoCoChecker = new SIPythonCoCoChecker();
+		siPythonCoCoChecker.addCoCo(new PythonExpressionCoco());
 		siPythonCoCoChecker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		siPythonCoCoChecker.addCoCo((PythonASTFunctionDeclarationCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
