@@ -43,6 +43,7 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]");
 		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]");
 		parseModelFromStringAndExpectSuccess("var = (1,4)");
+		parseModelFromStringAndExpectSuccess("v = 'sdsdf'");
 	}
 
 
@@ -61,8 +62,7 @@ public class PythonTest extends AbstractTest {
 		//tuples should be allowed as variable declaration: must be fixed in the grammar
 		parseModelFromStringAndExpectFail("var = 1,4");
 
-		//to define strings '' should also be allowed: must be fixed in the grammar
-		parseModelFromStringAndExpectFail("v = 'sdsdf'");
+
 	}
 
 	@Test

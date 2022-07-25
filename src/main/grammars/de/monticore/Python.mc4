@@ -36,18 +36,18 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // string literals for python
    token StringPython
-      = "\'" (StringCharactersPython)? "\'"
+      = '\'' (StringCharactersPython)? '\''
       : {setText(getText().substring(1, getText().length() - 1));};
 
       fragment token StringCharactersPython
         = (StringCharacterPython)+;
 
       fragment token StringCharacterPython
-        = ~ ("'"| '\\') | PythonEscapeSequence;
+        = ~ ('\''| '\\') | PythonEscapeSequence;
 
-     fragment token PythonEscapeSequence
-         = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
-           | OctalEscape | UnicodeEscape;
+      fragment token PythonEscapeSequence
+           = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
+             | OctalEscape | UnicodeEscape;
 
    StringLiteralPython implements Literal, SignedLiteral =
        source:StringPython;
