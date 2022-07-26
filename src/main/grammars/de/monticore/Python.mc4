@@ -8,22 +8,47 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   PythonScript = (Statement | EOL)*;
 
-  token Indent = "    ";
+  token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
 
+  // indentation token, 4 spaces or tabulator
+  token Indent = "    " | "\t";
+
+  // end of line token
   EOL = ("\n" | "\r")+ ;
-
 
   interface Statement ;
 
+  // The StatementBlock represents a number of statements with the same indentation
   scope StatementBlock = EOL? StatementBlockBody {decreaseIndent()}? EOL? ;
-  StatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* Statement ({isIndentedCorrectly()}? Indent+ Statement)*;
+  StatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* Statement
+                            ( {isIndentedCorrectly()}?                     Indent+ Statement )* ;
 
-  token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
+  /*=================================================================*/
 
-  // imports
+  // import statement
   ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ EOL ;
 
-  // variable declaration
+  // if-else statement
+  IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
+                                   ( "elif" elifCondition:Expression ":" elifStatement:StatementBlock )*
+                                   ( "else"                          ":" elseStatement:StatementBlock )?;
+
+  // assert statement
+  AssertStatement implements Statement = "assert" condition:Expression "," errorMessage:String EOL ;
+
+  // for statement
+  ForStatement implements Statement = "for" ForControl ":" StatementBlock
+                                    ( "else"           ":" elseStatement:StatementBlock )? ;
+
+  interface ForControl ;
+  CommonForControl implements ForControl, Variable = Name "in" Expression ;
+  ArrayForControl  implements ForControl, Variable = Name "in" ArrayInit ;
+
+  // while statement
+  WhileStatement implements Statement = "while" condition:Expression ":" StatementBlock
+                                      ( "else"                       ":" elseStatement:StatementBlock )? ;
+
+  // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL ;
 
   VariableDeclaration implements Variable = Name "=" VariableInit ;
@@ -31,68 +56,66 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   interface VariableInit ;
 
   SimpleInit implements VariableInit = Expression ;
-  ArrayInit implements VariableInit = "[" (VariableInit || ",")* "]" ;
-  TupleInit implements VariableInit = "(" (VariableInit || ",")* ")" ;
-
-  // trenary-operator
-  TrenaryOperatorInit implements Expression = thenCondition:Expression ("if" condition:Expression "else" elifCondition:Expression)+;
-
-  // assert statement
-  AssertStatement implements Statement = "assert" condition:Expression "," errorMessage:String EOL ;
-
-  // if-else
-  IfStatement implements Statement = "if" condition:Expression ":" thenStatement:StatementBlock ("elif" elifCondition:Expression ":" elifStatement:StatementBlock)* ("else" ":" elseStatement:StatementBlock)?;
+  ArrayInit  implements VariableInit = "[" (VariableInit || ",")* "]" ;
+  TupleInit  implements VariableInit = "(" (VariableInit || ",")* ")" ;
 
 
-  // for-loop
-  ForStatement implements Statement = "for" ForControl ":" StatementBlock ("else" ":" elseStatement:StatementBlock)? ;
-
-  interface ForControl ;
-
-  CommonForControl implements ForControl, Variable = Name "in" Expression ;
-  ArrayForControl implements ForControl, Variable = Name "in" ArrayInit ;
-
-
-  // while-loop
-  WhileStatement implements Statement = "while" condition:Expression ":" EOL? StatementBlock ("else" ":" elseStatement:StatementBlock)?;
-
-
-  // function declaration
-
+  // function declaration statement
   FunctionDeclaration implements Function, Statement = "def" Name "(" FunctionParameters ")" ":" EOL
-                                                        StatementBlock;
-
+                                                        StatementBlock ;
   FunctionParameters = (FunctionParameter  || ",")*;
 
   interface FunctionParameter extends Variable;
 
-  SimpleFunctionParameter implements FunctionParameter = Name;
+  SimpleFunctionParameter   implements FunctionParameter = Name ;
   OptionalFunctionParameter implements FunctionParameter = Name "=" Expression ;
-  VarArgFunctionParameter implements FunctionParameter = "*" Name ;
+  VarArgFunctionParameter   implements FunctionParameter = "*" Name ;
 
+  // return statement
   ReturnStatement implements Statement = "return" Expression? EOL ;
 
-  ExpressionStatement implements Statement = Expression EOL;
+  // expression statement
+  ExpressionStatement implements Statement = Expression EOL ;
 
-  // class declaration
+  /*=================================================================*/
 
+  // ternary-operator expression
+  TernaryOperatorInit implements Expression = thenExpression:Expression ( "if" condition:Expression
+                                       "else" elseExpression:Expression )+ ;
+
+  /*=================================================================*/
+
+  // class symbol
   interface scope symbol Class = Name;
 
-  ClassDeclaration implements Class, Statement, ClassStatement = "class" Name ( "(" superClass:Name@Class? ")" )? ":" EOL ClassStatementBlock;
+  // class declaration statement
+  ClassDeclaration implements Class, Statement, ClassStatement = "class" Name ( "(" superClass:Name@Class? ")" )? ":" EOL ClassStatementBlock ;
 
   interface ClassStatement;
 
   ClassStatementBlock = EOL? ClassStatementBlockBody {decreaseIndent()}? EOL? ;
-  ClassStatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* ClassStatement ({isIndentedCorrectly()}? Indent+ ClassStatement)*;
+  ClassStatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* ClassStatement
+                                 ( {isIndentedCorrectly()}?                     Indent+ ClassStatement )* ;
 
-  ClassFunctionDeclaration implements Function, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL?;
+  ClassFunctionDeclaration implements Function, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL? ;
 
-  ClassFunctionParameters = (SelfParameter ("," FunctionParameter)*);
+  ClassFunctionParameters = (SelfParameter ("," FunctionParameter)*) ;
 
-  SelfParameter implements FunctionParameter = Name;
+  SelfParameter implements FunctionParameter = Name ;
 
-  ClassAttributes implements ClassStatement = VariableDeclaration EOL;
+  ClassAttributes implements ClassStatement = VariableDeclaration EOL ;
 
+  /*=================================================================*/
+  /** This java code implements an indentation counter.
+  *
+  * isIndentedCorrectly() checks if the next symbols are exactly n indents, while n is equals to the indentCounter.
+  + The method returns true if the previous condition is true, otherwise false.
+  *
+  * decreaseIndent() checks if the next symbols are indented correctly. If true, it returns false. Otherwise the indentCounter
+  * will be decreased by one and the method returns true.
+  *
+  * increaseIndent() simply increases the indentCounter by one and always returns true.
+  **/
 
   concept antlr {
     parserjava {

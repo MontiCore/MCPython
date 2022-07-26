@@ -30,10 +30,6 @@ print(time)
 
 print(calculate_velocity(distance, time))
 
-c = calculator()
-
-print(c.multiply(1))
-
 class calculator:
 
     def __init__(self):
@@ -41,3 +37,7 @@ class calculator:
 
     def multiply(self, x):
         return self.factor * x
+
+c = calculator()
+
+print(c.multiply(1))
