@@ -3,6 +3,7 @@ package de.monticore.sipython;
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTPlusExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.PythonASTFunctionDeclarationCoCo;
+import de.monticore.python._cocos.PythonASTWhileStatementCoCo;
 import de.monticore.sipython._cocos.*;
 import de.monticore.siunits.SIUnitsMill;
 import de.se_rwth.commons.logging.Log;
@@ -197,7 +198,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		SIPythonCoCoChecker siPythonCoCoChecker = new SIPythonCoCoChecker();
 		siPythonCoCoChecker.addCoCo(new PythonExpressionCoco());
 		siPythonCoCoChecker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
-		siPythonCoCoChecker.addCoCo((PythonASTFunctionDeclarationCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
+		siPythonCoCoChecker.addCoCo((PythonASTWhileStatementCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionArgumentSizeCoco());
 		siPythonCoCoChecker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());

@@ -8,18 +8,12 @@ import de.monticore.python._cocos.PythonASTWhileStatementCoCo;
 import de.se_rwth.commons.logging.Log;
 
 public class PythonFunctionDeclarationInStatementBlockCheck implements PythonASTIfStatementCoCo,
-		PythonASTFunctionDeclarationCoCo, PythonASTWhileStatementCoCo, PythonASTForStatementCoCo {
+		PythonASTWhileStatementCoCo, PythonASTForStatementCoCo {
 
 	protected void checkStatementBlock(ASTStatementBlock node) {
 		for (ASTStatement statement : node.getStatementBlockBody().getStatementList()) {
 			if (statement instanceof ASTFunctionDeclaration) {
 				Log.error("Function declarations are not allowed in statement block at " + statement.get_SourcePositionStart());
-			} else if (statement instanceof ASTForStatement) {
-				checkStatementBlock(((ASTForStatement) statement).getStatementBlock());
-			} else if (statement instanceof ASTWhileStatement) {
-				checkStatementBlock(((ASTWhileStatement) statement).getStatementBlock());
-			} else if (statement instanceof ASTIfStatement) {
-				check((ASTIfStatement)statement);
 			}
 		}
 	}
@@ -35,11 +29,6 @@ public class PythonFunctionDeclarationInStatementBlockCheck implements PythonAST
 		if (node.isPresentElseStatement()) {
 			this.checkStatementBlock(node.getElseStatement());
 		}
-	}
-
-	@Override
-	public void check(ASTFunctionDeclaration node) {
-		this.checkStatementBlock(node.getStatementBlock());
 	}
 
 	@Override

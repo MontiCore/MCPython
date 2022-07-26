@@ -78,7 +78,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   interface scope symbol Class = Name;
 
-  ClassDeclaration implements Class, Statement = "class" Name ( "(" superClass:Name@Class? ")" )? ":" EOL ClassStatementBlock;
+  ClassDeclaration implements Class, Statement, ClassStatement = "class" Name ( "(" superClass:Name@Class? ")" )? ":" EOL ClassStatementBlock;
 
   interface ClassStatement;
 
