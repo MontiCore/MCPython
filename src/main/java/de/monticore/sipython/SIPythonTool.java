@@ -13,7 +13,7 @@ public class SIPythonTool extends SIPythonToolTOP {
 		checker.addCoCo((PythonASTIfStatementCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		checker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
 		checker.addCoCo(new PythonFunctionArgumentSizeCoco());
-		checker.addCoCo(new PythonVariableOrFunctionExistsCoco());
+		checker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
 		// checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 
 		checker.checkAll(ast);

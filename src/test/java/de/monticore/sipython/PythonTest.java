@@ -361,7 +361,7 @@ public class PythonTest extends AbstractTest {
 	@Test
 	public void parseValidAssertStatements(){
 		parseModelFromStringAndExpectSuccess(
-				"assert 2 > 3, \"Two is not greater than 3\""
+				"assert 2 > 3, \"Two is not greater than three\""
 		);
 		parseModelFromStringAndExpectSuccess(
 				"x = 1\n" +
@@ -383,7 +383,7 @@ public class PythonTest extends AbstractTest {
 
 		// missing comma
 		parseModelFromStringAndExpectFail(
-				"assert 2 > 3 \"Twp is not greater than 3\""
+				"assert 2 > 3 \"Two is not greater than three\""
 		);
 	}
 

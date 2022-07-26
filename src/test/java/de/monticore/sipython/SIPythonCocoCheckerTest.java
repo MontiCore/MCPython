@@ -200,7 +200,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		siPythonCoCoChecker.addCoCo((PythonASTFunctionDeclarationCoCo) new PythonFunctionDeclarationInStatementBlockCheck());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionParameterDuplicateNameCoco());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionArgumentSizeCoco());
-		siPythonCoCoChecker.addCoCo(new PythonVariableOrFunctionExistsCoco());
+		siPythonCoCoChecker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
 		siPythonCoCoChecker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 		return siPythonCoCoChecker;
 	}
