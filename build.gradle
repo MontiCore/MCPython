@@ -229,3 +229,18 @@ publishing {
         url = version.endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl
     }
 }
+
+task buildExecutable(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'de.monticore.sipython.Main'
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    baseName = project.name
+    classifier = "tool"
+    version = "0.0.1-SNAPSHOT"
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+buildExecutable.dependsOn(jar)
