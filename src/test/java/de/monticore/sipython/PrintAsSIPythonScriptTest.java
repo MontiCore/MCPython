@@ -126,6 +126,54 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
         );
     }
 
+    @Test
+    public void printAssertStatements(){
+        parsePrintAndAssertEqualityOfOutputCode(
+            "assert 2 > 3, \"Two is not greater than three\""
+        );
+        parsePrintAndAssertEqualityOfOutputCode(
+            "x = 1\n" +
+                "assert x > 0, \"x is too low \""
+        );
+    }
+
+    @Test
+    public void printTryExceptStatements() {
+        parsePrintAndAssertEqualityOfOutputCode(
+            "try:\n" +
+                "    i = 1 // 0\n" +
+                "except ZeroDivisionError:\n" +
+                "    print(\"Can not divide by zero\")"
+        );
+
+        parsePrintAndAssertEqualityOfOutputCode(
+            "try:\n" +
+                "    i = 1 // 0\n" +
+                "except ZeroDivisionError:\n" +
+                "    print(\"Can not divide by zero\")\n" +
+                "finally:\n" +
+                "    print(\"Done\")"
+        );
+        parsePrintAndAssertEqualityOfOutputCode(
+            "try:\n" +
+                "    i = 1 // 0\n" +
+                "except ZeroDivisionError:\n" +
+                "    print(\"Can not divide by zero\")\n" +
+                "else:\n" +
+                "    print(\"Success\")"
+        );
+        parsePrintAndAssertEqualityOfOutputCode(
+            "try:\n" +
+                "    i = 1 // 0\n" +
+                "except ZeroDivisionError:\n" +
+                "    print(\"Can not divide by zero\")\n" +
+                "else:\n" +
+                "    print(\"Success\")\n" +
+                "finally:\n" +
+                "    print(\"Done\")"
+        );
+    }
+
     // --------------------------------------------------------------
     //  Test cases for PythonPrettyPrinter
     // --------------------------------------------------------------

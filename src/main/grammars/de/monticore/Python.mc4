@@ -14,7 +14,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   token Indent = "    " | "\t";
 
   // end of line token
-  EOL = ("\n" | "\r")+ ;
+  token EOL = ("\n" | "\r")+ ;
 
   interface Statement ;
 
@@ -48,6 +48,14 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   WhileStatement implements Statement = "while" condition:Expression ":" StatementBlock
                                       ( "else"                       ":" elseStatement:StatementBlock )? ;
 
+  // try-except-finally statement
+  TryExceptStatement implements Statement = "try"                    ":" tryStatement:StatementBlock
+                                            ExceptStatement+
+                                          ( "else"                   ":" elseStatement:StatementBlock    )?
+                                          ( "finally"                ":" finallyStatement:StatementBlock )? ;
+
+  ExceptStatement = ( "except" Name? ":" StatementBlock ) ;
+
   // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL ;
 
@@ -80,8 +88,10 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   /*=================================================================*/
 
   // ternary-operator expression
-  TernaryOperatorInit implements Expression = thenExpression:Expression ( "if" condition:Expression
+  TernaryOperatorExpression implements Expression <200> = thenExpression:Expression ( "if" condition:Expression
                                        "else" elseExpression:Expression )+ ;
+
+  IntegerDivisionExpression implements Expression <180>, InfixExpression = left:Expression operator:" // " right:Expression ;
 
   /*=================================================================*/
 

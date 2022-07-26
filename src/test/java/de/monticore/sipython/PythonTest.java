@@ -387,7 +387,77 @@ public class PythonTest extends AbstractTest {
 		);
 	}
 
+	@Test
+	public void parseValidTryExceptStatements(){
+		parseModelFromStringAndExpectSuccess(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"except ZeroDivisionError:\n" +
+						"    print(\"Can not divide by zero\")\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"except ZeroDivisionError:\n" +
+						"    print(\"Can not divide by zero\")\n" +
+						"finally:\n" +
+						"    print(\"Done\")"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"except ZeroDivisionError:\n" +
+						"    print(\"Can not divide by zero\")\n" +
+						"else:\n" +
+						"    print(\"Success\")"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"except ZeroDivisionError:\n" +
+						"    print(\"Can not divide by zero\")\n" +
+						"else:\n" +
+						"    print(\"Success\")\n" +
+						"finally:\n" +
+						"    print(\"Done\")"
+		);
 
+	}
+
+	@Test
+	public void parseInvalidTryExceptStatements(){
+		// missing except
+		parseModelFromStringAndExpectFail(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"else:\n" +
+						"    print(\"Success\")\n" +
+						"finally:\n" +
+						"    print(\"Done\")"
+		);
+
+		// missing try
+		parseModelFromStringAndExpectFail(
+						"except ZeroDivisionError:\n" +
+						"    print(\"Can not divide by zero\")\n" +
+						"else:\n" +
+						"    print(\"Success\")"
+		);
+
+		// duplicate finally
+		parseModelFromStringAndExpectFail(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"except ZeroDivisionError:\n" +
+						"    print(\"Can not divide by zero\")\n" +
+						"else:\n" +
+						"    print(\"Success\")\n" +
+						"finally:\n" +
+						"    print(\"Done\")\n" +
+						"finally:\n" +
+						"    print(\"Done\")"
+		);
+	}
 
 
 //	---------------------------------------------------------------
