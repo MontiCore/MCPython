@@ -71,7 +71,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
 
-  SimpleFunctionDeclaration implements Function, FunctionDeclaration, Statement = "def" Name "(" FunctionParameters ")" ":" EOL
+  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = "def" Name "(" FunctionParameters ")" ":" EOL
                                                         StatementBlock ;
   FunctionParameters = (FunctionParameter  || ",")*;
 
@@ -88,7 +88,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ExpressionStatement implements Statement = Expression EOL ;
 
   // lambda statement
-  LambdaStatement implements Statement = "lambda" FunctionParameters ":" Expression EOL ;
+  scope LambdaStatement implements Statement = "lambda" FunctionParameters ":" Expression EOL ;
 
   /*===========================Literals======================================*/
 
@@ -148,7 +148,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ClassStatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* ClassStatement
                                  ( {isIndentedCorrectly()}?                     Indent+ ClassStatement )* ;
 
-  ClassFunctionDeclaration implements Function, FunctionDeclaration, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL? ;
+  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock EOL? ;
 
   ClassFunctionParameters = (SelfParameter ("," FunctionParameter)*) ;
 

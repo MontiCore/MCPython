@@ -30,7 +30,7 @@ public class AbstractTest {
 			e.printStackTrace();
 		}
 
-		// astPythonScriptOptional.ifPresent(AbstractTest::runCocos);
+
 
 		return astPythonScriptOptional;
 	}

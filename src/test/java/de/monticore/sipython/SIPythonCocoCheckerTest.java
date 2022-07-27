@@ -81,7 +81,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	}
 
 	@Test
-	public void checkPythonFunctionParameterDuplicateNameCoco() {
+	public void checkPythonFunctionDuplicateParameterNameCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x,y):\n" +
 				"    x+=1"
@@ -105,6 +105,16 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		);
 	}
 
+	@Test
+	public void checkPythonLambdaDuplicateParameterNameCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"lambda x, y: x"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"lambda x, x: x"
+		);
+	}
 
 	@Test
 	public void checkPythonVariableOrFunctionOrClassExistsCoco() {
@@ -239,6 +249,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		siPythonCoCoChecker.addCoCo(new PythonFunctionDuplicateParameterNameCoco());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionArgumentSizeCoco());
 		siPythonCoCoChecker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
+		siPythonCoCoChecker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
 		siPythonCoCoChecker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 		return siPythonCoCoChecker;
 	}
