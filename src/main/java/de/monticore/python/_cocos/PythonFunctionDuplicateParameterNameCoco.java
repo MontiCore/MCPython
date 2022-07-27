@@ -1,11 +1,9 @@
-package de.monticore.sipython._cocos;
+package de.monticore.python._cocos;
 
 import de.monticore.python._ast.ASTClassFunctionDeclaration;
 import de.monticore.python._ast.ASTFunctionDeclaration;
 import de.monticore.python._ast.ASTFunctionParameter;
 import de.monticore.python._ast.ASTSimpleFunctionDeclaration;
-import de.monticore.python._cocos.PythonASTFunctionDeclarationCoCo;
-import de.monticore.python._cocos.PythonASTSimpleFunctionDeclarationCoCo;
 import de.se_rwth.commons.logging.Log;
 
 import java.util.ArrayList;
@@ -13,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PythonFunctionParameterDuplicateNameCoco implements PythonASTFunctionDeclarationCoCo {
+public class PythonFunctionDuplicateParameterNameCoco implements PythonASTFunctionDeclarationCoCo {
 
 	@Override
 	public void check(ASTFunctionDeclaration node) {

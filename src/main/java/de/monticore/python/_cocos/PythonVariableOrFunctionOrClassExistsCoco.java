@@ -1,4 +1,4 @@
-package de.monticore.sipython._cocos;
+package de.monticore.python._cocos;
 
 import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
 import de.monticore.expressions.expressionsbasis._cocos.ExpressionsBasisASTNameExpressionCoCo;

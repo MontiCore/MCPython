@@ -1,13 +1,9 @@
-package de.monticore.sipython._cocos;
+package de.monticore.python._cocos;
 
 import de.monticore.python._ast.*;
-import de.monticore.python._cocos.PythonASTForStatementCoCo;
-import de.monticore.python._cocos.PythonASTFunctionDeclarationCoCo;
-import de.monticore.python._cocos.PythonASTIfStatementCoCo;
-import de.monticore.python._cocos.PythonASTWhileStatementCoCo;
 import de.se_rwth.commons.logging.Log;
 
-public class PythonFunctionDeclarationInStatementBlockCheck implements PythonASTIfStatementCoCo,
+public class PythonFunctionDeclarationInStatementBlockCoco implements PythonASTIfStatementCoCo,
 		PythonASTWhileStatementCoCo, PythonASTForStatementCoCo {
 
 	protected void checkStatementBlock(ASTStatementBlock node) {

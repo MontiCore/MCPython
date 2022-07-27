@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 
-	private List<String> pythonKeywords = new LinkedList<>();
+	private final List<String> pythonKeywords = new LinkedList<>();
 
 
 	public PythonScopesGenitor() {

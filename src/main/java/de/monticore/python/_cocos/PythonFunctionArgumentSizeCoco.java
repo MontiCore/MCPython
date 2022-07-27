@@ -1,4 +1,4 @@
-package de.monticore.sipython._cocos;
+package de.monticore.python._cocos;
 
 import de.monticore.expressions.commonexpressions._ast.ASTCallExpression;
 import de.monticore.expressions.commonexpressions._ast.ASTFieldAccessExpression;
