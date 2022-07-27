@@ -136,8 +136,17 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("helloworld = Hello World");
 	}
 
+	@Test
+	public void parseValidBooleanPython(){
+		parseModelFromStringAndExpectSuccess("true = True");
+		parseModelFromStringAndExpectSuccess("falseStatement = False");
+		parseModelFromStringAndExpectSuccess("trueStatement = True");
 
-
+	}
+	@Test
+	public void parseInvalidBooleanPython(){
+		parseModelFromStringAndExpectFail("True = true");
+	}
 	@Test
 	public void parseValidTrenaryOperator(){
 		parseModelFromStringAndExpectSuccess("print(\"Both a and b are equal\" if a == b else \"a is greater than b\" " +
