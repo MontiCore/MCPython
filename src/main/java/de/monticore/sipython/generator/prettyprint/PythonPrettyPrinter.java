@@ -117,8 +117,6 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		node.getVariableInit().accept(getTraverser());
 	}
 
-
-
 	@Override
 	public void traverse(ASTSimpleInit node) {
 		node.getExpression().accept(getTraverser());
@@ -473,4 +471,19 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		node.getRight().accept(getTraverser());
 	}
 
+	@Override
+	public void traverse(ASTLambdaStatement node) {
+		CommentPrettyPrinter.printPreComments(node, printer);
+
+		printer.print("lambda");
+		if (!node.getFunctionParameters().isEmptyFunctionParameters()) {
+			printer.print(" ");
+		}
+		node.getFunctionParameters().accept(getTraverser());
+		printer.print(": ");
+		node.getExpression().accept(getTraverser());
+		printer.println();
+
+		CommentPrettyPrinter.printPostComments(node, printer);
+	}
 }

@@ -18,19 +18,8 @@ import java.util.Set;
 
 public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPrettyPrinter {
 
-	private Set<String> preDefined;
-	private final String print = "print";
-	private final String value = "value";
-	private final String basevalue = "basevalue";
-
-	TypeCalculator tc = new TypeCalculator(null, new DeriveSymTypeOfSIPython());
-
 	public SIPythonCommonExpressionsPrettyPrinter(IndentPrinter printer) {
 		super(printer);
-		this.preDefined = new HashSet<>();
-		this.preDefined.add(print);
-		this.preDefined.add(value);
-		this.preDefined.add(basevalue);
 	}
 
 	@Override
@@ -56,27 +45,6 @@ public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPre
 		printer.print(")");
 
 		CommentPrettyPrinter.printPostComments(node, this.getPrinter());
-	}
-
-	@Override
-	public void handle(ASTPlusExpression node) {
-		getPrinter().print("(");
-		super.handle(node);
-		getPrinter().print(")");
-	}
-
-	@Override
-	public void handle(ASTMinusExpression node) {
-		getPrinter().print("(");
-		super.handle(node);
-		getPrinter().print(")");
-	}
-
-	@Override
-	public void handle(ASTModuloExpression node) {
-		getPrinter().print("(");
-		super.handle(node);
-		getPrinter().print(")");
 	}
 
 }
