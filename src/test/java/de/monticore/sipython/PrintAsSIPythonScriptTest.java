@@ -138,6 +138,19 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
     }
 
     @Test
+    public void printLambdaStatements() {
+        parsePrintAndAssertEqualityOfOutputCode(
+            "lambda: 1"
+        );
+        parsePrintAndAssertEqualityOfOutputCode(
+            "lambda x: x"
+        );
+        parsePrintAndAssertEqualityOfOutputCode(
+            "lambda x, y: x + y"
+        );
+    }
+
+    @Test
     public void printTryExceptStatements() {
         parsePrintAndAssertEqualityOfOutputCode(
             "try:\n" +

@@ -87,6 +87,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // expression statement
   ExpressionStatement implements Statement = Expression EOL ;
 
+  // lambda statement
+  LambdaStatement implements Statement = "lambda" FunctionParameters ":" Expression EOL ;
+
   /*=================================================================*/
 
   // string literals for python

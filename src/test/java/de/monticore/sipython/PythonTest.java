@@ -162,7 +162,20 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("x = if a==b else u");
 		//trenary operator without else condition
 		parseModelFromStringAndExpectFail("x = u if a==b else");
+	}
 
+	@Test
+	public void parseValidLambdaStatement() {
+		parseModelFromStringAndExpectSuccess("lambda: 1");
+		parseModelFromStringAndExpectSuccess("lambda x: x");
+		parseModelFromStringAndExpectSuccess("lambda x, y: x + y");
+	}
+
+	@Test
+	public void parseInvalidLambdaStatement() {
+		parseModelFromStringAndExpectFail("lambda:");
+		parseModelFromStringAndExpectFail("lambda x: ");
+		parseModelFromStringAndExpectFail("lambda x, y z");
 	}
 
 	@Test
