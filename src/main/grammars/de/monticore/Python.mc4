@@ -23,7 +23,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   StatementBlockBody = Indent {isIndentedCorrectly()}? {increaseIndent()}? Indent* Statement
                             ( {isIndentedCorrectly()}?                     Indent+ Statement )* ;
 
-  /*=================================================================*/
+  /*===========================Statements======================================*/
 
   // import statement
   ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ EOL ;
@@ -87,7 +87,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // expression statement
   ExpressionStatement implements Statement = Expression EOL ;
 
-  /*=================================================================*/
+  /*===========================Literals======================================*/
 
   // string literals for python
    token StringPython
@@ -107,14 +107,11 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
    StringLiteralPython implements Literal, SignedLiteral =
        source:StringPython;
 
-
-
-
   // boolean
   BooleanLiteralPython implements Literal, SignedLiteral =
       source:["True" | "False"];
 
-  /*=================================================================*/
+  /*======================Expressions===========================================*/
 
   // ternary-operator expression
   TernaryOperatorExpression implements Expression <200> = thenExpression:Expression ( "if" condition:Expression
@@ -122,7 +119,15 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   IntegerDivisionExpression implements Expression <180>, InfixExpression = left:Expression operator:" // " right:Expression ;
 
-  /*=================================================================*/
+  //or/and/not expression
+  ANDExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
+  ORExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
+  ISExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
+  NOTExpression implements Expression <190> = "not" Expression ;
+
+
+
+  /*===========================Classes======================================*/
 
   // class symbol
   interface scope symbol Class = Name ;
@@ -144,7 +149,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   ClassAttributes implements ClassStatement = VariableDeclaration EOL ;
 
-  /*=================================================================*/
+  /*==========================ANTLR=======================================*/
   /** This java code implements an indentation counter.
   *
   * isIndentedCorrectly() checks if the next symbols are exactly n indents, while n is equals to the indentCounter.

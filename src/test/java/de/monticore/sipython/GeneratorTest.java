@@ -30,12 +30,6 @@ public class GeneratorTest {
         generateModelFromFileAndExpectSuccess("src/test/resources","target/generate",  "unit_script.sipy", "unit_script_1.sipy");
     }
 
-    @Test
-    public void generateInvalidSymbolNames() {
-        generateModelFromFileAndExpectErrors(5, "src/test/resources/python", "target/generate", "invalidSymbolNameTest.sipy");
-    }
-
-
     public int generateModelFromFileAndReturnErrorsCount(String modelPath, String outputPath, String... fullNames) {
         Generator.generate(modelPath, outputPath, fullNames);
         return (int) Log.getErrorCount();

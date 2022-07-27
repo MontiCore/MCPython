@@ -117,6 +117,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		node.getVariableInit().accept(getTraverser());
 	}
 
+
+
 	@Override
 	public void traverse(ASTSimpleInit node) {
 		node.getExpression().accept(getTraverser());
@@ -197,6 +199,32 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			node.getElseExpression(i).accept(getTraverser());
 		}
 		CommentPrettyPrinter.printPostComments(node, printer);
+	}
+
+	@Override
+	public void traverse(ASTANDExpression node) {
+		node.getLeft().accept(getTraverser());
+		printer.print("and");
+		node.getRight().accept(getTraverser());
+	}
+
+	@Override
+	public void traverse(ASTORExpression node) {
+		node.getLeft().accept(getTraverser());
+		printer.print("or");
+		node.getRight().accept(getTraverser());
+	}
+
+	@Override
+	public void traverse(ASTISExpression node) {
+		node.getLeft().accept(getTraverser());
+		printer.print("is");
+		node.getRight().accept(getTraverser());
+	}
+	@Override
+	public void traverse(ASTNOTExpression node) {
+		printer.print("not");
+		node.getExpression().accept(getTraverser());
 	}
 
 	@Override
@@ -444,4 +472,5 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print(" // ");
 		node.getRight().accept(getTraverser());
 	}
+
 }
