@@ -14,7 +14,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   token Indent = "    " | "\t";
 
   // end of line token
-  token EOL = ("\n" | "\r")+ ;
+  EOL = ("\n" | "\r")+ ;
 
   interface Statement ;
 
@@ -86,6 +86,33 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // expression statement
   ExpressionStatement implements Statement = Expression EOL ;
+
+  /*=================================================================*/
+
+  // string literals for python
+   token StringPython
+      = '\'' (StringCharactersPython)? '\''
+      : {setText(getText().substring(1, getText().length() - 1));};
+
+      fragment token StringCharactersPython
+        = (StringCharacterPython)+;
+
+      fragment token StringCharacterPython
+        = ~ ('\''| '\\') | PythonEscapeSequence;
+
+      fragment token PythonEscapeSequence
+           = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
+             | OctalEscape | UnicodeEscape;
+
+   StringLiteralPython implements Literal, SignedLiteral =
+       source:StringPython;
+
+
+
+
+  // boolean
+  BooleanLiteralPython implements Literal, SignedLiteral =
+      source:["True" | "False"];
 
   /*=================================================================*/
 

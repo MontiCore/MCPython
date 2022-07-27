@@ -93,6 +93,22 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+	@Override
+	public void traverse (ASTStringLiteralPython node){
+		printer.print("\"");
+		printer.print(node.getSource());
+		printer.print("\"");
+
+	}
+
+	@Override
+	public void traverse (ASTBooleanLiteralPython node){
+		if(node.getSource() == 1){
+			printer.print("True");
+		}else {
+			printer.print("False");
+		}
+	}
 
 	@Override
 	public void traverse(ASTVariableDeclaration node) {
