@@ -32,7 +32,7 @@ public class GeneratorTest {
 
     @Test
     public void generateInvalidSymbolNames() {
-        generateModelFromFileAndExpectErrors(5, "src/test/resources/python", "target/generate", "invalidSymbolNameTest.sipy");
+        generateModelFromFileAndExpectErrors(6, "src/test/resources/python", "target/generate", "invalidSymbolNameTest.sipy");
     }
 
 

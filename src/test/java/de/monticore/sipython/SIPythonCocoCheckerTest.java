@@ -146,6 +146,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	}
 
 	@Test
+	public void checkInvalidBooleanPython(){
+		parseCodeStringAndCheckCoCosAndExpectError("True = True");
+
+	}
+
+	@Test
 	public void checkSIPythonCommonExpressionsTypeCheckCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"x = 5 dm/h + 3 km/h"
