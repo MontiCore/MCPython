@@ -120,12 +120,16 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   TernaryOperatorExpression implements Expression <200> = thenExpression:Expression ( "if" condition:Expression
                                        "else" elseExpression:Expression )+ ;
 
+  //mathematical expression
   IntegerDivisionExpression implements Expression <180>, InfixExpression = left:Expression operator:" // " right:Expression ;
+  IntegerPowExpression implements Expression <195>, InfixExpression = left:Expression operator:"**" right:Expression ;
 
-  //or/and/not expression
+
+  //logical expressions
   ANDExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
   ORExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
   ISExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
+
   NOTExpression implements Expression <190> = "not" Expression ;
 
 

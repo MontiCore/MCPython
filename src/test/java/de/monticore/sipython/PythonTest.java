@@ -423,6 +423,26 @@ public class PythonTest extends AbstractTest {
 	}
 
 	@Test
+	public void parseValidLogicalExpressions(){
+		parseModelFromStringAndExpectSuccess("(x == 3) and y");
+		parseModelFromStringAndExpectSuccess("(x == 3) or y");
+		parseModelFromStringAndExpectSuccess("not True");
+		parseModelFromStringAndExpectSuccess("not (x==3)");
+		parseModelFromStringAndExpectSuccess("not (x or y)");
+		parseModelFromStringAndExpectSuccess("(x == 3) and (z or y)");
+
+
+	}
+	@Test
+	public  void parseValidMathematicalExpressions(){
+		parseModelFromStringAndExpectSuccess("x**3");
+		parseModelFromStringAndExpectSuccess("x ** (8-9)");
+		parseModelFromStringAndExpectSuccess("3 // 4");
+		parseModelFromStringAndExpectSuccess("3 // (3+4)");
+
+	}
+
+	@Test
 	public void parseValidTryExceptStatements(){
 		parseModelFromStringAndExpectSuccess(
 				"try:\n" +

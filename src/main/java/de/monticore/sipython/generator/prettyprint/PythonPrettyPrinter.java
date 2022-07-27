@@ -472,6 +472,13 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
+	public void traverse(ASTIntegerPowExpression node) {
+		node.getLeft().accept(getTraverser());
+		printer.print(" ** ");
+		node.getRight().accept(getTraverser());
+	}
+
+	@Override
 	public void traverse(ASTLambdaStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
