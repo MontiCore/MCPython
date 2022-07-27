@@ -1,4 +1,0 @@
-def calculate(length, length):
-    return length * length
-
-calculate(2, 4)

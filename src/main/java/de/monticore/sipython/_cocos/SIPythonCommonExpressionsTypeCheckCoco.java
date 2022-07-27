@@ -44,7 +44,7 @@ public class SIPythonCommonExpressionsTypeCheckCoco extends TypeCheckCoCo implem
 		SymTypeExpression rightType = tc.typeOf(node.getRight());
 
 		if (!TypeCheck.compatible(leftType, rightType)) {
-			Log.error(node.get_SourcePositionStart() + " Incompatible SI type '" +
+			Log.error(" Incompatible SI type '" +
 					((SymTypeOfNumericWithSIUnit) leftType).getSIUnit().print() + "' and '" +
 					((SymTypeOfNumericWithSIUnit) rightType).getSIUnit().print() + "' " + node.get_SourcePositionStart());
 		}

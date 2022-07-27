@@ -2,24 +2,64 @@ package de.monticore.python._symboltable;
 
 import de.monticore.expressions.assignmentexpressions._ast.ASTAssignmentExpression;
 import de.monticore.expressions.commonexpressions._ast.ASTFieldAccessExpression;
-import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
 import de.monticore.python._ast.*;
 import de.monticore.sipython.SIPythonMill;
 import de.monticore.sipython._parser.SIPythonParser;
-import de.monticore.sipython._symboltable.ISIPythonArtifactScope;
 import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
 import de.monticore.symbols.oosymbols._symboltable.FieldSymbol;
+import de.monticore.symboltable.ISymbol;
+import de.se_rwth.commons.SourcePosition;
 import de.se_rwth.commons.logging.Log;
 
 import java.io.*;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 
 public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 
+	private List<String> pythonKeywords = new LinkedList<>();
+
+
 	public PythonScopesGenitor() {
 		super();
+		this.initPythonKeywords();
+	}
+
+	private void initPythonKeywords() {
+		try {
+			File keywordsScript = new File("keywords.py");
+
+			if (!keywordsScript.exists()) {
+				keywordsScript.createNewFile();
+			}
+
+			FileWriter writer = new FileWriter(keywordsScript);
+			writer.write(
+					"import keyword\n" +
+							"\n" +
+							"for k in keyword.kwlist:\n" +
+							"    print(k)\n");
+			writer.close();
+
+			// run the generator script
+			Process process = Runtime.getRuntime().exec("python3 keywords.py");
+
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+			String s;
+
+			while ((s = stdInput.readLine()) != null) {
+				pythonKeywords.add(s);
+			}
+
+			keywordsScript.delete();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			Log.error("Unable to create keyword list");
+		}
 	}
 
 	public void createBuiltinPythonFunctionsScope() {
@@ -182,6 +222,15 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 		SIPythonMill.globalScope().addSubScope(scope);
 	}
 
+	private void checkNameIsKeyword(ISymbol symbol) {
+		this.checkNameIsKeyword(symbol, symbol.getSourcePosition());
+	}
+
+	private void checkNameIsKeyword(ISymbol symbol, SourcePosition position) {
+		if (this.pythonKeywords.contains(symbol.getName())) {
+			Log.error("Symbol '" + symbol.getName() + "' must not be a keyword " + position);
+		}
+	}
 
 	@Override
 	public void visit(de.monticore.python._ast.ASTVariableDeclaration node) {
@@ -200,9 +249,28 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 	}
 
 	@Override
+	public void endVisit(ASTVariableDeclaration node) {
+		super.endVisit(node);
+		this.checkNameIsKeyword(node.getSymbol());
+	}
+
+	@Override
+	public void endVisit(ASTSimpleFunctionDeclaration node) {
+		super.endVisit(node);
+		this.checkNameIsKeyword(node.getSymbol());
+	}
+
+	@Override
+	public void endVisit(ASTClassFunctionDeclaration node) {
+		super.endVisit(node);
+		this.checkNameIsKeyword(node.getSymbol());
+	}
+
+	@Override
 	public void visit(ASTClassDeclaration node) {
 		super.visit(node);
 
+		// create class field symbols via the __init__ method
 		for (ASTClassStatement classStatement : node.getClassStatementBlock().getClassStatementBlockBody().getClassStatementList()) {
 			if (classStatement instanceof ASTClassFunctionDeclaration) {
 				ASTClassFunctionDeclaration functionDeclaration = ((ASTClassFunctionDeclaration) classStatement);
@@ -215,7 +283,10 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 								ASTAssignmentExpression assignmentExpression = (ASTAssignmentExpression) expressionStatement.getExpression();
 
 								if (assignmentExpression.getLeft() instanceof ASTFieldAccessExpression) {
-									node.getSpannedScope().add(new FieldSymbol(((ASTFieldAccessExpression) assignmentExpression.getLeft()).getName()));
+									String name = ((ASTFieldAccessExpression) assignmentExpression.getLeft()).getName();
+									FieldSymbol symbol = new FieldSymbol(name);
+									this.checkNameIsKeyword(symbol, assignmentExpression.get_SourcePositionStart());
+									node.getSpannedScope().add(symbol);
 								}
 
 							}
@@ -224,6 +295,12 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 				}
 			}
 		}
+	}
+
+	@Override
+	public void endVisit(ASTClassDeclaration node) {
+		super.endVisit(node);
+		this.checkNameIsKeyword(node.getSymbol());
 	}
 
 }

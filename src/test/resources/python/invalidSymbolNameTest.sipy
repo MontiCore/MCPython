@@ -1,0 +1,11 @@
+or = 1
+
+def and():
+    print("test")
+
+class is:
+    def __init__(self, x):
+        self.raise = x
+
+    def and(self, x, y):
+        return x * y

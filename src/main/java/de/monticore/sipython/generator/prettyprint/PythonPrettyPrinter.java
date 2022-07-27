@@ -227,7 +227,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
-	public void traverse(ASTFunctionDeclaration node) {
+	public void traverse(ASTSimpleFunctionDeclaration node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		printer.print("def ");

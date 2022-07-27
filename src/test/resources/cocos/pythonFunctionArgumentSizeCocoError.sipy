@@ -1,4 +1,0 @@
-def calculate(length, width):
-    return length * width
-
-calculate(2, 3, 4)

@@ -35,10 +35,31 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 						"calcVelocity(4)"
 		);
 
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"def calcVelocity(x, y=1):\n" +
+						"    x+=1\n" +
+						"calcVelocity(4)"
+		);
+
+		// too few arguments
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"def calcVelocity(x):\n" +
+						"    x+=1\n" +
+						"calcVelocity()"
+		);
+
+		// too many arguments
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x):\n" +
 						"    x+=1\n" +
 						"calcVelocity(4,5)"
+		);
+
+		// too many arguments
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"def calcVelocity(x, y=1):\n" +
+						"    x+=1\n" +
+						"calcVelocity(4,5,6)"
 		);
 	}
 
@@ -67,22 +88,61 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 				"    x+=1"
 		);
 
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"class Calculator():\n" +
+						"    def calc(x, y):\n" +
+						"        x += y\n"
+		);
+
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x,x):\n" +
 				"    x+=1"
 		);
-	}
-
-	@Test
-	public void checkPythonVariableOrFunctionExistsCoco() {
-		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"x = 1\n" +
-				"x+=1"
-		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"if(x > 5):" +
+				"class Calculator():\n" +
+						"    def calc(x, x):\n" +
+						"        x += 1\n"
+		);
+	}
+
+
+	@Test
+	public void checkPythonVariableOrFunctionOrClassExistsCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"x = 1\n" +
+						"x+=1"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"def calc():\n" +
+						"    return 1\n" +
+						"calc()"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"class Calculator:\n" +
+						"    def calc(self):\n" +
+						"        return 1\n" +
+						"c = Calculator()\n" +
+						"c.calc()"
+		);
+
+		// x not exists
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"if(x > 5):\n" +
 				"    x+=1"
+		);
+
+		// function calc not exists
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"calc()"
+		);
+
+		// class Calculator not exists
+		parseCodeStringAndCheckCoCosAndExpectError(
+						"c = Calculator()\n" +
+						"c.calc()"
 		);
 	}
 
@@ -120,40 +180,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"x = 1 if x==6 else 0"
 		);
-		//trenary operator should be assigned to a variable
+
+		//ternary operator should be assigned to a variable
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"y = 2\n" +
 						"1 if y==6 else 0\n"
 		);
-
-		//parseCodeStringAndCheckCoCosAndExpectSuccess(
-		//		"print(1 if y==6 else 0)\n"
-		//);
-
-
-
-	}
-
-//	---------------------------------------------------------------
-//	Tests for scripts from files.
-//	---------------------------------------------------------------
-
-	@Test
-	public void parseSimpleSkriptWithFunctionInsideFunctionCoCoError() {
-		String model = "cocos/pythonFunctionInsideStatementBlockCocoError.sipy";
-		parseFromModelFileAndCheckCoCosAndExpectFail(model);
-	}
-
-	@Test
-	public void parsePythonDuplicateFunctionParameterCocoError() {
-		String model = "cocos/pythonDuplicateFunctionParameterCocoError.sipy";
-		parseFromModelFileAndCheckCoCosAndExpectFail(model);
-	}
-
-	@Test
-	public void parsePythonFunctionArgumentSizeCocoError() {
-		String model = "cocos/pythonFunctionArgumentSizeCocoError.sipy";
-		parseFromModelFileAndCheckCoCosAndExpectFail(model);
 	}
 
 	private void parseCodeStringAndCheckCoCosAndExpectSuccess(String codeString) {
