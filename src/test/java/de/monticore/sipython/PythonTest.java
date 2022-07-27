@@ -202,6 +202,20 @@ public class PythonTest extends AbstractTest {
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
+						"    if (x == 1):\n" +
+						"        break\n" +
+						"		 print(x)"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"for x in collection_var:\n" +
+						"    if (x == 1):\n" +
+						"        continue\n" +
+						"		 print(x)"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"for x in collection_var:\n" +
 						"    print(x)\n" +
 						"else:\n" +
 						"    print(y)"

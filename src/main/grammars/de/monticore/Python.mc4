@@ -48,6 +48,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   WhileStatement implements Statement = "while" condition:Expression ":" StatementBlock
                                       ( "else"                       ":" elseStatement:StatementBlock )? ;
 
+  BreakStatement implements Statement = "break" EOL ;
+  ContinueStatement implements Statement = "continue" EOL ;
+
   // try-except-finally statement
   TryExceptStatement implements Statement = "try"                    ":" tryStatement:StatementBlock
                                             ExceptStatement+
