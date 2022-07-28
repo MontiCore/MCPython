@@ -16,12 +16,17 @@ public class PythonTest extends AbstractTest {
 //	Tests for single code snippets from strings.
 //	---------------------------------------------------------------
 
+
+	/*===========================Statements======================================*/
+
+	//import valid statements
 	@Test
 	public void parseValidImportStatement() {
 		parseModelFromStringAndExpectSuccess("from module import var");
 	}
 
 	@Test
+	//import invalid statements
 	public void parseInvalidImportStatement() {
 		parseModelFromStringAndExpectFail("from import var");
 		parseModelFromStringAndExpectFail("from module import");
@@ -30,41 +35,7 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("from import");
 	}
 
-	@Test
-	public void parseValidLocalVariableDeclarationStatement() {
-		parseModelFromStringAndExpectSuccess("var = 1");
-		parseModelFromStringAndExpectSuccess("var = 1.5");
-
-		parseModelFromStringAndExpectSuccess("v = \"sdsdf\"");
-
-		parseModelFromStringAndExpectSuccess("var = []");
-		parseModelFromStringAndExpectSuccess("var = [1]");
-		parseModelFromStringAndExpectSuccess("var = [1,4]");
-		parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]");
-		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]");
-		parseModelFromStringAndExpectSuccess("var = (1,4)");
-		parseModelFromStringAndExpectSuccess("v = 'sdsdf'");
-	}
-
-
-	@Test
-	public void parseInvalidLocalVariableDeclarationStatement() {
-		parseModelFromStringAndExpectFail("var =");
-		parseModelFromStringAndExpectFail("var 5");
-		parseModelFromStringAndExpectFail("= 5");
-		parseModelFromStringAndExpectFail("var = [5");
-		parseModelFromStringAndExpectFail("var = [5,");
-		parseModelFromStringAndExpectFail("var = [5,5,");
-		parseModelFromStringAndExpectFail("var = ]");
-		parseModelFromStringAndExpectFail("var = 5,5]");
-		parseModelFromStringAndExpectFail("var = [,]");
-
-		//tuples should be allowed as variable declaration: must be fixed in the grammar
-		parseModelFromStringAndExpectFail("var = 1,4");
-
-
-	}
-
+	//valid if-else statements
 	@Test
 	public void parseValidIfStatement() {
 		parseModelFromStringAndExpectSuccess(
@@ -81,7 +52,7 @@ public class PythonTest extends AbstractTest {
 						"    print(\"not one or zero\")"
 		);
 	}
-
+	//invalid if-else statements
 	@Test
 	public void parseInvalidIfStatement() {
 		//in normal python it should be possible to write an if-statement in one line, however it is not yet implemented int this language.
@@ -122,67 +93,41 @@ public class PythonTest extends AbstractTest {
 						"    "
 		);
 	}
-
+	//valid assert statements
 	@Test
-	public void parseValidStringPython(){
-		parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"");
-		parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'");
+	public void parseValidAssertStatements(){
+		parseModelFromStringAndExpectSuccess(
+				"assert 2 > 3, \"Two is not greater than three\""
+		);
+		parseModelFromStringAndExpectSuccess(
+				"x = 1\n" +
+						"assert x > 0, \"x is too low \""
+		);
 	}
-
+	//invalid assert statements
 	@Test
-	public void parseInvalidStringPython(){
-		parseModelFromStringAndExpectFail("helloworld = \"Hello World");
-		parseModelFromStringAndExpectFail("helloworld = 'Hello World");
-		parseModelFromStringAndExpectFail("helloworld = Hello World");
-	}
+	public void parseInvalidAssertStatements(){
+		// missing error string
+		parseModelFromStringAndExpectFail(
+				"assert 2 > 3,"
+		);
 
-	@Test
-	public void parseValidBooleanPython(){
-		parseModelFromStringAndExpectSuccess("true = True");
-		parseModelFromStringAndExpectSuccess("falseStatement = False");
-		parseModelFromStringAndExpectSuccess("trueStatement = True");
+		// missing condition expression
+		parseModelFromStringAndExpectFail(
+				"assert , \"missing condition \""
+		);
 
+		// missing comma
+		parseModelFromStringAndExpectFail(
+				"assert 2 > 3 \"Two is not greater than three\""
+		);
 	}
-
-	@Test
-	public void parseValidTernaryOperator(){
-		parseModelFromStringAndExpectSuccess("print(\"Both a and b are equal\" if a == b else \"a is greater than b\" " +
-				"if a > b else \"b is greater than a\")");
-		parseModelFromStringAndExpectSuccess("min = a if a < b else b");
-		parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c");
-		parseModelFromStringAndExpectSuccess("x = \"a\" if a < b else \"b\"");
-		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")");
-		parseModelFromStringAndExpectSuccess("x = 1 if True else 0");
-	}
-	@Test
-	public void parseInvalidTernaryOperator(){
-		//trenary operator without if condition
-		parseModelFromStringAndExpectFail("x = a if else b");
-		//trenary operator without then statement
-		parseModelFromStringAndExpectFail("x = if a==b else u");
-		//trenary operator without else condition
-		parseModelFromStringAndExpectFail("x = u if a==b else");
-	}
-
-	@Test
-	public void parseValidLambdaStatement() {
-		parseModelFromStringAndExpectSuccess("lambda: 1");
-		parseModelFromStringAndExpectSuccess("lambda x: x");
-		parseModelFromStringAndExpectSuccess("lambda x, y: x + y");
-	}
-
-	@Test
-	public void parseInvalidLambdaStatement() {
-		parseModelFromStringAndExpectFail("lambda:");
-		parseModelFromStringAndExpectFail("lambda x: ");
-		parseModelFromStringAndExpectFail("lambda x, y z");
-	}
-
+	//valid for statements
 	@Test
 	public void parseValidForLoopStatement() {
 		parseModelFromStringAndExpectSuccess(
 				"for x in [0,1,2]:\n" +
-				"    print(x)"
+						"    print(x)"
 		);
 
 		parseModelFromStringAndExpectSuccess(
@@ -221,7 +166,7 @@ public class PythonTest extends AbstractTest {
 						"    print(y)"
 		);
 	}
-
+	//invalid for statements
 	@Test
 	public void parseInvalidForLoopStatement() {
 		//missing ":"
@@ -240,17 +185,17 @@ public class PythonTest extends AbstractTest {
 						"    print(x)"
 		);
 	}
-
+	//valid while statements
 	@Test
 	public void parseValidWhileLoopStatement() {
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
-				"    print(i)\n" +
-				"    i += 1"
+						"    print(i)\n" +
+						"    i += 1"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
-				"    break"
+						"    break"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
@@ -275,7 +220,7 @@ public class PythonTest extends AbstractTest {
 						"    print(x)"
 		);
 	}
-
+	//invalid while statements
 	@Test
 	public void parseInvalidWhileLoopStatement() {
 		//missing "while"
@@ -297,165 +242,7 @@ public class PythonTest extends AbstractTest {
 						"    i += 1"
 		);
 	}
-
-	@Test
-	public void parseValidFunctionDeclaration() {
-		parseModelFromStringAndExpectSuccess(
-				"def function_name(x):\n" +
-				"    print(x)"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def function_name(x,y,z):\n" +
-				"    print(x,y,z)"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def function_name(x,y,z=1):\n" +
-						"    print(x,y,z)"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def absolute_value(num):\n" +
-						"    if num >= 0:\n" +
-						"        return num"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"def absolute_value():\n" +
-						"    return"
-		);
-	}
-
-	@Test
-	public void parseInvalidFunctionDeclaration() {
-		//missing "def"
-		parseModelFromStringAndExpectFail(
-				" function_name(x):\n" +
-						"    print(x)"
-		);
-		// missing default value
-		parseModelFromStringAndExpectFail(
-				" function_name(x=):\n" +
-						"    print(x)"
-		);
-		//missing function name
-		parseModelFromStringAndExpectFail(
-				"def (x):\n" +
-						"    print(x)"
-		);
-		//missing function parameters
-		parseModelFromStringAndExpectFail(
-				"def function_name:\n" +
-						"    print(x)"
-		);
-		//missing ":"
-		parseModelFromStringAndExpectFail(
-				"def function_name(x)\n" +
-						"    print(x)"
-		);
-	}
-
-	@Test
-	public void parseValidClassFunction() {
-		parseModelFromStringAndExpectSuccess(
-				"class class_name:\n" +
-						"    def function_name(x,y):\n" +
-						"        print(x,y)"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"class class_name:\n" +
-						"    def __init__(self,i=0):\n" +
-						"        self.id = i\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"class myClass(MySuperClass):\n" +
-						"    id=\"\"\n" +
-						"    def function_name(x,y):\n" +
-						"        print(x,y)\n" +
-						"        self.id=id\n" +
-						"    def function_name1(x,y):\n" +
-						"        print(x,y)\n"
-		);
-
-	}
-
-		@Test
-		public void parseInvalidClassDeclaration(){
-			//missing class name
-			parseModelFromStringAndExpectFail(
-					"class:\n"+
-							"    count = 0\n" +
-							"    list_x = []\n" +
-							"    def__init__(self, i):\n" +
-							"        self.id=i\n" +
-							"    	   e.count+=1\n" +
-							"    	   self.list_x.append(i)"
-			);
-			//missing parameter in funtion that is in class (normally it's mentioned as the self parameter)
-			parseModelFromStringAndExpectFail(
-					"class ST:\n"+
-							"    eleven = 11\n" +
-							"    def oneLiner():\n" +
-							"        print(eleven)"
-			);
-			//for loop in class
-			parseModelFromStringAndExpectFail(
-					"class myClass:\n" +
-							"    def function_name(x,y):\n" +
-							"        print(x,y)" +
-							"    for i in range(4):" +
-							"        print(i)"
-			);
-
-		}
-
-	@Test
-	public void parseValidAssertStatements(){
-		parseModelFromStringAndExpectSuccess(
-				"assert 2 > 3, \"Two is not greater than three\""
-		);
-		parseModelFromStringAndExpectSuccess(
-				"x = 1\n" +
-						"assert x > 0, \"x is too low \""
-		);
-	}
-
-	@Test
-	public void parseInvalidAssertStatements(){
-		// missing error string
-		parseModelFromStringAndExpectFail(
-				"assert 2 > 3,"
-		);
-
-		// missing condition expression
-		parseModelFromStringAndExpectFail(
-				"assert , \"missing condition \""
-		);
-
-		// missing comma
-		parseModelFromStringAndExpectFail(
-				"assert 2 > 3 \"Two is not greater than three\""
-		);
-	}
-
-	@Test
-	public void parseValidLogicalExpressions(){
-		parseModelFromStringAndExpectSuccess("(x == 3) and y");
-		parseModelFromStringAndExpectSuccess("(x == 3) or y");
-		parseModelFromStringAndExpectSuccess("not True");
-		parseModelFromStringAndExpectSuccess("not (x==3)");
-		parseModelFromStringAndExpectSuccess("not (x or y)");
-		parseModelFromStringAndExpectSuccess("(x == 3) and (z or y)");
-
-
-	}
-	@Test
-	public  void parseValidMathematicalExpressions(){
-		parseModelFromStringAndExpectSuccess("x**3");
-		parseModelFromStringAndExpectSuccess("x ** (8-9)");
-		parseModelFromStringAndExpectSuccess("3 // 4");
-		parseModelFromStringAndExpectSuccess("3 // (3+4)");
-
-	}
-
+	//valid try-except-finally statements
 	@Test
 	public void parseValidTryExceptStatements(){
 		parseModelFromStringAndExpectSuccess(
@@ -492,7 +279,7 @@ public class PythonTest extends AbstractTest {
 		);
 
 	}
-
+	//invalid try-except-finally statements
 	@Test
 	public void parseInvalidTryExceptStatements(){
 		// missing except
@@ -507,7 +294,7 @@ public class PythonTest extends AbstractTest {
 
 		// missing try
 		parseModelFromStringAndExpectFail(
-						"except ZeroDivisionError:\n" +
+				"except ZeroDivisionError:\n" +
 						"    print(\"Can not divide by zero\")\n" +
 						"else:\n" +
 						"    print(\"Success\")"
@@ -526,6 +313,231 @@ public class PythonTest extends AbstractTest {
 						"finally:\n" +
 						"    print(\"Done\")"
 		);
+	}
+	//valid local variable declaration
+	@Test
+	public void parseValidLocalVariableDeclarationStatement() {
+		parseModelFromStringAndExpectSuccess("var = 1");
+		parseModelFromStringAndExpectSuccess("var = 1.5");
+
+		parseModelFromStringAndExpectSuccess("v = \"sdsdf\"");
+
+		parseModelFromStringAndExpectSuccess("var = []");
+		parseModelFromStringAndExpectSuccess("var = [1]");
+		parseModelFromStringAndExpectSuccess("var = [1,4]");
+		parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]");
+		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]");
+		parseModelFromStringAndExpectSuccess("var = (1,4)");
+		parseModelFromStringAndExpectSuccess("v = 'sdsdf'");
+	}
+	//invalid local variable declaration
+	@Test
+	public void parseInvalidLocalVariableDeclarationStatement() {
+		parseModelFromStringAndExpectFail("var =");
+		parseModelFromStringAndExpectFail("var 5");
+		parseModelFromStringAndExpectFail("= 5");
+		parseModelFromStringAndExpectFail("var = [5");
+		parseModelFromStringAndExpectFail("var = [5,");
+		parseModelFromStringAndExpectFail("var = [5,5,");
+		parseModelFromStringAndExpectFail("var = ]");
+		parseModelFromStringAndExpectFail("var = 5,5]");
+		parseModelFromStringAndExpectFail("var = [,]");
+
+		//tuples should be allowed as variable declaration: must be fixed in the grammar
+		parseModelFromStringAndExpectFail("var = 1,4");
+	}
+	//valid function declaration
+	@Test
+	public void parseValidFunctionDeclaration() {
+		parseModelFromStringAndExpectSuccess(
+				"def function_name(x):\n" +
+						"    print(x)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def function_name(x,y,z):\n" +
+						"    print(x,y,z)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def function_name(x,y,z=1):\n" +
+						"    print(x,y,z)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def absolute_value(num):\n" +
+						"    if num >= 0:\n" +
+						"        return num"
+		);
+
+		parseModelFromStringAndExpectSuccess(
+				"def absolute_value():\n" +
+						"    return"
+		);
+	}
+	//invalid function declaration
+	@Test
+	public void parseInvalidFunctionDeclaration() {
+		//missing "def"
+		parseModelFromStringAndExpectFail(
+				" function_name(x):\n" +
+						"    print(x)"
+		);
+		// missing default value
+		parseModelFromStringAndExpectFail(
+				" function_name(x=):\n" +
+						"    print(x)"
+		);
+		//missing function name
+		parseModelFromStringAndExpectFail(
+				"def (x):\n" +
+						"    print(x)"
+		);
+		//missing function parameters
+		parseModelFromStringAndExpectFail(
+				"def function_name:\n" +
+						"    print(x)"
+		);
+		//missing ":"
+		parseModelFromStringAndExpectFail(
+				"def function_name(x)\n" +
+						"    print(x)"
+		);
+	}
+	//valid lambda statement
+	@Test
+	public void parseValidLambdaStatement() {
+		parseModelFromStringAndExpectSuccess("lambda: 1");
+		parseModelFromStringAndExpectSuccess("lambda x: x");
+		parseModelFromStringAndExpectSuccess("lambda x, y: x + y");
+	}
+	//invalid lambda statement
+	@Test
+	public void parseInvalidLambdaStatement() {
+		parseModelFromStringAndExpectFail("lambda:");
+		parseModelFromStringAndExpectFail("lambda x: ");
+		parseModelFromStringAndExpectFail("lambda x, y z");
+	}
+	/*===========================Literals======================================*/
+
+	//valid string literals python
+	@Test
+		public void parseValidStringPython(){
+			parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"");
+		parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'");
+	}
+	//invalid string literals python
+	@Test
+	public void parseInvalidStringPython(){
+		parseModelFromStringAndExpectFail("helloworld = \"Hello World");
+		parseModelFromStringAndExpectFail("helloworld = 'Hello World");
+		parseModelFromStringAndExpectFail("helloworld = Hello World");
+	}
+	//boolean literals for python
+	@Test
+	public void parseValidBooleanPython(){
+		parseModelFromStringAndExpectSuccess("true = True");
+		parseModelFromStringAndExpectSuccess("falseStatement = False");
+		parseModelFromStringAndExpectSuccess("trueStatement = True");
+
+	}
+	/*======================Expressions===========================================*/
+
+	//valid ternary-operator expression
+	@Test
+	public void parseValidTernaryOperator(){
+		parseModelFromStringAndExpectSuccess("print(\"Both a and b are equal\" if a == b else \"a is greater than b\" " +
+				"if a > b else \"b is greater than a\")");
+		parseModelFromStringAndExpectSuccess("min = a if a < b else b");
+		parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c");
+		parseModelFromStringAndExpectSuccess("x = \"a\" if a < b else \"b\"");
+		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")");
+		parseModelFromStringAndExpectSuccess("x = 1 if True else 0");
+	}
+	//invalid ternary-operator expression
+	@Test
+	public void parseInvalidTernaryOperator(){
+		//trenary operator without if condition
+		parseModelFromStringAndExpectFail("x = a if else b");
+		//trenary operator without then statement
+		parseModelFromStringAndExpectFail("x = if a==b else u");
+		//trenary operator without else condition
+		parseModelFromStringAndExpectFail("x = u if a==b else");
+	}
+
+	//valid logical expressions
+	@Test
+	public void parseValidLogicalExpressions(){
+		parseModelFromStringAndExpectSuccess("(x == 3) and y");
+		parseModelFromStringAndExpectSuccess("(x == 3) or y");
+		parseModelFromStringAndExpectSuccess("not True");
+		parseModelFromStringAndExpectSuccess("not (x==3)");
+		parseModelFromStringAndExpectSuccess("not (x or y)");
+		parseModelFromStringAndExpectSuccess("(x == 3) and (z or y)");
+
+
+	}
+	//valid mathematical expressions
+	@Test
+	public  void parseValidMathematicalExpressions(){
+		parseModelFromStringAndExpectSuccess("x**3");
+		parseModelFromStringAndExpectSuccess("x ** (8-9)");
+		parseModelFromStringAndExpectSuccess("3 // 4");
+		parseModelFromStringAndExpectSuccess("3 // (3+4)");
+
+	}
+
+	/*===========================Classes======================================*/
+	//valid class statements
+	@Test
+	public void parseValidClassFunction() {
+		parseModelFromStringAndExpectSuccess(
+				"class class_name:\n" +
+						"    def function_name(x,y):\n" +
+						"        print(x,y)"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"class class_name:\n" +
+						"    def __init__(self,i=0):\n" +
+						"        self.id = i\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"class myClass(MySuperClass):\n" +
+						"    id=\"\"\n" +
+						"    def function_name(x,y):\n" +
+						"        print(x,y)\n" +
+						"        self.id=id\n" +
+						"    def function_name1(x,y):\n" +
+						"        print(x,y)\n"
+		);
+
+	}
+	//invalid class statements
+	@Test
+	public void parseInvalidClassDeclaration(){
+		//missing class name
+		parseModelFromStringAndExpectFail(
+				"class:\n"+
+						"    count = 0\n" +
+						"    list_x = []\n" +
+						"    def__init__(self, i):\n" +
+						"        self.id=i\n" +
+						"    	   e.count+=1\n" +
+						"    	   self.list_x.append(i)"
+		);
+		//missing parameter in funtion that is in class (normally it's mentioned as the self parameter)
+		parseModelFromStringAndExpectFail(
+				"class ST:\n"+
+						"    eleven = 11\n" +
+						"    def oneLiner():\n" +
+						"        print(eleven)"
+		);
+		//for loop in class
+		parseModelFromStringAndExpectFail(
+				"class myClass:\n" +
+						"    def function_name(x,y):\n" +
+						"        print(x,y)" +
+						"    for i in range(4):" +
+						"        print(i)"
+		);
+
 	}
 
 

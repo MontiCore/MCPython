@@ -113,7 +113,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
    StringLiteralPython implements Literal, SignedLiteral =
        source:StringPython;
 
-  // boolean
+  // boolean literals for python
   BooleanLiteralPython implements Literal, SignedLiteral =
       source:["True" | "False"];
 
@@ -134,8 +134,6 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   ISExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
 
   NOTExpression implements Expression <190> = "not" Expression ;
-
-
 
   /*===========================Classes======================================*/
 
