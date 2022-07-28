@@ -90,9 +90,6 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   // expression statement
   ExpressionStatement implements Statement = Expression EOL ;
 
-  // lambda statement
-  scope LambdaStatement implements Statement = "lambda" FunctionParameters ":" Expression EOL ;
-
   /*===========================Literals======================================*/
 
   // string literals for python
@@ -135,6 +132,9 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   NOTExpression implements Expression <190> = "not" Expression ;
 
+  // lambda expression
+  scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;
+  AppliedLambdaExpression implements Expression = "(" LambdaExpression ")" "(" Expression ")" ;
 
 
   /*===========================Classes======================================*/

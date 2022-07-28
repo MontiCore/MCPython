@@ -1,16 +1,16 @@
 package de.monticore.python._cocos;
 
 import de.monticore.python._ast.ASTFunctionParameter;
-import de.monticore.python._ast.ASTLambdaStatement;
+import de.monticore.python._ast.ASTLambdaExpression;
 import de.se_rwth.commons.logging.Log;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PythonLambdaDuplicateParameterNameCoco implements PythonASTLambdaStatementCoCo {
+public class PythonLambdaDuplicateParameterNameCoco implements PythonASTLambdaExpressionCoCo {
 
 	@Override
-	public void check(ASTLambdaStatement node) {
+	public void check(ASTLambdaExpression node) {
 		Set<String> names = new HashSet<>();
 
 		for (ASTFunctionParameter parameter : node.getFunctionParameters().getFunctionParameterList()) {
@@ -20,5 +20,6 @@ public class PythonLambdaDuplicateParameterNameCoco implements PythonASTLambdaSt
 				names.add(parameter.getName());
 			}
 		}
+
 	}
 }

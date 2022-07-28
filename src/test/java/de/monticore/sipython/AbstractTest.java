@@ -53,7 +53,7 @@ public class AbstractTest {
 		SIPythonParser siPythonParser = new SIPythonParser();
 		Optional<ASTPythonScript> astPythonScriptOptional = Optional.empty();
 		try {
-			astPythonScriptOptional = siPythonParser.parse(new StringReader(codeString + "\n"));
+			astPythonScriptOptional = siPythonParser.parse(new StringReader(codeString));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -52,12 +52,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		for (ASTStatement astStatement : node.getStatementList()) {
-			if (astStatement instanceof ASTExpressionStatement) {
-				astStatement.accept(getTraverser());
-				printer.println();
-			} else {
-				astStatement.accept(getTraverser());
-			}
+			astStatement.accept(getTraverser());
 		}
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
@@ -392,8 +387,9 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTReturnStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
-		printer.print("return ");
+		printer.print("return");
 		if (node.isPresentExpression()) {
+			printer.print(" ");
 			node.getExpression().accept(getTraverser());
 		}
 		printer.println();
@@ -478,10 +474,9 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		node.getRight().accept(getTraverser());
 	}
 
-	@Override
-	public void traverse(ASTLambdaStatement node) {
-		CommentPrettyPrinter.printPreComments(node, printer);
 
+	@Override
+	public void traverse(ASTLambdaExpression node) {
 		printer.print("lambda");
 		if (!node.getFunctionParameters().isEmptyFunctionParameters()) {
 			printer.print(" ");
@@ -489,9 +484,15 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		node.getFunctionParameters().accept(getTraverser());
 		printer.print(": ");
 		node.getExpression().accept(getTraverser());
-		printer.println();
+	}
 
-		CommentPrettyPrinter.printPostComments(node, printer);
+	@Override
+	public void traverse(ASTAppliedLambdaExpression node) {
+		printer.print("(");
+		node.getLambdaExpression().accept(getTraverser());
+		printer.print(")(");
+		node.getExpression().accept(getTraverser());
+		printer.print(")");
 	}
 
 	@Override

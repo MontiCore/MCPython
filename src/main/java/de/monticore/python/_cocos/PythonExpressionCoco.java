@@ -10,11 +10,11 @@ import de.se_rwth.commons.logging.Log;
 public class PythonExpressionCoco implements PythonASTExpressionStatementCoCo {
 
     @Override
-    public void check(ASTExpressionStatement node){
+    public void check(ASTExpressionStatement node) {
 
 
         if(!(node.getExpression() instanceof ASTCallExpression) && !(node.getExpression() instanceof ASTAssignmentExpression)){
-            Log.error("Statement can not be used like that " + node.get_SourcePositionStart());
+            Log.warn("Statement seems to have no effect " + node.get_SourcePositionStart());
         }
 
         if (node.getExpression() instanceof ASTAssignmentExpression && ((ASTAssignmentExpression) node.getExpression()).getLeft() instanceof ASTLiteralExpression) {

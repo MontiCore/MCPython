@@ -18,49 +18,49 @@ public class PythonTest extends AbstractTest {
 
 	@Test
 	public void parseValidImportStatement() {
-		parseModelFromStringAndExpectSuccess("from module import var");
+		parseModelFromStringAndExpectSuccess("from module import var\n");
 	}
 
 	@Test
 	public void parseInvalidImportStatement() {
-		parseModelFromStringAndExpectFail("from import var");
-		parseModelFromStringAndExpectFail("from module import");
-		parseModelFromStringAndExpectFail("module import var");
-		parseModelFromStringAndExpectFail("from module var");
-		parseModelFromStringAndExpectFail("from import");
+		parseModelFromStringAndExpectFail("from import var\n");
+		parseModelFromStringAndExpectFail("from module import\n");
+		parseModelFromStringAndExpectFail("module import var\n");
+		parseModelFromStringAndExpectFail("from module var\n");
+		parseModelFromStringAndExpectFail("from import\n");
 	}
 
 	@Test
 	public void parseValidLocalVariableDeclarationStatement() {
-		parseModelFromStringAndExpectSuccess("var = 1");
-		parseModelFromStringAndExpectSuccess("var = 1.5");
+		parseModelFromStringAndExpectSuccess("var = 1\n");
+		parseModelFromStringAndExpectSuccess("var = 1.5\n");
 
-		parseModelFromStringAndExpectSuccess("v = \"sdsdf\"");
+		parseModelFromStringAndExpectSuccess("v = \"sdsdf\"\n");
 
-		parseModelFromStringAndExpectSuccess("var = []");
-		parseModelFromStringAndExpectSuccess("var = [1]");
-		parseModelFromStringAndExpectSuccess("var = [1,4]");
-		parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]");
-		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]");
-		parseModelFromStringAndExpectSuccess("var = (1,4)");
-		parseModelFromStringAndExpectSuccess("v = 'sdsdf'");
+		parseModelFromStringAndExpectSuccess("var = []\n");
+		parseModelFromStringAndExpectSuccess("var = [1]\n");
+		parseModelFromStringAndExpectSuccess("var = [1,4]\n");
+		parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]\n");
+		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]\n");
+		parseModelFromStringAndExpectSuccess("var = (1,4)\n");
+		parseModelFromStringAndExpectSuccess("v = 'sdsdf'\n");
 	}
 
 
 	@Test
 	public void parseInvalidLocalVariableDeclarationStatement() {
-		parseModelFromStringAndExpectFail("var =");
-		parseModelFromStringAndExpectFail("var 5");
-		parseModelFromStringAndExpectFail("= 5");
-		parseModelFromStringAndExpectFail("var = [5");
-		parseModelFromStringAndExpectFail("var = [5,");
-		parseModelFromStringAndExpectFail("var = [5,5,");
-		parseModelFromStringAndExpectFail("var = ]");
-		parseModelFromStringAndExpectFail("var = 5,5]");
-		parseModelFromStringAndExpectFail("var = [,]");
+		parseModelFromStringAndExpectFail("var =\n");
+		parseModelFromStringAndExpectFail("var 5\n");
+		parseModelFromStringAndExpectFail("= 5\n");
+		parseModelFromStringAndExpectFail("var = [5\n");
+		parseModelFromStringAndExpectFail("var = [5,\n");
+		parseModelFromStringAndExpectFail("var = [5,5,\n");
+		parseModelFromStringAndExpectFail("var = ]\n");
+		parseModelFromStringAndExpectFail("var = 5,5]\n");
+		parseModelFromStringAndExpectFail("var = [,]\n");
 
 		//tuples should be allowed as variable declaration: must be fixed in the grammar
-		parseModelFromStringAndExpectFail("var = 1,4");
+		parseModelFromStringAndExpectFail("var = 1,4\n");
 
 
 	}
@@ -69,7 +69,7 @@ public class PythonTest extends AbstractTest {
 	public void parseValidIfStatement() {
 		parseModelFromStringAndExpectSuccess(
 				"if x == 1:\n" +
-						"    print(\"one\")"
+						"    print(\"one\")\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
@@ -78,147 +78,147 @@ public class PythonTest extends AbstractTest {
 						"elif x == 0:\n" +
 						"    print(\"zero\")\n" +
 						"else:\n" +
-						"    print(\"not one or zero\")"
+						"    print(\"not one or zero\")\n"
 		);
 	}
 
 	@Test
 	public void parseInvalidIfStatement() {
 		//in normal python it should be possible to write an if-statement in one line, however it is not yet implemented int this language.
-		parseModelFromStringAndExpectFail("if x == 1: print(\"one\")");
-		parseModelFromStringAndExpectFail("if x == 1:\nprint(\"one\")");
+		parseModelFromStringAndExpectFail("if x == 1: print(\"one\")\n");
+		parseModelFromStringAndExpectFail("if x == 1:\nprint(\"one\")\n");
 
 		//missing ":"
 		parseModelFromStringAndExpectFail(
 				"if x == 1\n" +
-						"    print(\"one\")"
+						"    print(\"one\")\n"
 		);
 
 		//missing condition
 		parseModelFromStringAndExpectFail(
 				"if :\n" +
-						"    print(\"one\")"
+						"    print(\"one\")\n"
 		);
 
 		//missing if
 		parseModelFromStringAndExpectFail(
 				"x == 1:\n" +
-						"    print(\"one\")"
+						"    print(\"one\")\n"
 		);
 
 		// missing condition at elif
 		parseModelFromStringAndExpectFail(
 				"if x == 1:\n" +
-						"    print(\"one\")" +
+						"    print(\"one\")\n" +
 						"elif:\n" +
-						"    print(\"zero\")" +
+						"    print(\"zero\")\n" +
 						"else:\n" +
-						"    print(\"not one or zero\""
+						"    print(\"not one or zero\"\n"
 		);
 
 		// empty statement block
 		parseModelFromStringAndExpectFail(
 				"if x == 1:\n" +
-						"    "
+						"    \n"
 		);
 	}
 
 	@Test
 	public void parseValidStringPython(){
-		parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"");
-		parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'");
+		parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"\n");
+		parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'\n");
 	}
 
 	@Test
 	public void parseInvalidStringPython(){
-		parseModelFromStringAndExpectFail("helloworld = \"Hello World");
-		parseModelFromStringAndExpectFail("helloworld = 'Hello World");
-		parseModelFromStringAndExpectFail("helloworld = Hello World");
+		parseModelFromStringAndExpectFail("helloworld = \"Hello World\n");
+		parseModelFromStringAndExpectFail("helloworld = 'Hello World\n");
+		parseModelFromStringAndExpectFail("helloworld = Hello World\n");
 	}
 
 	@Test
 	public void parseValidBooleanPython(){
-		parseModelFromStringAndExpectSuccess("true = True");
-		parseModelFromStringAndExpectSuccess("falseStatement = False");
-		parseModelFromStringAndExpectSuccess("trueStatement = True");
+		parseModelFromStringAndExpectSuccess("true = True\n");
+		parseModelFromStringAndExpectSuccess("falseStatement = False\n");
+		parseModelFromStringAndExpectSuccess("trueStatement = True\n");
 
 	}
 
 	@Test
 	public void parseValidTernaryOperator(){
 		parseModelFromStringAndExpectSuccess("print(\"Both a and b are equal\" if a == b else \"a is greater than b\" " +
-				"if a > b else \"b is greater than a\")");
-		parseModelFromStringAndExpectSuccess("min = a if a < b else b");
-		parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c");
-		parseModelFromStringAndExpectSuccess("x = \"a\" if a < b else \"b\"");
-		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")");
-		parseModelFromStringAndExpectSuccess("x = 1 if True else 0");
+				"if a > b else \"b is greater than a\")\n");
+		parseModelFromStringAndExpectSuccess("min = a if a < b else b\n");
+		parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c\n");
+		parseModelFromStringAndExpectSuccess("x = \"a\" if a < b else \"b\"\n");
+		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")\n");
+		parseModelFromStringAndExpectSuccess("x = 1 if True else 0\n");
 	}
 	@Test
 	public void parseInvalidTernaryOperator(){
 		//trenary operator without if condition
-		parseModelFromStringAndExpectFail("x = a if else b");
+		parseModelFromStringAndExpectFail("x = a if else b\n");
 		//trenary operator without then statement
-		parseModelFromStringAndExpectFail("x = if a==b else u");
+		parseModelFromStringAndExpectFail("x = if a==b else u\n");
 		//trenary operator without else condition
-		parseModelFromStringAndExpectFail("x = u if a==b else");
+		parseModelFromStringAndExpectFail("x = u if a==b else\n");
 	}
 
 	@Test
 	public void parseValidLambdaStatement() {
-		parseModelFromStringAndExpectSuccess("lambda: 1");
-		parseModelFromStringAndExpectSuccess("lambda x: x");
-		parseModelFromStringAndExpectSuccess("lambda x, y: x + y");
+		parseModelFromStringAndExpectSuccess("z = lambda: 1\n");
+		parseModelFromStringAndExpectSuccess("z = lambda x: x\n");
+		parseModelFromStringAndExpectSuccess("z = lambda x, y: x + y\n");
 	}
 
 	@Test
 	public void parseInvalidLambdaStatement() {
-		parseModelFromStringAndExpectFail("lambda:");
-		parseModelFromStringAndExpectFail("lambda x: ");
-		parseModelFromStringAndExpectFail("lambda x, y z");
+		parseModelFromStringAndExpectFail("z = lambda:\n");
+		parseModelFromStringAndExpectFail("z = lambda x: \n");
+		parseModelFromStringAndExpectFail("z = lambda x, y z\n");
 	}
 
 	@Test
 	public void parseValidForLoopStatement() {
 		parseModelFromStringAndExpectSuccess(
 				"for x in [0,1,2]:\n" +
-				"    print(x)"
+				"    print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in range(0, 3):\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in range(3):\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
 						"    if (x == 1):\n" +
 						"        break\n" +
-						"		 print(x)"
+						"		 print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
 						"    if (x == 1):\n" +
 						"        continue\n" +
-						"		 print(x)"
+						"		 print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
 						"    print(x)\n" +
 						"else:\n" +
-						"    print(y)"
+						"    print(y)\n"
 		);
 	}
 
@@ -227,17 +227,17 @@ public class PythonTest extends AbstractTest {
 		//missing ":"
 		parseModelFromStringAndExpectFail(
 				"for x in [0,1,2]\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 		//missing "in"
 		parseModelFromStringAndExpectFail(
 				"for x [0,1,2]:\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 		//missing "for"
 		parseModelFromStringAndExpectFail(
 				"x in [0,1,2]:\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 	}
 
@@ -246,33 +246,33 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
 				"    print(i)\n" +
-				"    i += 1"
+				"    i += 1\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
-				"    break"
+				"    break\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
 						"    print(i)\n" +
 						"    if i == 3:\n" +
 						"        break\n" +
-						"    i += 1"
+						"    i += 1\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
 						"    i += 1\n" +
 						"    if i == 3:\n" +
 						"        continue\n" +
-						"    print(i)"
+						"    print(i)\n"
 		);
 
 		//else statements for while loops
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
 						"    i += 1\n" +
-						" else:" +
-						"    print(x)"
+						" else:\n" +
+						"    print(x)\n"
 		);
 	}
 
@@ -282,19 +282,19 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail(
 				" i < 6:\n" +
 						"    print(i)\n" +
-						"    i += 1"
+						"    i += 1\n"
 		);
 		//missing condition
 		parseModelFromStringAndExpectFail(
 				"while :\n" +
 						"    print(i)\n" +
-						"    i += 1"
+						"    i += 1\n"
 		);
 		//missing ":"
 		parseModelFromStringAndExpectFail(
 				"while i < 6\n" +
 						"    print(i)\n" +
-						"    i += 1"
+						"    i += 1\n"
 		);
 	}
 
@@ -302,25 +302,25 @@ public class PythonTest extends AbstractTest {
 	public void parseValidFunctionDeclaration() {
 		parseModelFromStringAndExpectSuccess(
 				"def function_name(x):\n" +
-				"    print(x)"
+				"    print(x)\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"def function_name(x,y,z):\n" +
-				"    print(x,y,z)"
+				"    print(x,y,z)\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"def function_name(x,y,z=1):\n" +
-						"    print(x,y,z)"
+						"    print(x,y,z)\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"def absolute_value(num):\n" +
 						"    if num >= 0:\n" +
-						"        return num"
+						"        return num\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"def absolute_value():\n" +
-						"    return"
+						"    return\n"
 		);
 	}
 
@@ -329,27 +329,27 @@ public class PythonTest extends AbstractTest {
 		//missing "def"
 		parseModelFromStringAndExpectFail(
 				" function_name(x):\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 		// missing default value
 		parseModelFromStringAndExpectFail(
 				" function_name(x=):\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 		//missing function name
 		parseModelFromStringAndExpectFail(
 				"def (x):\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 		//missing function parameters
 		parseModelFromStringAndExpectFail(
 				"def function_name:\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 		//missing ":"
 		parseModelFromStringAndExpectFail(
 				"def function_name(x)\n" +
-						"    print(x)"
+						"    print(x)\n"
 		);
 	}
 
@@ -358,7 +358,7 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess(
 				"class class_name:\n" +
 						"    def function_name(x,y):\n" +
-						"        print(x,y)"
+						"        print(x,y)\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"class class_name:\n" +
@@ -387,22 +387,22 @@ public class PythonTest extends AbstractTest {
 							"    def__init__(self, i):\n" +
 							"        self.id=i\n" +
 							"    	   e.count+=1\n" +
-							"    	   self.list_x.append(i)"
+							"    	   self.list_x.append(i)\n"
 			);
 			//missing parameter in funtion that is in class (normally it's mentioned as the self parameter)
 			parseModelFromStringAndExpectFail(
 					"class ST:\n"+
 							"    eleven = 11\n" +
 							"    def oneLiner():\n" +
-							"        print(eleven)"
+							"        print(eleven)\n"
 			);
 			//for loop in class
 			parseModelFromStringAndExpectFail(
 					"class myClass:\n" +
 							"    def function_name(x,y):\n" +
-							"        print(x,y)" +
-							"    for i in range(4):" +
-							"        print(i)"
+							"        print(x,y)\n" +
+							"    for i in range(4):\n" +
+							"        print(i)\n"
 			);
 
 		}
@@ -410,11 +410,11 @@ public class PythonTest extends AbstractTest {
 	@Test
 	public void parseValidAssertStatements(){
 		parseModelFromStringAndExpectSuccess(
-				"assert 2 > 3, \"Two is not greater than three\""
+				"assert 2 > 3, \"Two is not greater than three\"\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"x = 1\n" +
-						"assert x > 0, \"x is too low \""
+						"assert x > 0, \"x is too low \"\n"
 		);
 	}
 
@@ -422,37 +422,37 @@ public class PythonTest extends AbstractTest {
 	public void parseInvalidAssertStatements(){
 		// missing error string
 		parseModelFromStringAndExpectFail(
-				"assert 2 > 3,"
+				"assert 2 > 3,\n"
 		);
 
 		// missing condition expression
 		parseModelFromStringAndExpectFail(
-				"assert , \"missing condition \""
+				"assert , \"missing condition \"\n"
 		);
 
 		// missing comma
 		parseModelFromStringAndExpectFail(
-				"assert 2 > 3 \"Two is not greater than three\""
+				"assert 2 > 3 \"Two is not greater than three\"\n"
 		);
 	}
 
 	@Test
 	public void parseValidLogicalExpressions(){
-		parseModelFromStringAndExpectSuccess("(x == 3) and y");
-		parseModelFromStringAndExpectSuccess("(x == 3) or y");
-		parseModelFromStringAndExpectSuccess("not True");
-		parseModelFromStringAndExpectSuccess("not (x==3)");
-		parseModelFromStringAndExpectSuccess("not (x or y)");
-		parseModelFromStringAndExpectSuccess("(x == 3) and (z or y)");
+		parseModelFromStringAndExpectSuccess("(x == 3) and y\n");
+		parseModelFromStringAndExpectSuccess("(x == 3) or y\n");
+		parseModelFromStringAndExpectSuccess("not True\n");
+		parseModelFromStringAndExpectSuccess("not (x==3)\n");
+		parseModelFromStringAndExpectSuccess("not (x or y)\n");
+		parseModelFromStringAndExpectSuccess("(x == 3) and (z or y)\n");
 
 
 	}
 	@Test
 	public  void parseValidMathematicalExpressions(){
-		parseModelFromStringAndExpectSuccess("x**3");
-		parseModelFromStringAndExpectSuccess("x ** (8-9)");
-		parseModelFromStringAndExpectSuccess("3 // 4");
-		parseModelFromStringAndExpectSuccess("3 // (3+4)");
+		parseModelFromStringAndExpectSuccess("x**3\n");
+		parseModelFromStringAndExpectSuccess("x ** (8-9)\n");
+		parseModelFromStringAndExpectSuccess("3 // 4\n");
+		parseModelFromStringAndExpectSuccess("3 // (3+4)\n");
 
 	}
 
@@ -470,7 +470,7 @@ public class PythonTest extends AbstractTest {
 						"except ZeroDivisionError:\n" +
 						"    print(\"Can not divide by zero\")\n" +
 						"finally:\n" +
-						"    print(\"Done\")"
+						"    print(\"Done\")\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"try:\n" +
@@ -478,7 +478,7 @@ public class PythonTest extends AbstractTest {
 						"except ZeroDivisionError:\n" +
 						"    print(\"Can not divide by zero\")\n" +
 						"else:\n" +
-						"    print(\"Success\")"
+						"    print(\"Success\")\n"
 		);
 		parseModelFromStringAndExpectSuccess(
 				"try:\n" +
@@ -488,7 +488,7 @@ public class PythonTest extends AbstractTest {
 						"else:\n" +
 						"    print(\"Success\")\n" +
 						"finally:\n" +
-						"    print(\"Done\")"
+						"    print(\"Done\")\n"
 		);
 
 	}
@@ -502,7 +502,7 @@ public class PythonTest extends AbstractTest {
 						"else:\n" +
 						"    print(\"Success\")\n" +
 						"finally:\n" +
-						"    print(\"Done\")"
+						"    print(\"Done\")\n"
 		);
 
 		// missing try
@@ -510,7 +510,7 @@ public class PythonTest extends AbstractTest {
 						"except ZeroDivisionError:\n" +
 						"    print(\"Can not divide by zero\")\n" +
 						"else:\n" +
-						"    print(\"Success\")"
+						"    print(\"Success\")\n"
 		);
 
 		// duplicate finally
@@ -524,7 +524,7 @@ public class PythonTest extends AbstractTest {
 						"finally:\n" +
 						"    print(\"Done\")\n" +
 						"finally:\n" +
-						"    print(\"Done\")"
+						"    print(\"Done\")\n"
 		);
 	}
 

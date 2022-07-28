@@ -40,20 +40,20 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
 
     @Test
     public void printImportStatement() {
-        parsePrintAndAssertEqualityOfOutputCode("from some_module import some_package");
+        parsePrintAndAssertEqualityOfOutputCode("from some_module import some_package\n");
     }
 
     @Test
     public void printLocalVariableDeclaration() {
-        parsePrintAndAssertEqualityOfOutputCode("var = 5");
-        parsePrintAndAssertEqualityOfOutputCode("var = [5, 6, 7]");
+        parsePrintAndAssertEqualityOfOutputCode("var = 5\n");
+        parsePrintAndAssertEqualityOfOutputCode("var = [5, 6, 7]\n");
     }
 
     @Test
     public void printIfStatement() {
         parsePrintAndAssertEqualityOfOutputCode(
                 "if x == 1:\n" +
-                "    print(\"one\")"
+                "    print(\"one\")\n"
         );
     }
 
@@ -61,20 +61,20 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
     public void printForStatement() {
         parsePrintAndAssertEqualityOfOutputCode(
                 "for x in [0, 1, 2]:\n" +
-                        "    x++"
+                        "    x++\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "some_collection = [0, 1, 2]\n" +
                     "for x in some_collection:\n" +
-                        "    x++"
+                        "    x++\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "for x in range(0, 3):\n" +
-                        "    x++"
+                        "    x++\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "for x in range(3):\n" +
-                        "    x++"
+                        "    x++\n"
         );
     }
 
@@ -82,25 +82,25 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
     public void printWhileStatement() {
         parsePrintAndAssertEqualityOfOutputCode(
                 "while i < 6:\n" +
-                        "    i += 1"
+                        "    i += 1\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "while i < 6:\n" +
-                        "    break"
+                        "    break\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "while i < 6:\n" +
                         "    print(i)\n" +
                         "    if i == 3:\n" +
                         "        break\n" +
-                        "    i += 1"
+                        "    i += 1\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "while i < 6:\n" +
                         "    i += 1\n" +
                         "    if i == 3:\n" +
                         "        continue\n" +
-                        "    print(i)"
+                        "    print(i)\n"
         );
     }
 
@@ -108,45 +108,45 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
     public void printFunctionDeclaration() {
         parsePrintAndAssertEqualityOfOutputCode(
                 "def function_name(x):\n" +
-                        "    print(x)"
+                        "    print(x)\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "def function_name(x, y, z):\n" +
-                        "    print(x, y, z)"
+                        "    print(x, y, z)\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "def absolute_value(num):\n" +
                         "    if num >= 0:\n" +
-                        "        return num"
+                        "        return num\n"
         );
 
         parsePrintAndAssertEqualityOfOutputCode(
                 "def absolute_value():\n" +
-                        "    return "
+                        "    return\n"
         );
     }
 
     @Test
     public void printAssertStatements(){
         parsePrintAndAssertEqualityOfOutputCode(
-            "assert 2 > 3, \"Two is not greater than three\""
+            "assert 2 > 3, \"Two is not greater than three\"\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
             "x = 1\n" +
-                "assert x > 0, \"x is too low \""
+                "assert x > 0, \"x is too low \"\n"
         );
     }
 
     @Test
     public void printLambdaStatements() {
         parsePrintAndAssertEqualityOfOutputCode(
-            "lambda: 1"
+            "z = lambda: 1\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
-            "lambda x: x"
+            "z = lambda x: x\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
-            "lambda x, y: x + y"
+            "z = lambda x, y: x + y\n"
         );
     }
 
@@ -156,7 +156,7 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
             "try:\n" +
                 "    i = 1 // 0\n" +
                 "except ZeroDivisionError:\n" +
-                "    print(\"Can not divide by zero\")"
+                "    print(\"Can not divide by zero\")\n"
         );
 
         parsePrintAndAssertEqualityOfOutputCode(
@@ -165,7 +165,7 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
                 "except ZeroDivisionError:\n" +
                 "    print(\"Can not divide by zero\")\n" +
                 "finally:\n" +
-                "    print(\"Done\")"
+                "    print(\"Done\")\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
             "try:\n" +
@@ -173,7 +173,7 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
                 "except ZeroDivisionError:\n" +
                 "    print(\"Can not divide by zero\")\n" +
                 "else:\n" +
-                "    print(\"Success\")"
+                "    print(\"Success\")\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
             "try:\n" +
@@ -183,7 +183,7 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
                 "else:\n" +
                 "    print(\"Success\")\n" +
                 "finally:\n" +
-                "    print(\"Done\")"
+                "    print(\"Done\")\n"
         );
     }
 
@@ -193,13 +193,13 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
 
     @Test
     public void printSIUnitConversion() {
-        parsePrintAndExpect("var = km/h(5 dm/h)","var = 5 * ureg('km/h')");
+        parsePrintAndExpect("var = km/h(5 dm/h)\n","var = 5 * ureg('km/h')\n");
     }
 
     /**
      * This method parses the given inputCodeString, prints the parsed ast tree as string and asserts that the result is
      * equal to inputCodeString.
-     * Note: The static import statment for the pint library is added to the output code.
+     * Note: The static import statement for the pint library is added to the output code.
      */
     private void parsePrintAndAssertEqualityOfOutputCode(String inputCodeString) {
         parsePrintAndExpect(inputCodeString, inputCodeString);
@@ -223,6 +223,6 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
     private static String addPintLibImportCodeLines(String codeString) {
         return "from pint import UnitRegistry\n" +
                 "ureg = UnitRegistry()\n" +
-                codeString + "\n";
+                codeString;
     }
 }

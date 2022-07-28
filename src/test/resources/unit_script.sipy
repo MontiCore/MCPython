@@ -1,10 +1,14 @@
 # This is an example script of a unit type supporting python-like language
 
+x = true
+
 import calendar
 
 print(_monthlen(2022, 07))
 
 print("Hello World")
+
+calculate_velocity(x=1, time=5)
 
 def calculate_velocity(distance, time):
     return distance / time

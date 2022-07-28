@@ -31,34 +31,34 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x):\n" +
 						"    x+=1\n" +
-						"calcVelocity(4)"
+						"calcVelocity(4)\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x, y=1):\n" +
 						"    x+=1\n" +
-						"calcVelocity(4)"
+						"calcVelocity(4)\n"
 		);
 
 		// too few arguments
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x):\n" +
 						"    x+=1\n" +
-						"calcVelocity()"
+						"calcVelocity()\n"
 		);
 
 		// too many arguments
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x):\n" +
 						"    x+=1\n" +
-						"calcVelocity(4,5)"
+						"calcVelocity(4,5)\n"
 		);
 
 		// too many arguments
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x, y=1):\n" +
 						"    x+=1\n" +
-						"calcVelocity(4,5,6)"
+						"calcVelocity(4,5,6)\n"
 		);
 	}
 
@@ -84,7 +84,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	public void checkPythonFunctionDuplicateParameterNameCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x,y):\n" +
-				"    x+=1"
+				"    x+=1\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
@@ -95,7 +95,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x,x):\n" +
-				"    x+=1"
+				"    x+=1\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
@@ -108,11 +108,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	@Test
 	public void checkPythonLambdaDuplicateParameterNameCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"lambda x, y: x"
+				"z = lambda x: x\n"
 		);
 
+
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"lambda x, x: x"
+				"z = lambda x, x: x\n"
 		);
 	}
 
@@ -120,13 +121,13 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	public void checkPythonVariableOrFunctionOrClassExistsCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"x = 1\n" +
-						"x+=1"
+						"x+=1\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calc():\n" +
 						"    return 1\n" +
-						"calc()"
+						"calc()\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
@@ -134,41 +135,41 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 						"    def calc(self):\n" +
 						"        return 1\n" +
 						"c = Calculator()\n" +
-						"c.calc()"
+						"c.calc()\n"
 		);
 
 		// x not exists
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"if(x > 5):\n" +
-				"    x+=1"
+				"    x+=1\n"
 		);
 
 		// function calc not exists
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"calc()"
+				"calc()\n"
 		);
 
 		// class Calculator not exists
 		parseCodeStringAndCheckCoCosAndExpectError(
 						"c = Calculator()\n" +
-						"c.calc()"
+						"c.calc()\n"
 		);
 	}
 
 	@Test
 	public void checkInvalidBooleanPython(){
-		parseCodeStringAndCheckCoCosAndExpectError("True = True");
+		parseCodeStringAndCheckCoCosAndExpectError("True = True\n");
 
 	}
 
 	@Test
 	public void checkSIPythonCommonExpressionsTypeCheckCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"x = 5 dm/h + 3 km/h"
+				"x = 5 dm/h + 3 km/h\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"x = 5 dm/h + 3 °C"
+				"x = 5 dm/h + 3 °C\n"
 		);
 
 		//checks that all distinct pairs of base units are not allowed in a common expression together
@@ -178,11 +179,11 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	@Test
 	public void checkSIPythonSIUnitConversionTypeCheckCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"x = dm/h(3 km/h)"
+				"x = dm/h(3 km/h)\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"x = dm/h(3 °C)"
+				"x = dm/h(3 °C)\n"
 		);
 
 		//checks that all distinct pairs of base units are not allowed in a unit conversion expression together
@@ -193,11 +194,11 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	@Test
 	public void checkPythonExpressionCoco(){
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"x = 1 if x==6 else 0"
+				"x = 1 if x==6 else 0\n"
 		);
 
 		//ternary operator should be assigned to a variable
-		parseCodeStringAndCheckCoCosAndExpectError(
+		parseCodeStringAndCheckCoCosAndExpectWarn(
 				"y = 2\n" +
 						"1 if y==6 else 0\n"
 		);
@@ -213,6 +214,12 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromStringAndReturnASTPythonScript(codeString);
 		checkCoCos(astPythonScriptOptional);
 		assertTrue(Log.getErrorCount() > 0);
+	}
+
+	private void parseCodeStringAndCheckCoCosAndExpectWarn(String codeString) {
+		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromStringAndReturnASTPythonScript(codeString);
+		checkCoCos(astPythonScriptOptional);
+		assertTrue(Log.getFindingsCount() > 0);
 	}
 
 	private void parseFromModelFileAndCheckCoCosAndExpectFail(String modelFileName) {
@@ -276,13 +283,13 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	private void parseCommonExpressionsWithTwoUnitsAndCheckCoCosAndExpectError(String unit1, String unit2) {
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"x = 5 " + unit1 + " + 3 " + unit2
+				"x = 5 " + unit1 + " + 3 " + unit2 + "\n"
 		);
 	}
 
 	private void parseSIUnitConversionTypeCheckAndCheckCoCosAndExpectError(String unit1, String unit2) {
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"x = " + unit1 + "( 3 " + unit2 + ")"
+				"x = " + unit1 + "( 3 " + unit2 + ")\n"
 		);
 	}
 }
