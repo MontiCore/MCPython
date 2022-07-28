@@ -110,7 +110,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
    StringLiteralPython implements Literal, SignedLiteral =
        source:StringPython;
 
-  // boolean
+  // boolean literals for python
   BooleanLiteralPython implements Literal, SignedLiteral =
       source:["True" | "False"];
 
