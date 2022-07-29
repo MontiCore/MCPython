@@ -1,5 +1,6 @@
 package de.monticore.sipython;
 
+import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTBooleanNotExpressionCoCo;
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTPlusExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.*;
@@ -212,9 +213,19 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	}
 
 	@Test
+	public void checkInvalidJavaBooleanOpPython() {
+		parseCodeStringAndCheckCoCosAndExpectError("x = 1 == 1 && 2 == 2\n");
+		parseCodeStringAndCheckCoCosAndExpectError("x = 1 == 1 || 2 == 2\n");
+		parseCodeStringAndCheckCoCosAndExpectError("x = !(1 == 1)\n");
+
+	}
+
+	/*
+	@Test
 	public void checkSIPythonCommonExpressionsTypeCheckCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"x = 5 dm/h + 3 km/h\n"
+				"y = 0\n" +
+						"x = y + 5 dm/h + 3 km/h\n + y\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
@@ -224,6 +235,8 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		//checks that all distinct pairs of base units are not allowed in a common expression together
 		performCocoChecksForAllBaseUnits(this::parseCommonExpressionsWithTwoUnitsAndCheckCoCosAndExpectError);
 	}
+
+	 */
 
 	@Test
 	public void checkSIPythonSIUnitConversionTypeCheckCoco() {
@@ -298,18 +311,20 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	}
 
 	private SIPythonCoCoChecker createSIPythonCoCoChecker() {
-		SIPythonCoCoChecker siPythonCoCoChecker = new SIPythonCoCoChecker();
-		siPythonCoCoChecker.addCoCo(new PythonExpressionCoco());
-		siPythonCoCoChecker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
-		siPythonCoCoChecker.addCoCo((PythonASTWhileStatementCoCo) new PythonFunctionDeclarationInStatementBlockCoco());
-		siPythonCoCoChecker.addCoCo(new PythonFunctionDuplicateParameterNameCoco());
-		siPythonCoCoChecker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionCoco()));
-		siPythonCoCoChecker.addCoCo(new PythonFunctionArgumentSizeCoco());
-		siPythonCoCoChecker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
-		siPythonCoCoChecker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
-		siPythonCoCoChecker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
-		siPythonCoCoChecker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
-		return siPythonCoCoChecker;
+		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
+		checker.addCoCo(new PythonExpressionCoco());
+		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
+		checker.addCoCo((PythonASTWhileStatementCoCo) new PythonFunctionDeclarationInStatementBlockCoco());
+		checker.addCoCo(new PythonFunctionDuplicateParameterNameCoco());
+		checker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionCoco()));
+		checker.addCoCo(new PythonFunctionArgumentSizeCoco());
+		checker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
+		checker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
+		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
+		//checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
+		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
+
+		return checker;
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package de.monticore.sipython;
 
+import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTBooleanNotExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.*;
 import de.monticore.sipython._cocos.*;
@@ -18,6 +19,7 @@ public class SIPythonTool extends SIPythonToolTOP {
 		checker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
 		checker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionCoco()));
 		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
+		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
 		// checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 
 		checker.checkAll(ast);
