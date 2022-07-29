@@ -8,7 +8,8 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   PythonScript = (Statement | EOL)*;
 
-  token SingleLineComment = "#" (~('\n' | '\r' ))*  : ->skip {storeComment();};
+  token SingleLineComment = "#" (~('\n' | '\r' ))* : ->skip {storeComment();};
+  token MultiLineComment = ("'''")|("\"\"\"") .*? ("'''")|("\"\"\"")  : ->skip {storeComment();};
 
   // indentation token, 4 spaces or tabulator
   token Indent = "    " | "\t";
