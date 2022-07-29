@@ -16,7 +16,6 @@ public class PythonTest extends AbstractTest {
 //	Tests for single code snippets from strings.
 //	---------------------------------------------------------------
 
-
 	/*===========================Statements======================================*/
 
 	//import valid statements
@@ -52,6 +51,7 @@ public class PythonTest extends AbstractTest {
 						"    print(\"not one or zero\")\n"
 		);
 	}
+
 	//invalid if-else statements
 	@Test
 	public void parseInvalidIfStatement() {
@@ -93,6 +93,7 @@ public class PythonTest extends AbstractTest {
 						"    \n"
 		);
 	}
+
 	//valid assert statements
 	@Test
 	public void parseValidAssertStatements(){
@@ -104,6 +105,7 @@ public class PythonTest extends AbstractTest {
 						"assert x > 0, \"x is too low \"\n"
 		);
 	}
+
 	//invalid assert statements
 	@Test
 	public void parseInvalidAssertStatements(){
@@ -122,6 +124,7 @@ public class PythonTest extends AbstractTest {
 				"assert 2 > 3 \"Two is not greater than three\"\n"
 		);
 	}
+
 	//valid for statements
 	@Test
 	public void parseValidForLoopStatement() {
@@ -166,6 +169,7 @@ public class PythonTest extends AbstractTest {
 						"    print(y)\n"
 		);
 	}
+
 	//invalid for statements
 	@Test
 	public void parseInvalidForLoopStatement() {
@@ -185,6 +189,7 @@ public class PythonTest extends AbstractTest {
 						"    print(x)\n"
 		);
 	}
+
 	//valid while statements
 	@Test
 	public void parseValidWhileLoopStatement() {
@@ -220,6 +225,7 @@ public class PythonTest extends AbstractTest {
 						"    print(x)\n"
 		);
 	}
+
 	//invalid while statements
 	@Test
 	public void parseInvalidWhileLoopStatement() {
@@ -242,6 +248,7 @@ public class PythonTest extends AbstractTest {
 						"    i += 1\n"
 		);
 	}
+
 	//valid try-except-finally statements
 	@Test
 	public void parseValidTryExceptStatements(){
@@ -279,6 +286,7 @@ public class PythonTest extends AbstractTest {
 		);
 
 	}
+
 	//invalid try-except-finally statements
 	@Test
 	public void parseInvalidTryExceptStatements(){
@@ -314,6 +322,7 @@ public class PythonTest extends AbstractTest {
 						"    print(\"Done\")\n"
 		);
 	}
+
 	//valid local variable declaration
 	@Test
 	public void parseValidLocalVariableDeclarationStatement() {
@@ -330,6 +339,7 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("var = (1,4)\n");
 		parseModelFromStringAndExpectSuccess("v = 'sdsdf'\n");
 	}
+
 	//invalid local variable declaration
 	@Test
 	public void parseInvalidLocalVariableDeclarationStatement() {
@@ -346,7 +356,8 @@ public class PythonTest extends AbstractTest {
 		//tuples should be allowed as variable declaration: must be fixed in the grammar
 		parseModelFromStringAndExpectFail("var = 1,4\n");
 	}
-	//valid function declaration
+
+	// valid function declaration
 	@Test
 	public void parseValidFunctionDeclaration() {
 		parseModelFromStringAndExpectSuccess(
@@ -372,7 +383,8 @@ public class PythonTest extends AbstractTest {
 						"    return\n"
 		);
 	}
-	//invalid function declaration
+
+	// invalid function declaration
 	@Test
 	public void parseInvalidFunctionDeclaration() {
 		//missing "def"
@@ -401,13 +413,15 @@ public class PythonTest extends AbstractTest {
 						"    print(x)\n"
 		);
 	}
-	//valid lambda statement
+
+	// valid lambda statement
 	@Test
 	public void parseValidLambdaStatement() {
 		parseModelFromStringAndExpectSuccess("lambda: 1\n");
 		parseModelFromStringAndExpectSuccess("lambda x: x\n");
 		parseModelFromStringAndExpectSuccess("lambda x, y: x + y\n");
 	}
+
 	//invalid lambda statement
 	@Test
 	public void parseInvalidLambdaStatement() {
@@ -415,22 +429,25 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("lambda x: \n");
 		parseModelFromStringAndExpectFail("lambda x, y z\n");
 	}
+
 	/*===========================Literals======================================*/
 
-	//valid string literals python
+	// valid string literals python
 	@Test
 		public void parseValidStringPython(){
 			parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"\n");
 		parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'\n");
 	}
-	//invalid string literals python
+
+	// invalid string literals python
 	@Test
 	public void parseInvalidStringPython(){
 		parseModelFromStringAndExpectFail("helloworld = \"Hello World\n");
 		parseModelFromStringAndExpectFail("helloworld = 'Hello World\n");
 		parseModelFromStringAndExpectFail("helloworld = Hello World\n");
 	}
-	//boolean literals for python
+
+	// boolean literals for python
 	@Test
 	public void parseValidBooleanPython(){
 		parseModelFromStringAndExpectSuccess("true = True\n");
@@ -438,9 +455,10 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("trueStatement = True\n");
 
 	}
+
 	/*======================Expressions===========================================*/
 
-	//valid ternary-operator expression
+	// valid ternary-operator expression
 	@Test
 	public void parseValidTernaryOperator(){
 		parseModelFromStringAndExpectSuccess("print(\"Both a and b are equal\" if a == b else \"a is greater than b\" " +
@@ -451,7 +469,8 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")\n");
 		parseModelFromStringAndExpectSuccess("x = 1 if True else 0\n");
 	}
-	//invalid ternary-operator expression
+
+	// invalid ternary-operator expression
 	@Test
 	public void parseInvalidTernaryOperator(){
 		//trenary operator without if condition
@@ -462,7 +481,7 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("x = u if a==b else\n");
 	}
 
-	//valid logical expressions
+	// valid logical expressions
 	@Test
 	public void parseValidLogicalExpressions(){
 		parseModelFromStringAndExpectSuccess("(x == 3) and y\n");
@@ -474,7 +493,8 @@ public class PythonTest extends AbstractTest {
 
 
 	}
-	//valid mathematical expressions
+
+	// valid mathematical expressions
 	@Test
 	public  void parseValidMathematicalExpressions(){
 		parseModelFromStringAndExpectSuccess("x**3\n");
@@ -485,7 +505,8 @@ public class PythonTest extends AbstractTest {
 	}
 
 	/*===========================Classes======================================*/
-	//valid class statements
+
+	// valid class statements
 	@Test
 	public void parseValidClassFunction() {
 		parseModelFromStringAndExpectSuccess(
@@ -509,7 +530,8 @@ public class PythonTest extends AbstractTest {
 		);
 
 	}
-	//invalid class statements
+
+	// invalid class statements
 	@Test
 	public void parseInvalidClassDeclaration(){
 		//missing class name
