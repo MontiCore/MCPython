@@ -24,6 +24,7 @@ The grammar recognizes 4 spaces or a tabulator symbol as an indent. Three or few
 ### Special cases in contrast to Python
 - A model must end with an empty line to be parsed correctly.
 - The integer division must be used with spaces, like `3 // 2` not `3//2`
+- Function overloading is not possible.
 
 ### Functionality
 

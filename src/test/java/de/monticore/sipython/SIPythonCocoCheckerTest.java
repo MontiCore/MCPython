@@ -63,20 +63,35 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	}
 
 	@Test
+	public void checkCallExpressionBeforeDeclarationCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"def calcVelocity(x):\n" +
+						"    x+=1\n" +
+						"calcVelocity(4)\n"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"calcVelocity(4)\n" +
+						"def calcVelocity(x):\n" +
+						"    x+=1\n"
+		);
+	}
+
+	@Test
 	public void checkPythonFunctionDeclarationInStatementBlockCheck() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"x = 1\n" +
-				"if(x > 5):\n" +
-				"    x+=1\n" +
-				"def calcVelocity(x):\n" +
-				"    x+=1\n"
+						"if(x > 5):\n" +
+						"    x+=1\n" +
+						"def calcVelocity(x):\n" +
+						"    x+=1\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"x = 1\n" +
-				"if(x > 5):\n" +
-				"    def calcVelocity(x):\n" +
-				"        x+=1\n"
+						"if(x > 5):\n" +
+						"    def calcVelocity(x):\n" +
+						"        x+=1\n"
 		);
 	}
 
@@ -84,7 +99,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	public void checkPythonFunctionDuplicateParameterNameCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x,y):\n" +
-				"    x+=1\n"
+						"    x+=1\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
@@ -95,12 +110,46 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"def calcVelocity(x,x):\n" +
-				"    x+=1\n"
+						"    x+=1\n"
 		);
 
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"class Calculator():\n" +
 						"    def calc(x, x):\n" +
+						"        x += 1\n"
+		);
+	}
+
+	@Test
+	public void checkPythonDuplicateFunctionNameCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"def calcVelocity(x,y):\n" +
+						"    x+=1\n" +
+						"def calcVelocity2(x,y):\n" +
+						"    x+=1\n"
+		);
+
+
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"class Calculator():\n" +
+						"    def calc(x, y):\n" +
+						"        x += 1\n" +
+						"    def calc2(x, y):\n" +
+						"        x += 1\n"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"def calcVelocity(x,y):\n" +
+						"    x+=1\n" +
+						"def calcVelocity(x,y):\n" +
+						"    x+=1\n"
+		);
+
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"class Calculator():\n" +
+						"    def calc(x, y):\n" +
+						"        x += 1\n" +
+						"    def calc(x, y):\n" +
 						"        x += 1\n"
 		);
 	}
@@ -141,7 +190,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		// x not exists
 		parseCodeStringAndCheckCoCosAndExpectError(
 				"if(x > 5):\n" +
-				"    x+=1\n"
+						"    x+=1\n"
 		);
 
 		// function calc not exists
@@ -151,13 +200,13 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 		// class Calculator not exists
 		parseCodeStringAndCheckCoCosAndExpectError(
-						"c = Calculator()\n" +
+				"c = Calculator()\n" +
 						"c.calc()\n"
 		);
 	}
 
 	@Test
-	public void checkInvalidBooleanPython(){
+	public void checkInvalidBooleanPython() {
 		parseCodeStringAndCheckCoCosAndExpectError("True = True\n");
 
 	}
@@ -192,7 +241,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 
 	@Test
-	public void checkPythonExpressionCoco(){
+	public void checkPythonExpressionCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"x = 1 if x==6 else 0\n"
 		);
@@ -234,7 +283,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		SIUnitsMill.initializeSIUnits();
 
 		Log.getFindings().clear();
-		if(astPythonScriptOptional.isEmpty()) {
+		if (astPythonScriptOptional.isEmpty()) {
 			fail("Failed to parse the model: The ASTTree is empty!");
 		}
 		ASTPythonScript model = astPythonScriptOptional.get();
@@ -254,9 +303,11 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		siPythonCoCoChecker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		siPythonCoCoChecker.addCoCo((PythonASTWhileStatementCoCo) new PythonFunctionDeclarationInStatementBlockCoco());
 		siPythonCoCoChecker.addCoCo(new PythonFunctionDuplicateParameterNameCoco());
+		siPythonCoCoChecker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionCoco()));
 		siPythonCoCoChecker.addCoCo(new PythonFunctionArgumentSizeCoco());
 		siPythonCoCoChecker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
 		siPythonCoCoChecker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
+		siPythonCoCoChecker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
 		siPythonCoCoChecker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 		return siPythonCoCoChecker;
 	}
@@ -268,7 +319,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		String[] unitArray = {"s", "m", "kg", "A", "K", "mol", "cd"};
 
 		Arrays.stream(unitArray).forEach(unit1 -> Arrays.stream(unitArray).forEach(unit2 -> {
-			if(!unit1.equals(unit2)) {
+			if (!unit1.equals(unit2)) {
 				coCoCheckWithTwoUnits.check(unit1, unit2);
 			}
 		}));

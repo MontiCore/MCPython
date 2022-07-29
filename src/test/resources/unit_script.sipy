@@ -8,10 +8,10 @@ print(_monthlen(2022, 07))
 
 print("Hello World")
 
-calculate_velocity(x=1, time=5)
-
 def calculate_velocity(distance, time):
     return distance / time
+
+calculate_velocity(x=1, time=5)
 
 velocity = 3 dm/h
 y = velocity + 1 m/s
