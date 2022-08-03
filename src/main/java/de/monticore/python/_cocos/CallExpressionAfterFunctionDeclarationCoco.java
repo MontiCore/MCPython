@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public class CallExpressionAfterFunctionDeclarationCoco implements CommonExpressionsASTCallExpressionCoCo {
 	@Override
-	public void check(ASTCallExpression node) {
+		public void check(ASTCallExpression node) {
 		Optional<FunctionSymbol> optionalFunctionSymbol = getFunctionSymbol(node);
 		if (optionalFunctionSymbol.isPresent()) {
 			FunctionSymbol symbol = optionalFunctionSymbol.get();

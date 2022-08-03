@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PythonDuplicateFunctionCoco implements PythonASTPythonScriptCoCo, PythonASTStatementBlockCoCo, PythonASTClassStatementBlockCoCo {
+public class PythonDuplicateFunctionAndClassCoco implements PythonASTPythonScriptCoCo, PythonASTStatementBlockCoCo, PythonASTClassStatementBlockCoCo {
 
 	@Override
 	public void check(ASTPythonScript node) {
@@ -26,6 +26,7 @@ public class PythonDuplicateFunctionCoco implements PythonASTPythonScriptCoCo, P
 
 	private void check(List<? extends ASTPythonNode> statements) {
 		Set<String> functionNames = new HashSet<>();
+		Set<String> classNames = new HashSet<>();
 
 		for (ASTPythonNode statement : statements) {
 			if (statement instanceof ASTFunctionDeclaration) {
@@ -33,6 +34,12 @@ public class PythonDuplicateFunctionCoco implements PythonASTPythonScriptCoCo, P
 					Log.error("Duplicate function '" + ((ASTFunctionDeclaration) statement).getName() + "' " + statement.get_SourcePositionStart());
 				}
 			}
+			if (statement instanceof ASTClassDeclaration) {
+				if (!classNames.add(((ASTClassDeclaration) statement).getName())) {
+					Log.error("Duplicate class '" + ((ASTClassDeclaration) statement).getName() + "' " + statement.get_SourcePositionStart());
+				}
+			}
 		}
 	}
+
 }

@@ -316,7 +316,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo((PythonASTWhileStatementCoCo) new PythonFunctionDeclarationInStatementBlockCoco());
 		checker.addCoCo(new PythonFunctionDuplicateParameterNameCoco());
-		checker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionCoco()));
+		checker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionAndClassCoco()));
 		checker.addCoCo(new PythonFunctionArgumentSizeCoco());
 		checker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
 		checker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
