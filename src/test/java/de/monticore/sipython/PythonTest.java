@@ -323,6 +323,33 @@ public class PythonTest extends AbstractTest {
 		);
 	}
 
+	//valid with open file statements
+	@Test
+	public void parseValidWithOpenFileStatements(){
+		parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile:\n" +
+														"    print(\"Hello World\")\n");
+		parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile:\n" +
+														"    with open(oldfile, 'r', encoding='utf-8') as infile:\n" +
+														"        print(\"Hello World\")\n");
+		parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile, open(oldfile, 'r', encoding='utf-8') as infile:\n" +
+														"	print(\"Hello World\")\n");
+
+	}
+
+	//invalid with open file statements
+	@Test
+	public void parseInvalidWithOpenFileStatements(){
+		//missing with
+		parseModelFromStringAndExpectFail(" open(newfile, 'w') as outfile:\n" +
+				"    print(\"Hello World\")\n");
+		//missing file name
+		parseModelFromStringAndExpectFail("with open(newfile, 'w') as :\n" +
+				"    print(\"Hello World\")\n");
+		//missing open function
+		parseModelFromStringAndExpectFail("with as outfile:\n" +
+				"    print(\"Hello World\")\n");
+
+	}
 	//valid local variable declaration
 	@Test
 	public void parseValidLocalVariableDeclarationStatement() {

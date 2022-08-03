@@ -59,6 +59,10 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   ExceptStatement = ( "except" Name? ":" StatementBlock ) ;
 
+  // with open file statement
+  WithOpenFileStatement implements Statement = "with" openExpression: Expression "as" nameFile: Name ("," openExpressionRecursion: Expression "as" nameFileRecursion: Name)*  ":" EOL
+                                            StatementBlock ;
+
   // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL ;
 
@@ -124,13 +128,11 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   IntegerDivisionExpression implements Expression <180>, InfixExpression = left:Expression operator:" // " right:Expression ;
   IntegerPowExpression implements Expression <195>, InfixExpression = left:Expression operator:"**" right:Expression ;
 
-
   //logical expressions
   ANDExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
   ORExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
-  ISExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
-
   NOTExpression implements Expression <190> = "not" Expression ;
+  ISExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
 
   // lambda expression
   scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;

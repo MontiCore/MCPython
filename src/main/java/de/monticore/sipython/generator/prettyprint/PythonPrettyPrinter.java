@@ -214,6 +214,22 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		}
 	}
 
+	// with open file statement
+	@Override
+	public void traverse (ASTWithOpenFileStatement node){
+		CommentPrettyPrinter.printPreComments(node, printer);
+		printer.print(" with ");
+		node.getOpenExpression().accept(getTraverser());
+		printer.print(" as ");
+		printer.print(node.getNameFile());
+		for (int i = 0; i < node.getOpenExpressionRecursionList().size(); i++){
+			printer.print(" , ");
+			node.getOpenExpressionRecursion(i).accept(getTraverser());
+			printer.print(" as ");
+			printer.print(node.getNameFileRecursion(i));
+		}
+	}
+
 	// variable declaration statement
 	@Override
 	public void traverse(ASTVariableDeclaration node) {
@@ -377,6 +393,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		}
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
+
 
 	// mathematical expression
 	@Override
