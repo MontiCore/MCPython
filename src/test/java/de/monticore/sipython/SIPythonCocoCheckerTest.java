@@ -1,7 +1,6 @@
 package de.monticore.sipython;
 
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTBooleanNotExpressionCoCo;
-import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTPlusExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.*;
 import de.monticore.sipython._cocos.*;
@@ -64,7 +63,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	}
 
 	@Test
-	public void checkCallExpressionBeforeDeclarationCoco() {
+	public void checkFunctionCallExpressionBeforeDeclarationCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
 				"def calcVelocity(x):\n" +
 						"    x+=1\n" +
@@ -78,6 +77,18 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		);
 	}
 
+	@Test
+	public void checkClassCallExpressionBeforeDeclarationCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"class Person:\n" +
+						"    age = 10\n" +
+						"\n" +
+						"x = Person.age\n");
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"x = Person.age\n" +
+						"class Person:\n" +
+						"    age = 10\n");
+	}
 	@Test
 	public void checkPythonFunctionDeclarationInStatementBlockCheck() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
@@ -119,6 +130,20 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 						"    def calc(x, x):\n" +
 						"        x += 1\n"
 		);
+	}
+
+	@Test
+	public void checkPythonDuplicateClassNameCoco() {
+		parseCodeStringAndCheckCoCosAndExpectSuccess(
+				"class Person:\n"+
+				"    age = 10\n" +
+				"class Person1:\n" +
+				"    age = 10\n");
+		parseCodeStringAndCheckCoCosAndExpectError(
+				"class Person:\n"+
+				"    age = 10\n" +
+				"class Person:\n" +
+				"    age = 10\n");
 	}
 
 	@Test
@@ -321,6 +346,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		checker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
 		checker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
 		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
+		checker.addCoCo(new UseClassAfterClassDeclarationCoco());
 		//checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
 
