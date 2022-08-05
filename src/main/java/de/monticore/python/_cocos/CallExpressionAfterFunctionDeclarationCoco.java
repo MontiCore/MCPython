@@ -40,8 +40,6 @@ public class CallExpressionAfterFunctionDeclarationCoco implements CommonExpress
 	private Optional<FunctionSymbol> getFunctionSymbol(ASTCallExpression node) {
 		if (node.getExpression() instanceof ASTNameExpression) {
 			return ((IPythonScope) node.getEnclosingScope()).resolveFunction(((ASTNameExpression) node.getExpression()).getName());
-		} else if (node.getExpression() instanceof ASTFieldAccessExpression) {
-			return ((IPythonScope) node.getEnclosingScope()).resolveFunction(((ASTFieldAccessExpression) node.getExpression()).getName());
 		}
 		return Optional.empty();
 	}
