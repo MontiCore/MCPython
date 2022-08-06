@@ -84,7 +84,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 						"    age = 10\n" +
 						"\n" +
 						"x = Person.age\n");
-		parseCodeStringAndCheckCoCosAndExpectSuccess(
+		parseCodeStringAndCheckCoCosAndExpectError(
 				"x = Person.age\n" +
 						"class Person:\n" +
 						"    age = 10\n");
@@ -337,6 +337,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	private SIPythonCoCoChecker createSIPythonCoCoChecker() {
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
+		checker.addCoCo(new UseClassAfterClassDeclarationCoco());
 		checker.addCoCo(new PythonExpressionCoco());
 		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo((PythonASTWhileStatementCoCo) new PythonFunctionDeclarationInStatementBlockCoco());
@@ -346,7 +347,7 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		checker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
 		checker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
 		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
-		checker.addCoCo(new UseClassAfterClassDeclarationCoco());
+
 		//checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
 

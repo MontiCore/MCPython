@@ -20,6 +20,7 @@ public class UseClassAfterClassDeclarationCoco implements CommonExpressionsASTCa
         Optional<ClassSymbol> optionalClassSymbol = getClassSymbol(node);
 
         if (optionalClassSymbol.isPresent()){
+            System.out.println("dentro");
             ClassSymbol symbol = optionalClassSymbol.get();
 
             SourcePosition symbolPosition = symbol.getAstNode().get_SourcePositionStart();
@@ -32,9 +33,10 @@ public class UseClassAfterClassDeclarationCoco implements CommonExpressionsASTCa
             }
 
             if (symbolPosition.compareTo(nodePosition) >= 0) {
-                Log.error("Call of class '" + symbol.getName() + "' before declaration " + nodePosition);
+                Log.error("NameError: name '" + symbol.getName() + "' is not defined " + nodePosition);
             }
         }
+        System.out.println("fora");
     }
 
     private Optional<ClassSymbol> getClassSymbol(ASTCallExpression node) {
