@@ -83,9 +83,9 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 				"class Person:\n" +
 						"    age = 10\n" +
 						"\n" +
-						"x = Person.age\n");
+						"x = Person()\n");
 		parseCodeStringAndCheckCoCosAndExpectError(
-				"x = Person.age\n" +
+				"x = Person()\n" +
 						"class Person:\n" +
 						"    age = 10\n");
 	}
