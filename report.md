@@ -160,7 +160,9 @@ package "Python Grammar" {
 
 #### SI Unit Conversions
 
-Now we are able to specify literals containing si units. However, the ability of specifying si unit literals is not sufficient for a si unit supporting programming language. As with normal literals like strings or integers, programmers require to perform conversions between types. Conversions between types can be implicit or explicit. In implicit conversions, the types are automatically converted depending on their use in the code. The following code shows an example of an automatic conversion in python.
+Now we are able to specify literals containing si units. However, the ability of just specifying such literals is not sufficient for a si unit supporting programming language. As with normal literals like strings or integers, programmers require to perform conversions between types. Conversions between types can be implicit or explicit [^1]. In implicit conversions, the types are automatically converted depending on their use in the code. The following code shows an example of an automatic conversion in python.
+
+[^1]: https://www.programiz.com/python-programming/type-conversion-and-casting
 
 ```python
 num_int = 123
@@ -183,7 +185,57 @@ print(type(num_str))
 
 In this example, a string value is converted to an integer value and assigned to a variable. The variable is now of type integer.
 
-As our language introduces new literals, we have to support implicit and explicit conversions for si units as well. 
+As our language introduces new literals, we have to support implicit and explicit conversions for si units as well.
+
+Although, the SIUnit project introduces si unit literals, it only provides functionalities for implicit conversions of si units for statically typed languages [^2]. This means, it is only usable in static typed languages like Java, where the type of variables are specified in the declaration and never change during runtime.
+
+[^2]: https://git.rwth-aachen.de/monticore/languages/siunits/-/blob/dev/src/main/grammars/de/monticore/SIUnits.md
+
+However, this is not applicable for a python like language, as it is dynamically typed. Hereby, the python interpreter does not necessarily know the type of variables. The following code snippet shows an example situation where implicit type conversions can not be performed during compile time, due to the lack of type information.
+
+```python
+def some_method(var1, var2):
+    return var2 + var2
+
+some_method(4,5.3)
+```
+
+In this snippet, a method declaration with two input parameters is displayed. As the type of the variables are not provided, no type conversions can be performed during the calculation of both paramteres in the input body. Thus, implicit type checking implemented by the SIUnit project is not applicable for the SIPython language.
+
+Explicit conversions of si units is not supported at all by the SIUnit project. Thus, we had to come up with an own approach for type conversions.
+
+The approach for modeling explicit conversions in the grammar is displayed in the following diagram.
+
+```plantuml
+package "ExpressionBasis Grammar" {
+    class Expression <<(N,transparent)>>
+}
+
+package "Python Grammar" {
+    class VariableInit <<(N,transparent)>>
+}
+
+package "SIUnitTypes4Math" {
+    class SIUnitType <<(N,transparent)>>
+}
+
+package "SIPython Grammar" {
+    class SIUnitConversion <<(N,transparent)>>
+    note right: e.g. km/h(3 dm/h)
+    VariableInit <|-- SIUnitConversion
+    Expression <|-- SIUnitConversion
+    SIUnitConversion o-- Expression
+    SIUnitConversion o-- SIUnitType
+}
+```
+
+Here, explicit conversions are modeled by _SIUnitConversion_. Because, conversions can be used as a normal expression, as well as a variable initialisation, _SIUnitConversion_ implements _VariableInit_ of the _Python_ grammar, as well as _Expression_ nonterminal of the _ExpressionBasis_ grammar. The _SIUnitConversion_ nonterminal itself is defined in the SIPython grammar as follows.
+
+```
+SIUnitType "(" Expression ")"
+```
+
+An explicit conversion can be made by specifying the target unit of the conversion followed by an expression containing si units. This includes conversions like ``km/h(3 dm/h)`` as well as ``km/h(3 dm/h + 5 m/s)``.
 
 ---------------------------------------------------------------------------------------------------------------------
 
