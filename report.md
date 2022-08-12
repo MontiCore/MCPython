@@ -82,7 +82,7 @@ package "ExpressionsBasis" {
 }
 }
 
-class NewSIUnitLiteral
+class NewSIUnitLiteral  <<(N,transparent)>>
 Literal <|-- NewSIUnitLiteral
 note right: e.g. 3 dm/h
 ```
@@ -93,10 +93,10 @@ The new si unit literal itself should consist of a numeric literal indicating th
 class NumericLiteral <<(N,transparent)>>   
 note bottom: e.g. 3
 
-class NewSIUnitNonTerminal
+class NewSIUnitNonTerminal <<(N,transparent)>>
 note bottom: e.g. dm/h
 
-class NewSIUnitLiteral
+class NewSIUnitLiteral <<(N,transparent)>>
 note right: e.g. 3 dm/h
 
 NewSIUnitLiteral o-- NumericLiteral
@@ -202,9 +202,9 @@ some_method(4,5.3)
 
 In this snippet, a method declaration with two input parameters is displayed. As the type of the variables are not provided, no type conversions can be performed during the calculation of both paramteres in the input body. Thus, implicit type checking implemented by the SIUnit project is not applicable for the SIPython language.
 
-Explicit conversions of si units is not supported at all by the SIUnit project. Thus, we had to come up with an own approach for type conversions.
+##### Explicit Type Conversions
 
-The approach for modeling explicit conversions in the grammar is displayed in the following diagram.
+Explicit conversions of si units is not supported at all by the SIUnit project. Thus, we had to come up with an own approach for type conversions. This approach is displayed in the following diagram.
 
 ```plantuml
 package "ExpressionBasis Grammar" {
@@ -229,7 +229,7 @@ package "SIPython Grammar" {
 }
 ```
 
-Here, explicit conversions are modeled by _SIUnitConversion_. Because, conversions can be used as a normal expression, as well as a variable initialisation, _SIUnitConversion_ implements _VariableInit_ of the _Python_ grammar, as well as _Expression_ nonterminal of the _ExpressionBasis_ grammar. The _SIUnitConversion_ nonterminal itself is defined in the SIPython grammar as follows.
+Here, explicit conversions are modeled by the _SIUnitConversion_ nonterminal. Because, conversions can be used as a normal expression, as well as a variable initialisation, _SIUnitConversion_ implements _VariableInit_ of the _Python_ grammar, as well as _Expression_ nonterminal of the _ExpressionBasis_ grammar. We defined the _SIUnitConversion_ nonterminal itself in the SIPython grammar as follows.
 
 ```
 SIUnitType "(" Expression ")"
@@ -237,25 +237,34 @@ SIUnitType "(" Expression ")"
 
 An explicit conversion can be made by specifying the target unit of the conversion followed by an expression containing si units. This includes conversions like ``km/h(3 dm/h)`` as well as ``km/h(3 dm/h + 5 m/s)``.
 
----------------------------------------------------------------------------------------------------------------------
+##### Implicit Type Conversions
 
-To support si unit literals, we identified the following requirements for the SIPython language:
-1. **Use of si units in literals**\
-   As previously described the language has to support the utilization of si units in expressions.
-2. **Conversion between si unit literals**\
-   In addition to the use of si unit literals in expression, it must be possible to specify conversions between si unit literals.\
-   Such a conversion expression can be used to e.g.  convert a value with the si unit dm/h to m/s.
-3. **Compatibility checking of si unit literals**\
-   Furthermore, with the use of multiple si unit literals in the expressions, their compatibility has to be checked.\
-   The following code snippets shows an example expression containing the two si units dm/h and °C, which are not compatible and would lead to a useless result when executing the expression.
-   ```python
-    v = 3 dm/h + 5 °C
-    ```
-   Thus, the SIPython language has to support a compatibility checking for expressions to detect incompatible si units.
+For implicit conversions we had to come up with an approach at runtime. The only way to archive this is to include specific code in the python script, which is generated from the SIPython script, that is responsible for the conversion of si units. Such code could look like the following pseudocode snippet.
 
-To support the use of si unit literals, the SIPython language extends the language SIUnitLiterals of the [SIUnits project](https://git.rwth-aachen.de/monticore/languages/siunits). The SIUnits project provides a type system for si units. The SUnit language offers an extension of MontiCores [MCCommonLiterals](https://github.com/MontiCore/monticore/blob/dev/monticore-grammar/src/main/grammars/de/monticore/literals/MCCommonLiterals.mc4) grammar for si units.
+```python
+def operation_with_implicit_conversion(var1, var2, operator) {
+    higher_type = get_higher_type(var1,var2)
+    return operator(convert(var1,higher_type), covert(var2,higher_type))
+}
 
----------------------------------------------------------------------------------------------------------------------
+sum = operation_with_implicit_conversion(34,12.34,add)
+print(sum)
+>>> 46.34
+```
+
+Hereby, to perform operations on variables, a special function has to be called, that takes the variables and the operator as input and performs the implicit conversion as previously described. For this approach, it is required, that the si unit of a variable is preserved. For Python this could be archived, by specifying variables as pairs of value and type in the generated Python code. E.g. the SIPython code ``v = 3 dm/h`` would be converted to ``v = (3,"dm/h")``.
+
+However, the described approach for implicit conversions of si units is already implemented by various python libraries, e.g. [siunits](https://pypi.org/project/siunits/), [forallpeople](https://github.com/connorferster/forallpeople), or [astropy](https://uomresearchit.github.io/programming_with_python/06-units_and_quantities/index.html). These libraries introduce new si unit object types and associated conversion and type checking functionalities. For our project we chose the [pint](https://pint.readthedocs.io/en/0.10.1/) library, as it provides an easy-to-use interface, especially important in the code generation process, described in the [Generator section](#generator). The pint, library is imported in the generated python code, and variables are initialized as pint unit objects. When performing calculations on those objects, the pint library performs the implicit conversion automatically.
+
+With the described approach of introducing a explicit conversion nonterminal _SIUnitConversion_, and performing implicit conversions using si unit python libraries in the generated code, we managed to provide type conversion suited for a python like language supporting si units.
+
+#### Compatibility Checking
+To this point we described, how we managed to provide si unit literals for our language and to perform type conversions on si units. The third requirement for our SIPython language, is to provide compatibility checking of multiple si unit literals used in the expression. Code like ``3 dm/h + 5 °C`` would lead to unusable results, as the specified types of the addition expression are not compatible. Although, the SIUnit project already provides a compatibility checks for si units, the same problem as for type conversions remains. Only compatibility checks for statically typed languages are provided. As our approach has to be dynamically typed, we can not make use of the provided functionality. However, we can make use of the pint library, as it provides a full type checking system for si units at runtime.
+
+The resulting approach covered all identified requirements for a python like programming language that provides si unit support.
+
+#### Implementation of SIPython
+However, the implementation of the SIPython using the MontiCore framework had to be adapted, to ensure its functionality.
 
 ---
 
