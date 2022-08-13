@@ -33,6 +33,9 @@
     1. summary of previous chapters
 
 # Introduction
+The developed project is a python language software that offers support for calculation with si units, 
+automated unit compatibility checking, and unit conversion. It supports a verity of SI units, a few examples
+are electric units and every type of time units.  
 ## Motivation
 Nowadays most businesses use software in order to improve the revenue and facilitate life. We see software
 in most of our day-to-day life, and while software is used in most things nowadays, it is not yet adapted
@@ -52,16 +55,27 @@ the reasons of this very expensive failure. This investigation finally attribute
 metric systems. The piece of ground software supplied by 'Lockheed Martin' produced results in a United States customary
 unit, however contrary to that, its Software Interface Specification, supplied by NASA was expecting results to be in 
 SI Units, in accordance to their Software. The results were produced in pound-force seconds while it was expected to be 
-in newton-seconds. 
+in newton-seconds.[1]
 
 An issue that cost millions of damage could have been very easy to solve. Having a software that supports conversion of
 metrics would just automatically produce the results in the wished system, avoiding any type of further problems. 
 Building such a system will be our goal in this project. The result should be a software that supports programming in 
 python while using si units.
-        
+[1] https://en.wikipedia.org/wiki/Mars_Climate_Orbiter
+
 ## Tools
+To achieve the goal we used a variety of tools.
 ### Monticore
-### Pint
+Monticore is a language workbench for the efficient development of domain-specific languages. Monticore enabled
+us to define our language, Python, and use it together with the MontiCore-framework to build domain specific
+tools, like for example integrating our SI Units in the language. We could take advantage of the predefined language 
+components that Monticore comes with. Monticore comes with an extension.[2]
+[2] https://monticore.github.io/monticore/
+### Pint  
+Pint is a Python package to define, operate and manipulate physical quantities. It allowed us to implement arithmetic
+operations between them and conversions from and to different units. It supports a lot of numpy mathematical operations
+without monkey patching or wrapping numpy.Important to note it runs in Python 3.8+ with no other dependencies[3]
+[3] https://pint.readthedocs.io/en/stable/
 # Approach
 
 ## Languages
