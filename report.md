@@ -287,9 +287,9 @@ end
 ```
 
 ##### Generation of Python Script
-As described the last task of the Generator class is to generate the output Python script. Hereby, as the visitor architecture, provided by MontiCore, is used to traverse the parsed AST tree of the input model, and pretty-print the AST nodes of the input model as valid python expressions. Thus, we had implemented for each generated AST node type of the grammar elements, a corresponding printer function.
+As described, the last task of the Generator class is to generate the output Python script. Hereby, the visitor architecture, provided by MontiCore, is used to traverse the parsed AST tree of the input model, and pretty-printing the AST nodes of the input model as valid python expressions. Thus, we had implemented for each generated AST node type of the grammar elements, a corresponding printer function.
 
-For the elements of the Python grammar, the implementation of such printer functions was trivial as the output had to remain the same. In case of printing _SIUnitLiterals_ and _SIUnitConversions_ of the _SIPython_ grammar, the previously described application of the pint library had to be considered.
+For the elements of the Python grammar, the implementation of such printer functions was trivial as the output had to remain the same as the input. In case of printing _SIUnitLiterals_ and _SIUnitConversions_ of the _SIPython_ grammar, the previously described application of the pint library had to be considered.
 
 Thereby, to ensure that the type checking and conversion for si units was performed when running the generated Python script, the si unit objects had to be used when printing _SIUnitLiterals_ and _SIUnitConversions_. Using the pint library si unit objects are created by multiplying the value of the unit with the unit type itself. In pint the unit type can be specified by constants or using a look-up function, that retrieves the type from a passed input string, as shown in the following code snippet.
 
@@ -322,6 +322,68 @@ km/h(y)
 y * ureg('km/h')
 ```
 
+To be able to use the pint library each generated scripts contains a corresponding import statement and an intitalisation statement for the ureg function, as shown in the following snippet.
+
+```python
+from pint import UnitRegistry
+ureg = UnitRegistry()
+```
+
+Thus, given an example SIPython script, like the following one:
+
+```python
+# This is an example script of a unit type supporting python-like language
+x = true
+import calendar
+print(_monthlen(2022, 07))
+print("Hello World")
+def calculate_velocity(distance, time):
+    return distance / time
+calculate_velocity(x=1, time=5)
+velocity = 3 dm/h
+y = velocity + 1 m/s
+v1 = km/h(y)
+v2 = 4 m/ns^2
+print(velocity)
+print(calculate_velocity(distance, time))
+class calculator:
+    def __init__(self):
+        self.factor = 1
+
+    def multiply(self, x):
+        return self.factor * x
+c = calculator()
+print(c.multiply(1))
+```
+Using the described Generator class, the following Python script is generated:
+
+```python
+from pint import UnitRegistry
+ureg = UnitRegistry()
+# This is an example script of a unit type supporting python-like language
+x = true
+import calendar
+print(_monthlen(2022, 07))
+print("Hello World")
+def calculate_velocity(distance, time):
+    return distance / time
+calculate_velocity(x = 1, time = 5)
+velocity = 3 * ureg('dm/h')
+y = velocity + 1 * ureg('m/s')
+v1 = y * ureg('km/h')
+v2 = 4 * ureg('m/ns^2')
+print(velocity)
+print(calculate_velocity(distance, time))
+class calculator:
+    def __init__(self, self):
+        self.factor = 1
+    def multiply(self, x, self):
+        return self.factor * x
+c = calculator()
+print(c.multiply(1))
+```
+
+
 ---
 
 # Discussion
@@ -330,7 +392,7 @@ y * ureg('km/h')
 
 ---
 
-## Comparison
+## Comparison between SIPython with plain Python
 
 ---
 
