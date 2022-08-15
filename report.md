@@ -4,6 +4,8 @@
     1. Problems with SIUnit calculation in software
 3. Approach
     1. Description of the solution (alessandra)
+        tools, 2 teile aus der grammatik,wie wir die Sprache aufgeteilt haben, nutzen prettyprinter so das es compatible
+        ist mit dem pint. mit cocos paar sachen überprüfen.
     2. Languages
         1. Python (alessandra)
             1. Description
@@ -11,7 +13,7 @@
             3. Grammar
             4. Indentation
             5. Functionality (cocos)
-            6. Symbol Table
+            6. Symbol Table 
         2. SIPython (lennart)
             1. Description
             2. Syntax
@@ -69,8 +71,12 @@ To achieve the goal we used a variety of tools.
 Monticore is a language workbench for the efficient development of domain-specific languages. Monticore enabled
 us to define our language, Python, and use it together with the MontiCore-framework to build domain specific
 tools, like for example integrating our SI Units in the language. We could take advantage of the predefined language 
-components that Monticore comes with. Monticore comes with an extension.[2]
+components that Monticore comes with. Monticore comes with an extension.[2] On Monticore si units already defined.
+It reads the si units, and that is then used by pint.
 [2] https://monticore.github.io/monticore/
+### SI Units Project
+The SI Units Project 
+It builds on top of Monticore and allows the parsing of si units and si expressions and pretty printers.
 ### Pint  
 Pint is a Python package to define, operate and manipulate physical quantities. It allowed us to implement arithmetic
 operations between them and conversions from and to different units. It supports a lot of numpy mathematical operations
@@ -89,6 +95,47 @@ without monkey patching or wrapping numpy.Important to note it runs in Python 3.
 # Discussion
 
 ## Evaluation of the Approach
+
+## MontiCore grammar creates the following problems:
+#### 1. Integer Division
+When we need to divide 2 numbers in python we separate the two numbers or the two variables by two forward slashes. Two
+forward slashes are also used to initialize a comment which is a problem for the component grammar MCBasics. MCBasics 
+recognizes the two forward slashes as a start of a single line comment. The integer division is just possible with spaces
+around the two forward slashes. Example: 3 // 2
+
+#### 2. Indentation
+Monticore grammar skips all ident tokens, we can see this on the MCBasics component, as shown by the figure
+below spaces, tabs, paragraphs and carriage returns are skipped since they are not needed. 
+
+![](IdentProblem.png)
+
+However, we need to know when indentation is used and how it is used, 
+in order to check if it is used correctly. We also need
+to save the indentation in order to use it in our printer and print it correctly.
+To solve this problem we added some things to our grammar in order to not skip the indentation, we define
+what type of indentation that should not be skipped and implemented functions for functionality.
+We implemented an indentation counter in our grammar that checks if the indentation is done
+correctly. 
+
+#### 3. Monticore's incompatibility for the Python language 
+Monticore is based on the java language, which gave us some incompatibility problems.
+The Boolean literals in Monticore are defined, for example, in order to adapt to the java standard of 
+boolean values, the difference between booleans on java and booleans on python is the first letter: 'True'
+is used in Python, however in Java we use 'true' the same goes for the false statement. The same goes for
+the String literals, even though in java we would just use one type of quotation marks: "", in Python 
+we can use another type of quotation marks: ''. 
+
+To fix this we defined string literals and boolean literals in our grammar, these literals are
+adapted to Python by implementing the differences already mentioned above. 
+
+However, there still remains a problem, since we can not overwrite the original 
+grammar the words 'true' and 'false' even though not meaning anything in Python, remain keywords and
+can not be used as variable names, which should be working since they do not mean anything in Python. The
+only solution is to not use this types of variables.
+
+
+
+
 
 ## Comparison
 
