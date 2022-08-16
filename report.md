@@ -329,7 +329,7 @@ from pint import UnitRegistry
 ureg = UnitRegistry()
 ```
 
-Thus, given an example SIPython script, like the following one:
+To show how the generated Python script of a SIPython script looks like, the following snippet displays an example SIPython script.
 
 ```python
 # This is an example script of a unit type supporting python-like language
@@ -355,7 +355,7 @@ class calculator:
 c = calculator()
 print(c.multiply(1))
 ```
-Using the described Generator class, the following Python script is generated:
+Using the described Generator class, the following Python script is generated.
 
 ```python
 from pint import UnitRegistry
