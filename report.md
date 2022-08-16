@@ -295,7 +295,7 @@ id3-->id4
 end
 ```
 
-##### Generation of Python Script
+##### Generation of Python Scripts
 As described, the last task of the Generator class is to generate the output Python script. Hereby, the visitor architecture, provided by MontiCore, is used to traverse the parsed AST tree of the input model, and pretty-printing the AST nodes of the input model as valid python expressions. Thus, we had implemented for each generated AST node type of the grammar elements, a corresponding printer function.
 
 For the elements of the Python grammar, the implementation of such printer functions was trivial as the output had to remain the same as the input. In case of printing _SIUnitLiterals_ and _SIUnitConversions_ of the _SIPython_ grammar, the previously described application of the pint library had to be considered.
@@ -438,8 +438,8 @@ grammar the words 'true' and 'false' even though not meaning anything in Python,
 can not be used as variable names, which should be working since they do not mean anything in Python. The
 only solution is to not use this types of variables.
 
-## Comparison between SIPython with plain Python
-Following the evaluation of our approach, it has to be examined how usable it is in comparison to the use of plain python with si unit supporting libraries like pint. As this would be the closest alternative for software engineerings developing software containing si units.
+## Comparison between SIPython and plain Python
+Following the evaluation of our approach, it has to be examined how usable the SIPython language and its tooling is, in comparison to the use of plain python with si unit supporting libraries like pint. As this would be the closest alternative for developing software containing si units.
 
 By utilizing our SIPython language the programming of code containing si units becomes way more intuitive. Our approach of specifying the si unit after the value is also used in natural language, in contrast to the si unit pint expressions. As the following example shows our approach of specifying si unit literals is closer related to natural language than the unit expression of the pint libraries.
 
@@ -454,7 +454,7 @@ velocity = 3 dm/h
 velocity = 3 * ureg("dm/h")
 ```
 
-This is especially beneficial for developers with less software engineering experience. In relation to the intuitivity, the readability of the code increases as well, by using the SIPython language. As the following example shows, by using the pint library, the code contains an additional multiply operation and a method call for ech si unit, increasing the line length.
+This is especially beneficial for developers with less software engineering experience. In relation to the intuitivity, the readability of the code increases as well, by using the SIPython language. As the following example shows, using the pint library, the code contains an additional multiply operation and a method call for each si unit, increasing the line length.
 
 ```python
 #SIPython code
@@ -466,11 +466,18 @@ velocity = 3 * ureg("dm/h") + 5 * ureg("cm/s") - 20 * ureg("m/h")
 
 On the other side, with the SIPython language, additional steps have to be performed, when executing code. When a programmer wants to run its SIPython code, it has to be parsed, analyzed and converted to python code in addition to the steps of the python interpreter that runs the generated python code. This increases the development process, when testing the developed code. However, the production code should only consist of the generated Python code rather than the SIPython code, to reduce its execution times.
 
-
 Furthermore, the SIPython language lacks of support for IDEs. Currently, there is e.g. no code highlighting, error checking at development time, or debugging functionality provided. Therefore, developer rely on generating the python code after each change, to use the lacking functionalities.
 
-The comparison of using SIPython language and using Python with the pint library, we showed that the resulting SIPython code increases the readability and creates more intuitive code. Which is especially important for unexperienced developers. However, it also shows that additional support for development tools is required, to make it usable in software development.
+After comparing the described approaches for using si units in a programming language, we come to the following result. Although, the produced code, using the SIPython language, is more intuitive to write and has an increased readability, we wouldn't recommend to use this approach in production. As previously noted, additional parsing and generation steps are added to the execution process, decreasing the efficiency of python software, which already struggles with performance efficiency. Furthermore, with the lack of provided tooling, supporting the software development, we do not perceive the use of the SIPython language as an improvement of the development process. We would recommend to use plain python and si unit supporting libraries like pint, as this would allow to use the available software development tooling for the Python language, as code highlighting or debugging.
 
 ## Evaluation of Unit Calculation with Python
+
+Following, the comparison of using the SIPython language and plain Python with si unit libraries for developing software utilizing si units, we change the level of evaluation and want to discuss the utilization of Python in general for developing software, containing si units.
+
+The major reason for this evaluation is that Python is not well known for its efficiency. As proven by a [study](https://greenlab.di.uminho.pt/wp-content/uploads/2017/09/paperSLE.pdf), Python is not only one of the worst programming languages in case of execution speed, but also regarding energy consumption. Especially, in domains that have to work with si units, where execution speed and energy efficiency may play a more important rule, it is not a beneficial perk for a programming language. As the same study showed, energy consumption and execution speed of programs can be dramatically improved by changing the programming language. Hereby, languages like C or Rust are suitable options.
+
+When questioning the utilization of Python for si unit supported programming, another aspect to consider is its dynamic type system. As the overall goal is to improve the type checking of si unit values in programs, to detect errors earlier, the choice for a programming language that shifts its type checking to the execution phase, is not beneficial. Therefore, we would recommend to utilize statically typed languages for the development of software with si units, like C or Rust. Here, libraries like [unitc](https://github.com/magnusjonsson/unitc) for C, or [dimensioned](https://github.com/paholg/dimensioned) for Rust were developed to provide support for si units.
+
+This evaluation, showed that there exist better alternatives for si unit supporting programming, than using Python. As it lacks of energy effeciciency and execution speed, as well as lead to later error detection due to its dynamically typed system, Python is not the best choice. Languages like C and Rust provide equal support for si units through libraries, have a statically typed system, and have reduced energy consumption and improved execution speed. Therefore, this would be our best choice for a programming language to work with si units.
 
 # Conclusion
