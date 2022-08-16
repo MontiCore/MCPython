@@ -71,16 +71,19 @@ To achieve the goal we used a variety of tools.
 Monticore is a language workbench for the efficient development of domain-specific languages. Monticore enabled
 us to define our language, Python, and use it together with the MontiCore-framework to build domain specific
 tools, like for example integrating our SI Units in the language. We could take advantage of the predefined language 
-components that Monticore comes with. Monticore comes with an extension.[2] On Monticore si units already defined.
-It reads the si units, and that is then used by pint.
+components that Monticore comes with. Monticore creates the basic grammar and provides all components (statements, literls, etc.).
+Monticore then generates a parser that can check if the si python scripts are correct.
 [2] https://monticore.github.io/monticore/
-### SI Units Project
-The SI Units Project 
-It builds on top of Monticore and allows the parsing of si units and si expressions and pretty printers.
-### Pint  
+### SI Units Project 
+The SI Units Project sets the grammar so that it can be read by Monticore, it mainly describes which units are valid and specifies 
+what can be used as metric units.
+It builds on top of Monticore and allows the parsing of si units, si expressions and pretty printers. 
+### Pint 
 Pint is a Python package to define, operate and manipulate physical quantities. It allowed us to implement arithmetic
 operations between them and conversions from and to different units. It supports a lot of numpy mathematical operations
-without monkey patching or wrapping numpy.Important to note it runs in Python 3.8+ with no other dependencies[3]
+without monkey patching or wrapping numpy.Important to note it runs in Python 3.8+ with no other dependencies[3] Pint's 
+main job will be checking if the units match, if they can be converted and if the types match. Thanks to pint we can 
+avoid conversion errors like those that happened with the Mars Climate Orbiter.
 [3] https://pint.readthedocs.io/en/stable/
 # Approach
 
