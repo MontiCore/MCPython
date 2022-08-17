@@ -4,8 +4,6 @@
     1. Problems with SIUnit calculation in software
 3. Approach
     1. Description of the solution (alessandra)
-        tools, 2 teile aus der grammatik,wie wir die Sprache aufgeteilt haben, nutzen prettyprinter so das es compatible
-        ist mit dem pint. mit cocos paar sachen überprüfen.
     2. Languages
         1. Python (alessandra)
             1. Description
@@ -31,6 +29,7 @@
     3. Evaluation of using python for unit calculation (lennart)
         1. It's not as efficient as other programming languages
         2. no type checking at compile time
+    4. Not implemented python features (alessandra)
 7. Conclusion (alessandra)
     1. summary of previous chapters
 
@@ -86,7 +85,11 @@ main job will be checking if the units match, if they can be converted and if th
 avoid conversion errors like those that happened with the Mars Climate Orbiter.
 [3] https://pint.readthedocs.io/en/stable/
 # Approach
-
+## Description of the solution
+We used 3 main tools. Monticore, the SI Units project and the Pint library. We also worked on two grammars SIPython adds
+the SIUnits from the SIUnits library, it also adds special si expressions like for example conversions. Not only did we define
+the grammar we also defined Pretty printers to be compatible with the pint library. We also implemented Cocos to check statements
+that we defined and need checking.
 ## Languages
 
 ### Python
@@ -138,23 +141,7 @@ only solution is to not use this types of variables.
 
 ## Other Problems:
 
-#### 1. Function Overload
-Function overloading is a feature that exists in a lot of programming languages. It is using different 
-functions with different implementations, however with the same name. Depending on the context that the 
-function is called, it executes the different implementations. An example would be: doSomething() and
-doSomething(Obj o), this two functions have the same name however are considered as two different functions,
-normally with different types of implementations, one not needing an object and the other one needing it.
-Another example could be: doSomething(String s) and doSomething(Int i), here we change the types of the 
-arguments in the function, and considering these types the functions do different things. 
-
-We could not implement this in our project. To succeed in implementing this feature, the symbol table 
-must be adapted to prevent duplicate
-function symbols with the same name. However, symbol merging is not recommended since in this case,
-scopes would be merged together and so would also all variables. Further checks would be impossible to 
-make and this prevented us to implement this feature. The only solution around this is to not
-use this feature. 
-
-#### 2. Tuples without parentheses
+#### 1. Tuples without parentheses
 In Python, we can use tuples with different number of arguments and with or without parentheses. An example 
 to visualize this would be using this type of tuple: var = (1,4,5), this works in Python and can be used without
 problems like this, however, we can also use it like this: var = 1,4,5. When printing this tuples like this:
@@ -162,7 +149,7 @@ print(var), the same result should appear: the tuple with parentheses, like this
 was impossible for us to implement due to a 'forbidden left recursion' error that is thrown. We suspect the 
 reason for this issue being that context free grammars can not be recursive on the left of statements.
 
-#### 3. End of File 
+#### 2. End of File 
 Our statements always end with an End of Line token. An End of Line token consists of one or more paragraphs or
 carriage returns, or both. We defined this in our grammar for all statements. However, when the file ends
 we do not have an end of line token. In this case we would need an End of file token in order for a problem
@@ -170,6 +157,39 @@ not to arise at the end of files. Nonetheless, the end of file token did not wor
 we tried a set of 
 variations of how to define it. 
 
+# Not implemented python features
+There are some Python features that are not implemented at all in our project.
+
+#### 1. Function Overload
+Function overloading is a feature that exists in a lot of programming languages. It is using different
+functions with different implementations, however with the same name. Depending on the context that the
+function is called, it executes the different implementations. An example would be: doSomething() and
+doSomething(Obj o), this two functions have the same name however are considered as two different functions,
+normally with different types of implementations, one not needing an object and the other one needing it.
+Another example could be: doSomething(String s) and doSomething(Int i), here we change the types of the
+arguments in the function, and considering these types the functions do different things.
+
+We could not implement this in our project. To succeed in implementing this feature, the symbol table
+must be adapted to prevent duplicate
+function symbols with the same name. However, symbol merging is not recommended since in this case,
+scopes would be merged together and so would also all variables. Further checks would be impossible to
+make and this prevented us to implement this feature. The only solution around this is to not
+use this feature.
+
+#### 2. Del/global/nonlocal/yield keywords
+These keywords are not as used as other keywords that we did implement, priority was given to the keywords that are
+most used in the Python language since we did not have enough time resources to implement everything.
+
+#### 3. Multiline strings
+
+#### 4. Multiline comments
+For the multiline comments we have a problem of compatibility. The comments in Python begin and end with quotation marks,
+this is valid for two different types of quotation marks: the single quotation mark (') and the double quotation
+mark ("). However defining this in our grammar was impossible, it is confused for a String Literal and outputs an 
+error, since we use 3 times the quotation marks between comments, which seems like they are uncompleted Strings. We
+tried to implement a Coco and tried to define the grammar differently, however nothing worked. We could not overwrite 
+this issue so that it would not be read as String Literals and decided to not implement this feature. The solution
+for this should to basically use the one line comments repeatedly to create a kind of type of multiline comment.
 
 ## Comparison
 
