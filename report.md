@@ -658,7 +658,7 @@ only solution is to not use this types of variables.
 
 ## Other Problems:
 
-#### 1. Tuples without parentheses
+### 1. Tuples without parentheses
 In Python, we can use tuples with different number of arguments and with or without parentheses. An example 
 to visualize this would be using this type of tuple: var = (1,4,5), this works in Python and can be used without
 problems like this, however, we can also use it like this: var = 1,4,5. When printing this tuples like this:
@@ -666,47 +666,13 @@ print(var), the same result should appear: the tuple with parentheses, like this
 was impossible for us to implement due to a 'forbidden left recursion' error that is thrown. We suspect the 
 reason for this issue being that context free grammars can not be recursive on the left of statements.
 
-#### 2. End of File 
+### 2. End of File 
 Our statements always end with an End of Line token. An End of Line token consists of one or more paragraphs or
 carriage returns, or both. We defined this in our grammar for all statements. However, when the file ends
 we do not have an end of line token. In this case we would need an End of file token in order for a problem
 not to arise at the end of files. Nonetheless, the end of file token did not work for us even though
 we tried a set of 
-variations of how to define it. 
-
-# Not implemented python features
-There are some Python features that are not implemented at all in our project.
-
-#### 1. Function Overload
-Function overloading is a feature that exists in a lot of programming languages. It is using different
-functions with different implementations, however with the same name. Depending on the context that the
-function is called, it executes the different implementations. An example would be: doSomething() and
-doSomething(Obj o), this two functions have the same name however are considered as two different functions,
-normally with different types of implementations, one not needing an object and the other one needing it.
-Another example could be: doSomething(String s) and doSomething(Int i), here we change the types of the
-arguments in the function, and considering these types the functions do different things.
-
-We could not implement this in our project. To succeed in implementing this feature, the symbol table
-must be adapted to prevent duplicate
-function symbols with the same name. However, symbol merging is not recommended since in this case,
-scopes would be merged together and so would also all variables. Further checks would be impossible to
-make and this prevented us to implement this feature. The only solution around this is to not
-use this feature.
-
-#### 2. Del/global/nonlocal/yield keywords
-These keywords are not as used as other keywords that we did implement, priority was given to the keywords that are
-most used in the Python language since we did not have enough time resources to implement everything.
-
-#### 3. Multiline comments
-For the multiline comments we have a problem of compatibility. The comments in Python begin and end with quotation marks,
-this is valid for two different types of quotation marks: the single quotation mark (') and the double quotation
-mark ("). However defining the comments with the double quotation mark
-in our grammar was impossible, it is confused for a String Literal and outputs an 
-error, since we use 3 times the quotation marks between comments, which seems like they are uncompleted Strings. We
-tried to implement a Coco and tried to define the grammar differently, however nothing worked. We could not overwrite 
-this issue so that it would not be read as String Literals and decided to not implement this feature. The solution
-for this should to basically use the one line comments repeatedly to create a kind of type of multiline comment or 
-we just use the single quotation mark to create multiline comments.
+variations of how to define it.
 
 ## Comparison between SIPython and plain Python
 Following the evaluation of our approach, it has to be examined how usable the SIPython language and its tooling is, in comparison to the use of plain python with si unit supporting libraries like pint. As this would be the closest alternative for developing software containing si units.
@@ -749,5 +715,39 @@ The major reason for this evaluation is that Python is not well known for its ef
 When questioning the utilization of Python for si unit supported programming, another aspect to consider is its dynamic type system. As the overall goal is to improve the type checking of si unit values in programs, to detect errors earlier, the choice for a programming language that shifts its type checking to the execution phase, is not beneficial. Therefore, we would recommend to utilize statically typed languages for the development of software with si units, like C or Rust. Here, libraries like [unitc](https://github.com/magnusjonsson/unitc) for C, or [dimensioned](https://github.com/paholg/dimensioned) for Rust were developed to provide support for si units.
 
 This evaluation, showed that there exist better alternatives for si unit supporting programming, than using Python. As it lacks of energy effeciciency and execution speed, as well as lead to later error detection due to its dynamically typed system, Python is not the best choice. Languages like C and Rust provide equal support for si units through libraries, have a statically typed system, and have reduced energy consumption and improved execution speed. Therefore, this would be our best choice for a programming language to work with si units.
+
+## Not implemented python features
+There are some Python features that are not implemented at all in our project.
+
+### 1. Function Overload
+Function overloading is a feature that exists in a lot of programming languages. It is using different
+functions with different implementations, however with the same name. Depending on the context that the
+function is called, it executes the different implementations. An example would be: doSomething() and
+doSomething(Obj o), this two functions have the same name however are considered as two different functions,
+normally with different types of implementations, one not needing an object and the other one needing it.
+Another example could be: doSomething(String s) and doSomething(Int i), here we change the types of the
+arguments in the function, and considering these types the functions do different things.
+
+We could not implement this in our project. To succeed in implementing this feature, the symbol table
+must be adapted to prevent duplicate
+function symbols with the same name. However, symbol merging is not recommended since in this case,
+scopes would be merged together and so would also all variables. Further checks would be impossible to
+make and this prevented us to implement this feature. The only solution around this is to not
+use this feature.
+
+### 2. Del/global/nonlocal/yield keywords
+These keywords are not as used as other keywords that we did implement, priority was given to the keywords that are
+most used in the Python language since we did not have enough time resources to implement everything.
+
+### 3. Multiline comments
+For the multiline comments we have a problem of compatibility. The comments in Python begin and end with quotation marks,
+this is valid for two different types of quotation marks: the single quotation mark (') and the double quotation
+mark ("). However defining the comments with the double quotation mark
+in our grammar was impossible, it is confused for a String Literal and outputs an
+error, since we use 3 times the quotation marks between comments, which seems like they are uncompleted Strings. We
+tried to implement a Coco and tried to define the grammar differently, however nothing worked. We could not overwrite
+this issue so that it would not be read as String Literals and decided to not implement this feature. The solution
+for this should to basically use the one line comments repeatedly to create a kind of type of multiline comment or
+we just use the single quotation mark to create multiline comments.
 
 # Conclusion
