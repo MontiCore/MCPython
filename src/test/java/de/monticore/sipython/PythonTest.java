@@ -570,9 +570,10 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("#hello world\n" +
 				"#this is another comment");
 	}
-/*
+
 	@Test
 	public void parseValidMultiLineComments(){
+		/*
 		parseModelFromStringAndExpectSuccess("\"\"\"Hello world\"\"\"\n");
 		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
 				"This is the second line of the comment\"\"\"\n");
@@ -580,9 +581,11 @@ public class PythonTest extends AbstractTest {
 				"This is the \"\"\"second\"\"\" line of the comment\"\"\"\n");
 		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
 				"This is the '''second''' line of the comment\"\"\"\n");
+
+		 */
 		parseModelFromStringAndExpectSuccess("'''Hello world'''\n");
 		parseModelFromStringAndExpectSuccess("'''This is another comment\n" +
-				"This is the '''second''' line of the comment'''\n");
+				"This is the second line of the comment'''\n");
 	}
 	@Test
 	public void parseInvalidMultiLineComments(){
@@ -591,7 +594,6 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("\"\"\"This is another comment\n" +
 				"This is the second line of the comment\n");
 	}
-	*/
 
 
 //	---------------------------------------------------------------
