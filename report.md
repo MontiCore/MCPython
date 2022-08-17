@@ -105,12 +105,26 @@ expression, mathematical and logical expressions and finally also lambda express
 We tried to stay as true as possible to the original Python Syntax, the syntax is the same and can be used the same
 as in the Python language. Some examples are below.
 
-![](FunctionDeclarationExp.png)
+```python
+def func1():
+     v1 = cm(5 dm)
+     v2 = mm(v1)
+     return func2(v2)/1 m
+
+def func2(x):
+     return dm/h(x / 2 ms)
+
+func1()
+```
 
 Here we see how functions are declared, they are declared the same as in the Python languages, however
 here we can use SIUnits, cast them and convert them or do operation with them.
 
-![](PrintExamplePythonGrammar.png)
+```python
+var = h(7200 s)
+print(20 km + 30m)
+print (var)
+```
 
 Here we can see how we could use the print function in python. The same as would we write it normally
 while programming Python, however here we can use SIUnits, conversions or operations.
@@ -190,7 +204,10 @@ around the two forward slashes. Example: 3 // 2
 Monticore grammar skips all ident tokens, we can see this on the MCBasics component, as shown by the figure
 below spaces, tabs, paragraphs and carriage returns are skipped since they are not needed. 
 
-![](IdentProblem.png)
+```python
+token WS =
+    (' ' | '\t' | '\r' | '\n' ) : -> skip;
+```
 
 However, we need to know when indentation is used and how it is used, 
 in order to check if it is used correctly. We also need
