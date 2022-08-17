@@ -166,14 +166,14 @@ This Coco controls if the variable or function or class that is being used exist
 symbol table to see if the symbol that is being used already exits.
 
 #### Symbol Table
--table mit allen benutzten symbolen wir variablen klassen und funktionen 
--doppelte symbole, dann setzten die referenz auf das bereits erstellte symbol, und benutzen es so weiter
--kontrollieren ob ein Name von einem Symbol einem Keyword entspricht
--in der symbol tabelle sind Build in functions symbole 
--für jedes import suchen wir nur die funktionen und klassen in den importierten klassen
-und erstellen ein symbol in der tabelle
-
-
+The Symbol Table is a table that saves all used symbols, like for example all variables, classes and functions. Whenever
+there is a symbol that is being used another time, we set the reference of the duplicated symbol to the already created
+symbol and continue using it like this. Furthermore, we also use this table to check whether a name of a symbol 
+corresponds to a keyword in Python, to block the usage of these. We also have build in function symbols in the table,
+that helps us check whether something is getting used incorrectly. Finally, for each import we search all functions
+and classes in the imported classes and create corresponding symbols from those classes/functions in our table, to help
+us again understand what is being used and if it is being used correctly.
+    
 # Discussion
 
 ## Evaluation of the Python/SIPython language
