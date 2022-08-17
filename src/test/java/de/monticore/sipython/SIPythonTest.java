@@ -4,8 +4,6 @@ import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 public class SIPythonTest extends AbstractTest {
 
 	@Before
@@ -43,6 +41,7 @@ public class SIPythonTest extends AbstractTest {
 	public void parseValidSIUnitConversion() {
 		parseModelFromStringAndExpectSuccess("km/h(5 dm/h)\n");
 	}
+
 	@Test
 	public void parseInvalidSIUnitConversion() {
 		parseModelFromStringAndExpectFail("km/h(5 dm/h\n");
@@ -55,31 +54,8 @@ public class SIPythonTest extends AbstractTest {
 
 	@Test
 	public void parseSimpleSIPython() {
-		String model = "unit_script.sipy";
+		String model = "tests/unit_script.sipy";
 		parseModelFromFileAndExpectSuccess(model);
 	}
 
-	@Test
-	public void parseSyntaxError() {
-		String model = "tests/textSyntaxErrors.sipy";
-		parseModelFromFileAndExpectErrors(model, 3);
-	}
-
-	@Test
-	public void parseSyntaxNoError() {
-		String model = "tests/textSyntaxNoErrors.sipy";
-		parseModelFromFileAndExpectSuccess(model);
-	}
-
-	@Test
-	public void parseFunctions() {
-		String model = "tests/funct.sipy";
-		parseModelFromFileAndExpectSuccess(model);
-	}
-
-	@Test
-	public void parsePrints() {
-		String model = "tests/prints.sipy";
-		parseModelFromFileAndExpectSuccess(model);
-	}
 }

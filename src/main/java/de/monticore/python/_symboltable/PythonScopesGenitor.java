@@ -74,42 +74,8 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 			// python script to generate a python script which declares all builtin functions
 			FileWriter writer = new FileWriter(builtinFunctionsReolverScript);
 			writer.write(
-					"import types\n" +
-							"import builtins\n" +
-							"\n" +
-							"\n" +
-							"def describe_builtin(obj):\n" +
-							"    result = \"def \"\n" +
-							"    result += obj.__name__\n" +
-							"    docstr = obj.__doc__\n" +
-							"    args = ''\n" +
-							"\n" +
-							"    if docstr:\n" +
-							"        items = docstr.split('\\n')\n" +
-							"        if items:\n" +
-							"            func_descr = items[0]\n" +
-							"            s = func_descr.replace(obj.__name__, '')\n" +
-							"            idx1 = s.find('(')\n" +
-							"            idx2 = s.find(')', idx1)\n" +
-							"            if idx1 != -1 and idx2 != -1 and (idx2 > idx1 + 1):\n" +
-							"                args = s[idx1 + 1:idx2]\n" +
-							"\n" +
-							"    result += \"(\"\n" +
-							"\n" +
-							"    # result += args\n" +
-							"\n" +
-							"    result += \"):\\n    null\\n\"\n" +
-							"\n" +
-							"    return result\n" +
-							"\n" +
-							"\n" +
-							"output = \"\"\n" +
-							"\n" +
-							"for name, obj in vars(builtins).items():\n" +
-							"    if isinstance(obj, types.BuiltinFunctionType):\n" +
-							"        output += describe_builtin(obj)\n" +
-							"\n" +
-							"print(output)\n");
+					"for e in __builtins__.__dict__:\n" +
+							"    print(e)\n");
 			writer.close();
 
 			// run the generator script
@@ -122,7 +88,10 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 			String s;
 
 			while ((s = stdInput.readLine()) != null) {
-				result.append(s).append("\n");
+				if (this.pythonKeywords.contains(s)) {
+					continue;
+				}
+				result.append("def ").append(s).append("():\n    null\n");
 			}
 
 			builtinFunctionsReolverScript.delete();
@@ -267,11 +236,11 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 		this.checkNameIsKeyword(node.getSymbol());
 	}
 
+	// create class field symbols via the __init__ method
 	@Override
 	public void visit(ASTClassDeclaration node) {
 		super.visit(node);
 
-		// create class field symbols via the __init__ method
 		for (ASTClassStatement classStatement : node.getClassStatementBlock().getClassStatementBlockBody().getClassStatementList()) {
 			if (classStatement instanceof ASTClassFunctionDeclaration) {
 				ASTClassFunctionDeclaration functionDeclaration = ((ASTClassFunctionDeclaration) classStatement);

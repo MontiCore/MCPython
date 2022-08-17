@@ -22,8 +22,8 @@ public class PythonFunctionDeclarationInStatementBlockCoco implements PythonASTI
 			this.checkStatementBlock(statementBlock);
 		}
 
-		if (node.isPresentElseStatement()) {
-			this.checkStatementBlock(node.getElseStatement());
+		if (node.isPresentElseStatementPart()) {
+			this.checkStatementBlock(node.getElseStatementPart().getStatementBlock());
 		}
 	}
 

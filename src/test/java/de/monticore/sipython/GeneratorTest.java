@@ -21,13 +21,23 @@ public class GeneratorTest {
     }
 
     @Test
+    public void Test() {
+        generateModelFromFileAndExpectSuccess("src/test/resources", "target/generate", "tests/simple_python.sipy");
+    }
+
+    @Test
     public void simpleGeneratorTest() {
-        generateModelFromFileAndExpectSuccess("src/test/resources", "target/generate", "unit_script.sipy");
+        generateModelFromFileAndExpectSuccess("src/test/resources", "target/generate", "tests/unit_script.sipy");
     }
 
     @Test
     public void enhancedGeneratorTest() {
-        generateModelFromFileAndExpectSuccess("src/test/resources","target/generate",  "unit_script.sipy", "unit_script_1.sipy");
+        generateModelFromFileAndExpectSuccess("src/test/resources","target/generate", "tests/unit_script.sipy", "tests/unit_script_1.sipy");
+    }
+
+    @Test
+    public void generateSpeedCameraSample() {
+        generateModelFromFileAndExpectSuccess("src/test/resources", "target/generate", "samples/speed_camera.sipy");
     }
 
     public int generateModelFromFileAndReturnErrorsCount(String modelPath, String outputPath, String... fullNames) {

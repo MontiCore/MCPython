@@ -25,7 +25,7 @@ public class SIPythonSIUnitConversionTypeCheckCoco extends TypeCheckCoCo impleme
 		SymTypeExpression typeOfExpression = this.tc.typeOf(node.getExpression());
 
 		SymTypeExpression siunitType =
-				SIUnitSymTypeExpressionFactory.createSIUnit(UnitPrettyPrinter.printUnit(node.getSIUnitType().getSIUnit()), node.getEnclosingScope());
+				SIUnitSymTypeExpressionFactory.createSIUnit(UnitPrettyPrinter.printUnit(node.getSIUnit()), node.getEnclosingScope());
 
 		if (!TypeCheck.compatible(siunitType, ((SymTypeOfNumericWithSIUnit) typeOfExpression).getSIUnit())) {
 			Log.error(" Incompatible SI type conversion from '" + ((SymTypeOfNumericWithSIUnit) typeOfExpression).getSIUnit().print() + "' to '" + siunitType.print() + "'" + node.get_SourcePositionStart());

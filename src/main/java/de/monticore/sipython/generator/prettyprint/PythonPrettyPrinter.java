@@ -57,7 +57,16 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
 	/*===========================Statements======================================*/
+
+	// else statement part
+	@Override
+	public void traverse(ASTElseStatementPart node) {
+		printer.println("else:");
+		node.getStatementBlock().accept(getTraverser());
+	}
+
 	// import statement
 	@Override
 	public void traverse(ASTImportStatement node) {
@@ -92,7 +101,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.println();
 		node.getThenStatement().accept(getTraverser());
 
-		for(int i = 0; i < node.getElifStatementList().size(); i++) {
+		for (int i = 0; i < node.getElifStatementList().size(); i++) {
 			ASTExpression condition = node.getElifCondition(i);
 			ASTStatementBlock statementBlock = node.getElifStatement(i);
 
@@ -103,10 +112,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			statementBlock.accept(getTraverser());
 		}
 
-		if (node.isPresentElseStatement()) {
-			printer.print("else:");
-			printer.println();
-			node.getElseStatement().accept(getTraverser());
+		if (node.isPresentElseStatementPart()) {
+			node.getElseStatementPart().accept(getTraverser());
 		}
 
 		CommentPrettyPrinter.printPostComments(node, printer);
@@ -131,29 +138,42 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTForStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
+		printer.print("for ");
 		node.getForControl().accept(getTraverser());
+		printer.print(":");
+		printer.println();
 		node.getStatementBlock().accept(getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
 	@Override
 	public void traverse(ASTCommonForControl node) {
-		printer.print("for ");
 		printer.print(node.getName());
 		printer.print(" in ");
 		node.getExpression().accept(getTraverser());
-		printer.print(":");
-		printer.println();
 	}
 
 	@Override
 	public void traverse(ASTArrayForControl node) {
-		printer.print("for ");
 		printer.print(node.getName());
 		printer.print(" in ");
 		node.getArrayInit().accept(getTraverser());
-		printer.print(":");
-		printer.println();
+	}
+
+	@Override
+	public void traverse(ASTUnpackedForControl node) {
+		boolean first = true;
+		for (ASTForVariable forVariable : node.getForVariableList()) {
+			if (first) {
+				first = false;
+			} else {
+				printer.print(", ");
+			}
+			printer.print(forVariable.getName());
+		}
+		printer.print(" in ");
+		node.getExpression().accept(getTraverser());
 	}
 
 	//while statement
@@ -169,6 +189,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
 	// break statement
 	@Override
 	public void traverse(ASTBreakStatement node) {
@@ -178,6 +199,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
 	// continue statement
 	@Override
 	public void traverse(ASTContinueStatement node) {
@@ -203,9 +225,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			statement.getStatementBlock().accept(getTraverser());
 		}
 
-		if (node.isPresentElseStatement()) {
-			printer.println("else:");
-			node.getElseStatement().accept(getTraverser());
+		if (node.isPresentElseStatementPart()) {
+			node.getElseStatementPart().accept(getTraverser());
 		}
 
 		if (node.isPresentFinallyStatement()) {
@@ -216,18 +237,27 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// with open file statement
 	@Override
-	public void traverse (ASTWithOpenFileStatement node){
+	public void traverse(ASTWithOpenFileStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 		printer.print(" with ");
-		node.getOpenExpression().accept(getTraverser());
-		printer.print(" as ");
-		printer.print(node.getNameFile());
-		for (int i = 0; i < node.getOpenExpressionRecursionList().size(); i++){
-			printer.print(" , ");
-			node.getOpenExpressionRecursion(i).accept(getTraverser());
-			printer.print(" as ");
-			printer.print(node.getNameFileRecursion(i));
+		boolean first = true;
+		for (ASTOpenFileExpression openFileExpression : node.getOpenFileExpressionList()) {
+			if (first) {
+				first = false;
+			} else {
+				printer.print(", ");
+			}
+			openFileExpression.accept(getTraverser());
 		}
+		printer.println(":");
+	}
+
+	// open file expression
+	@Override
+	public void traverse(ASTOpenFileExpression node) {
+		node.getExpression().accept(getTraverser());
+		printer.print(" as ");
+		printer.print(node.getFileName());
 	}
 
 	// variable declaration statement
@@ -237,6 +267,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print(" = ");
 		node.getVariableInit().accept(getTraverser());
 	}
+
 	@Override
 	public void traverse(ASTLocalVariableDeclarationStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
@@ -246,6 +277,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
 	@Override
 	public void traverse(ASTSimpleInit node) {
 		node.getExpression().accept(getTraverser());
@@ -267,6 +299,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		printer.print("]");
 	}
+
 	@Override
 	public void traverse(ASTTupleInit node) {
 		printer.print("(");
@@ -299,6 +332,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
+
 	@Override
 	public void traverse(ASTFunctionParameters node) {
 		boolean first = true;
@@ -312,6 +346,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		}
 	}
+
 	@Override
 	public void traverse(ASTSimpleFunctionParameter node) {
 		printer.print(node.getName());
@@ -345,6 +380,19 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
 
+	@Override
+	public void traverse(ASTRaiseStatement node) {
+		CommentPrettyPrinter.printPreComments(node, printer);
+
+		printer.print("raise ");
+		if (node.isPresentExpression()) {
+			node.getExpression().accept(getTraverser());
+		}
+		printer.println();
+
+		CommentPrettyPrinter.printPostComments(node, printer);
+	}
+
 	// expression statement
 	@Override
 	public void traverse(ASTExpressionStatement node) {
@@ -360,7 +408,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// string literals for python
 	@Override
-	public void traverse (ASTStringLiteralPython node){
+	public void traverse(ASTStringLiteralPython node) {
 		printer.print("\"");
 		printer.print(node.getSource());
 		printer.print("\"");
@@ -369,10 +417,10 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// boolean literals for python
 	@Override
-	public void traverse (ASTBooleanLiteralPython node){
-		if(node.getSource() == 1){
+	public void traverse(ASTBooleanLiteralPython node) {
+		if (node.getSource() == 1) {
 			printer.print("True");
-		}else {
+		} else {
 			printer.print("False");
 		}
 	}
@@ -382,10 +430,10 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// ternary-operator expression
 	@Override
-	public void traverse(ASTTernaryOperatorExpression node){
+	public void traverse(ASTTernaryOperatorExpression node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 		node.getThenExpression().accept(getTraverser());
-		for(int i = 0; i < node.getConditionList().size(); i++){
+		for (int i = 0; i < node.getConditionList().size(); i++) {
 			printer.print(" if ");
 			node.getCondition(i).accept(getTraverser());
 			printer.print(" else ");
@@ -395,7 +443,6 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 
-
 	// mathematical expression
 	@Override
 	public void traverse(ASTIntegerDivisionExpression node) {
@@ -403,6 +450,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print(" // ");
 		node.getRight().accept(getTraverser());
 	}
+
 	@Override
 	public void traverse(ASTIntegerPowExpression node) {
 		node.getLeft().accept(getTraverser());
@@ -412,28 +460,46 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	//logical expressions
 	@Override
-	public void traverse(ASTANDExpression node) {
+	public void traverse(ASTAndExpression node) {
 		node.getLeft().accept(getTraverser());
 		printer.print("and");
 		node.getRight().accept(getTraverser());
 	}
+
 	@Override
-	public void traverse(ASTORExpression node) {
+	public void traverse(ASTOrExpression node) {
 		node.getLeft().accept(getTraverser());
 		printer.print("or");
 		node.getRight().accept(getTraverser());
 	}
+
 	@Override
-	public void traverse(ASTISExpression node) {
+	public void traverse(ASTIsExpression node) {
 		node.getLeft().accept(getTraverser());
 		printer.print("is");
 		node.getRight().accept(getTraverser());
 	}
+
 	@Override
-	public void traverse(ASTNOTExpression node) {
+	public void traverse(ASTNotExpression node) {
 		printer.print("not");
 		node.getExpression().accept(getTraverser());
 	}
+
+	@Override
+	public void traverse(ASTInExpression node) {
+		node.getLeft().accept(getTraverser());
+		printer.print("in");
+		node.getRight().accept(getTraverser());
+	}
+
+	@Override
+	public void traverse(ASTNotInExpression node) {
+		node.getLeft().accept(getTraverser());
+		printer.print("not in");
+		node.getRight().accept(getTraverser());
+	}
+
 	// lambda expression
 	@Override
 	public void traverse(ASTLambdaExpression node) {
@@ -459,7 +525,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// class declaration statement
 	@Override
-	public void traverse(ASTClassDeclaration node){
+	public void traverse(ASTClassDeclaration node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		printer.print("class ");
@@ -508,7 +574,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// class attributes
 	@Override
-	public void traverse(ASTClassAttributes node){
+	public void traverse(ASTClassAttributes node) {
 
 		CommentPrettyPrinter.printPreComments(node, printer);
 
@@ -525,8 +591,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTSelfParameter node) {
 		printer.print(node.getName());
 	}
-	// class function parameters
 
+	// class function parameters
 	@Override
 	public void traverse(ASTClassFunctionParameters node) {
 		node.getSelfParameter().accept(getTraverser());

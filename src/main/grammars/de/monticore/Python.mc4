@@ -25,43 +25,50 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   /*===========================Statements======================================*/
 
+  IndentCheck = {isIndentedCorrectly()}? Indent* ;
+  ElseStatementPart = IndentCheck "else" ":" StatementBlock;
+
   // import statement
   ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ EOL ;
 
   // if-else statement
   IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
-                                   ( "elif" elifCondition:Expression ":" elifStatement:StatementBlock )*
-                                   ( "else"                          ":" elseStatement:StatementBlock )?;
+                                   (IndentCheck "elif" elifCondition:Expression ":" elifStatement:StatementBlock )*
+                                   ElseStatementPart?;
 
   // assert statement
   AssertStatement implements Statement = "assert" condition:Expression "," errorMessage:String EOL ;
 
   // for statement
-  ForStatement implements Statement = "for" ForControl ":" StatementBlock
-                                    ( "else"           ":" elseStatement:StatementBlock )? ;
+  scope ForStatement implements Statement = "for" ForControl ":" StatementBlock
+                                            ElseStatementPart? ;
 
   interface ForControl ;
-  CommonForControl implements ForControl, Variable = Name "in" Expression ;
-  ArrayForControl  implements ForControl, Variable = Name "in" ArrayInit ;
+  CommonForControl   implements ForControl, Variable =  Name          "in" Expression ;
+  ArrayForControl    implements ForControl, Variable =  Name          "in" ArrayInit  ;
+  UnpackedForControl implements ForControl           = (ForVariable || ",")+ "in" Expression ;
+  ForVariable implements Variable = Name ;
 
   // while statement
   WhileStatement implements Statement = "while" condition:Expression ":" StatementBlock
-                                      ( "else"                       ":" elseStatement:StatementBlock )? ;
+                                      ElseStatementPart? ;
 
   BreakStatement implements Statement = "break" EOL ;
   ContinueStatement implements Statement = "continue" EOL ;
 
   // try-except-finally statement
-  TryExceptStatement implements Statement = "try"                    ":" tryStatement:StatementBlock
-                                            ExceptStatement+
-                                          ( "else"                   ":" elseStatement:StatementBlock    )?
-                                          ( "finally"                ":" finallyStatement:StatementBlock )? ;
+  TryExceptStatement implements Statement = "try"                           ":" tryStatement:StatementBlock
+                                          ( IndentCheck ExceptStatement  )+
+                                                        ElseStatementPart ?
+                                          ( IndentCheck "finally"           ":" finallyStatement:StatementBlock )? ;
 
   ExceptStatement = ( "except" Name? ":" StatementBlock ) ;
 
   // with open file statement
-  WithOpenFileStatement implements Statement = "with" openExpression: Expression "as" nameFile: Name ("," openExpressionRecursion: Expression "as" nameFileRecursion: Name)*  ":" EOL
+  scope WithOpenFileStatement implements Statement = "with" (OpenFileExpression || ",")+ ":" EOL
                                             StatementBlock ;
+
+  OpenFileExpression = Expression "as" fileName:Name ;
 
   // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration EOL ;
@@ -90,6 +97,8 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
   // return statement
   ReturnStatement implements Statement = "return" Expression? EOL ;
+
+  RaiseStatement implements Statement = "raise" Expression? EOL ;
 
   // expression statement
   ExpressionStatement implements Statement = Expression EOL ;
@@ -129,10 +138,12 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   IntegerPowExpression implements Expression <195>, InfixExpression = left:Expression operator:"**" right:Expression ;
 
   //logical expressions
-  ANDExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
-  ORExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
-  NOTExpression implements Expression <190> = "not" Expression ;
-  ISExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
+  AndExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
+  OrExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
+  NotExpression implements Expression <190> = "not" Expression ;
+  IsExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
+  InExpression implements Expression <195>, InfixExpression = left:Expression operator:"in" right:Expression ;
+  NotInExpression implements Expression <195>, InfixExpression = left:Expression operator:"not in" right:Expression ;
 
   // lambda expression
   scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;
@@ -160,6 +171,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
   SelfParameter implements FunctionParameter = Name ;
 
   ClassAttributes implements ClassStatement = VariableDeclaration EOL ;
+
 
   /*==========================ANTLR=======================================*/
   /** This java code implements an indentation counter.
@@ -190,7 +202,7 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
 
 
       public boolean decreaseIndent() {
-        if (isIndentedCorrectly()) {
+        if (isIndentedCorrectly() || cmpTokenRegEx(indentCounter + 1,"    |\t")) {
           return false;
         }
         indentCounter--;
