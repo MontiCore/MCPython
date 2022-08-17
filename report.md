@@ -1,4 +1,4 @@
-### Table of Content
+**### Table of Content
 1. Introduction (alessandra)
 2. Motivation (alessandra)
     1. Problems with SIUnit calculation in software
@@ -77,95 +77,160 @@ Therefore, the language SIPython was created, which extends the Python language.
 
 The first requirement, as previously outlined, is the support for si unit literals. The basic approach would be to introduce a new literal type extending MontiCores Literal nonterminal of the [MCLiteralBasis](https://github.com/MontiCore/monticore/blob/dev/monticore-grammar/src/main/grammars/de/monticore/literals/MCLiteralsBasis.mc4) grammar. This would allow to directly include the new si unit literal in all kinds of expressions extending the Expression nonterminal of the [ExpressionBasis](https://github.com/MontiCore/monticore/blob/dev/monticore-grammar/src/main/grammars/de/monticore/expressions/ExpressionsBasis.mc4) grammar. The described approach with its grammar dependency is shown in the following diagram. Here, the new introduced nonterminal named _NewSIUnitLiteral_ allows to model literals containing si units like `3 dm/h`. Through, the extension of the _Literal_ nonterminal, which in part of the _Expression_ nonterminal it would be possible to express e.g. multiplication expression containing si units like `3 dm/h * 5`.
 
-```plantuml
-package "MontiCore" {
-package "MCLiteralBasis " {
-    class Literal <<(N,transparent)>>
-}
+[//]: # (```plantuml)
 
-package "ExpressionsBasis" {
-    class Expression <<(N,transparent)>>
-    note right: e.g. 3 dm/h * 5
-    
-    Expression o-- Literal
-}
-}
+[//]: # (package "MontiCore" {)
 
-class NewSIUnitLiteral  <<(N,transparent)>>
-Literal <|-- NewSIUnitLiteral
-note right: e.g. 3 dm/h
-```
+[//]: # (package "MCLiteralBasis " {)
+
+[//]: # (    class Literal <<&#40;N,transparent&#41;>>)
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "ExpressionsBasis" {)
+
+[//]: # (    class Expression <<&#40;N,transparent&#41;>>)
+
+[//]: # (    note right: e.g. 3 dm/h * 5)
+
+[//]: # (    )
+[//]: # (    Expression o-- Literal)
+
+[//]: # (})
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (class NewSIUnitLiteral  <<&#40;N,transparent&#41;>>)
+
+[//]: # (Literal <|-- NewSIUnitLiteral)
+
+[//]: # (note right: e.g. 3 dm/h)
+
+[//]: # (```)
+
+![img.png](img.png)
 
 The new si unit literal itself should consist of a numeric literal indicating the value of the literal, and a nonterminal representing the si unit, as shown in the following diagram.
 
-```plantuml
-class NumericLiteral <<(N,transparent)>>   
-note bottom: e.g. 3
+[//]: # (```plantuml)
 
-class NewSIUnitNonTerminal <<(N,transparent)>>
-note bottom: e.g. dm/h
+[//]: # (class NumericLiteral <<&#40;N,transparent&#41;>>   )
 
-class NewSIUnitLiteral <<(N,transparent)>>
-note right: e.g. 3 dm/h
+[//]: # (note bottom: e.g. 3)
 
-NewSIUnitLiteral o-- NumericLiteral
-NewSIUnitLiteral o-- NewSIUnitNonTerminal
-```
+[//]: # ()
+[//]: # (class NewSIUnitNonTerminal <<&#40;N,transparent&#41;>>)
+
+[//]: # (note bottom: e.g. dm/h)
+
+[//]: # ()
+[//]: # (class NewSIUnitLiteral <<&#40;N,transparent&#41;>>)
+
+[//]: # (note right: e.g. 3 dm/h)
+
+[//]: # ()
+[//]: # (NewSIUnitLiteral o-- NumericLiteral)
+
+[//]: # (NewSIUnitLiteral o-- NewSIUnitNonTerminal)
+
+[//]: # (```)
+
+![img_1.png](img_1.png)
 
 
 However, the MontiCore team already provides such a nonterminal, as part of their [SIUnits project](https://git.rwth-aachen.de/monticore/languages/siunits). The SIUnit project introduces a full type system for si units to be used in other MontiCore languages. Their approach for modeling si unit literals as a MontiCore grammar corresponds to the previously described approach. The following diagram shows an overview of the defined grammars and their dependencies in the MontiCore domain.
 
-```plantuml
-package "MontiCore" {
-package "MCLiteralBasis Grammar" {
-    class Literal <<(N,transparent)>>
-}
+[//]: # (```plantuml)
 
-package "MCCommonLiterals Grammar" {
-    class NumericLiteral <<(N,transparent)>>   
-    note bottom: e.g. 3
-    
-    Literal <|-- NumericLiteral
-}
-}
+[//]: # (package "MontiCore" {)
 
-package "SIUnit-Project" {
-package "SIUnits Grammar" {
-    class SIUnit <<(N,transparent)>>   
-    note bottom: e.g. dm/h
-}
+[//]: # (package "MCLiteralBasis Grammar" {)
 
-package "SIUnitLiterals Grammar" {
-    class SIUnitLiteral <<(N,transparent)>>
-    note bottom: e.g. 3 dm/h
-    
-    Literal <|-- SIUnitLiteral
-    SIUnitLiteral o-- NumericLiteral
-    SIUnitLiteral o-- SIUnit
-}
-}
+[//]: # (    class Literal <<&#40;N,transparent&#41;>>)
 
-```
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "MCCommonLiterals Grammar" {)
+
+[//]: # (    class NumericLiteral <<&#40;N,transparent&#41;>>   )
+
+[//]: # (    note bottom: e.g. 3)
+
+[//]: # (    )
+[//]: # (    Literal <|-- NumericLiteral)
+
+[//]: # (})
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "SIUnit-Project" {)
+
+[//]: # (package "SIUnits Grammar" {)
+
+[//]: # (    class SIUnit <<&#40;N,transparent&#41;>>   )
+
+[//]: # (    note bottom: e.g. dm/h)
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "SIUnitLiterals Grammar" {)
+
+[//]: # (    class SIUnitLiteral <<&#40;N,transparent&#41;>>)
+
+[//]: # (    note bottom: e.g. 3 dm/h)
+
+[//]: # (    )
+[//]: # (    Literal <|-- SIUnitLiteral)
+
+[//]: # (    SIUnitLiteral o-- NumericLiteral)
+
+[//]: # (    SIUnitLiteral o-- SIUnit)
+
+[//]: # (})
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (```)
+
+![img_2.png](img_2.png)
 
 In the SUnit project, the literal for si units is modeled by the _SIUnitLiteral_ nonterminal. As previously described, it extends the _Literal_ nonterminal of the _MCLiteralBasis_, and is composed of the _NumericLiter_ of the [MCCommonLiterals](https://github.com/MontiCore/monticore/blob/dev/monticore-grammar/src/main/grammars/de/monticore/literals/MCCommonLiterals.mc4) grammar. To model the si unit of the literal, the _SIUnitLiteral_ is additionally composed of the _SIUnit_ nonterminal. _SIUnit_ covers all kinds of si units, including primitive ones like ``dm``, and the division of primitive ones like `dm/h`, as well as the division of a numeric literal and a primitive si unit like `1/h`.
 
 To make use of this approach, we let the SIPython grammar extend the SIUnitLiterals grammar. This leads to the language composition, as shown in the following diagram.
 
-```plantuml
-package "SIUnitLiterals Grammar" {
-    class SIUnitLiteral <<(N,transparent)>>
-}
+[//]: # (```plantuml)
 
-package "SIPython Grammar" {
+[//]: # (package "SIUnitLiterals Grammar" {)
 
-}
+[//]: # (    class SIUnitLiteral <<&#40;N,transparent&#41;>>)
 
-package "Python Grammar" {
-}
+[//]: # (})
 
-"Python Grammar" <|-- "SIPython Grammar" 
-"SIUnitLiterals Grammar" <|-- "SIPython Grammar" 
-```
+[//]: # ()
+[//]: # (package "SIPython Grammar" {)
+
+[//]: # ()
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "Python Grammar" {)
+
+[//]: # (})
+
+[//]: # ()
+[//]: # ("Python Grammar" <|-- "SIPython Grammar" )
+
+[//]: # ("SIUnitLiterals Grammar" <|-- "SIPython Grammar" )
+
+[//]: # (```)
+
+![img_3.png](img_3.png)
 
 #### SI Unit Conversions
 
@@ -215,28 +280,48 @@ In this snippet, a method declaration with two input parameters is displayed. As
 
 Explicit conversions of si units is not supported at all by the SIUnit project. Thus, we had to come up with an own approach for type conversions. This approach is displayed in the following diagram.
 
-```plantuml
-package "ExpressionBasis Grammar" {
-    class Expression <<(N,transparent)>>
-}
+[//]: # (```plantuml)
 
-package "Python Grammar" {
-    class VariableInit <<(N,transparent)>>
-}
+[//]: # (package "ExpressionBasis Grammar" {)
 
-package "SIUnitTypes4Math" {
-    class SIUnitType <<(N,transparent)>>
-}
+[//]: # (    class Expression <<&#40;N,transparent&#41;>>)
 
-package "SIPython Grammar" {
-    class SIUnitConversion <<(N,transparent)>>
-    note right: e.g. km/h(3 dm/h)
-    VariableInit <|-- SIUnitConversion
-    Expression <|-- SIUnitConversion
-    SIUnitConversion o-- Expression
-    SIUnitConversion o-- SIUnitType
-}
-```
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "Python Grammar" {)
+
+[//]: # (    class VariableInit <<&#40;N,transparent&#41;>>)
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "SIUnitTypes4Math" {)
+
+[//]: # (    class SIUnitType <<&#40;N,transparent&#41;>>)
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (package "SIPython Grammar" {)
+
+[//]: # (    class SIUnitConversion <<&#40;N,transparent&#41;>>)
+
+[//]: # (    note right: e.g. km/h&#40;3 dm/h&#41;)
+
+[//]: # (    VariableInit <|-- SIUnitConversion)
+
+[//]: # (    Expression <|-- SIUnitConversion)
+
+[//]: # (    SIUnitConversion o-- Expression)
+
+[//]: # (    SIUnitConversion o-- SIUnitType)
+
+[//]: # (})
+
+[//]: # (```)
+
+![img_4.png](img_4.png)
 
 Here, explicit conversions are modeled by the _SIUnitConversion_ nonterminal. Because, conversions can be used as a normal expression, as well as a variable initialisation, _SIUnitConversion_ implements _VariableInit_ of the _Python_ grammar, as well as _Expression_ nonterminal of the _ExpressionBasis_ grammar. We defined the _SIUnitConversion_ nonterminal itself in the SIPython grammar as follows.
 
@@ -480,4 +565,4 @@ When questioning the utilization of Python for si unit supported programming, an
 
 This evaluation, showed that there exist better alternatives for si unit supporting programming, than using Python. As it lacks of energy effeciciency and execution speed, as well as lead to later error detection due to its dynamically typed system, Python is not the best choice. Languages like C and Rust provide equal support for si units through libraries, have a statically typed system, and have reduced energy consumption and improved execution speed. Therefore, this would be our best choice for a programming language to work with si units.
 
-# Conclusion
+# Conclusion**
