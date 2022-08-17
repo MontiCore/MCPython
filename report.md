@@ -9,7 +9,6 @@
             1. Description
             2. Syntax
             3. Grammar
-            4. Indentation
             5. Functionality (cocos)
             6. Symbol Table 
         2. SIPython (lennart)
@@ -102,7 +101,7 @@ and tuples (only with brackets, more information found in the Problems section),
 classes are also supported. We also needed to define String Literals and Boolean Literals since they were inconsistent 
 to the implementation defined on MCBasics. Lastly we also define Expressions, it supports the ternary-operator
 expression, mathematical and logical expressions and finally also lambda expressions.
-#### Syntax
+#### Syntax/Grammar
 We tried to stay as true as possible to the original Python Syntax, the syntax is the same and can be used the same
 as in the Python language. Some examples are below.
 
@@ -115,9 +114,11 @@ here we can use SIUnits, cast them and convert them or do operation with them.
 
 Here we can see how we could use the print function in python. The same as would we write it normally
 while programming Python, however here we can use SIUnits, conversions or operations.
-#### Grammar
+
 We could reuse a lot from the Monticore MCBasics, however some things like the Boolean and String literals needed to be
-redefined since the original MCBasics definition was not correct for Python.
+redefined since the original MCBasics definition was not correct for Python. Furthermore, the Monticore Syntax
+was not made for Python which lead us to redefining a lot of things like for example indentation and multiline
+comments.
 
 #### Functionality (Cocos)
 In order for everything to work correctly we needed to implement some requirements in the form of Cocos.
@@ -127,11 +128,17 @@ In order for everything to work correctly we needed to implement some requiremen
 3. PythonDuplicateFunctionCoco
 4. PythonExpressionCoco
 5. PythonFunctionArgumentSizeCoco
-6. PythonFunctionDeclarationInStatementBlockCoco
+6. PythonFunctionOrClassDeclarationInStatementBlockCoco
 7. PythonFunctionDuplicateParameterNameCoco
 8. PythonLambdaDuplicateParameterNameCoco
 9. PythonVariableOrFunctionOrClassExistsCoco
 #### Symbol Table
+-table mit allen benutzten symbolen wir variablen klassen und funktionen 
+-doppelte symbole, dann setzten die referenz auf das bereits erstellte symbol, und benutzen es so weiter
+-kontrollieren ob ein Name von einem Symbol einem Keyword entspricht
+-in der symbol tabelle sind Build in functions symbole 
+-für jedes import suchen wir nur die funktionen und klassen in den importierten klassen
+und erstellen ein symbol in der tabelle
 
 
 # Discussion
