@@ -88,7 +88,7 @@ and tuples (only with brackets, more information found in the Problems section),
 classes are also supported. We also needed to define String Literals and Boolean Literals since they were inconsistent 
 to the implementation defined on MCBasics. Lastly we also define Expressions, it supports the ternary-operator
 expression, mathematical and logical expressions and finally also lambda expressions.
-#### Syntax/Grammar
+### Syntax/Grammar
 We tried to stay as true as possible to the original Python Syntax, the syntax is the same and can be used the same
 as in the Python language. Some examples are below.
 
@@ -121,7 +121,7 @@ redefined since the original MCBasics definition was not correct for Python. Fur
 was not made for Python which lead us to redefining a lot of things like for example indentation and multiline
 comments.
 
-#### Functionality (Cocos)
+### Functionality (Cocos)
 In order for everything to work correctly we needed to implement some requirements in the form of Cocos.
 #### 1. CallExpressionAfterFunctionDeclarationCoco
 This Coco checks if the function is called after being declared. To see that we see at what position the
@@ -166,7 +166,7 @@ it happened.
 This Coco controls if the variable or function or class that is being used exists. To check this it simply checks the 
 symbol table to see if the symbol that is being used already exits.
 
-#### Symbol Table
+### Symbol Table
 The Symbol Table is a table that saves all used symbols, like for example all variables, classes and functions. Whenever
 there is a symbol that is being used another time, we set the reference of the duplicated symbol to the already created
 symbol and continue using it like this. Furthermore, we also use this table to check whether a name of a symbol 
@@ -745,3 +745,27 @@ for this should to basically use the one line comments repeatedly to create a ki
 we just use the single quotation mark to create multiline comments.
 
 # Conclusion
+In this report we described firstly what our motivation was and explained in what cases this 
+project could be useful. We explained what we did and what tools we used. The grammars are
+explained in detail as well as how the Generator works. We have two main grammars. Rhe Python
+grammar is a limited Python-like grammar, which supports almost all Python statements, literals
+and Expressions. In order for the Python grammar to work we implemented requirements with cocos.
+We extended the Python language with the SIPython language to support the specification of si 
+unit literals, as well as conversions and compatibility checking of si units. 
+Furthermore, we developed a generator that performs the parsing of SIPython scripts and 
+generation of corresponding Python code.
+However, like in any other project we
+had some problems along the way. For some of these problems we found a solution and for others we
+did not, we described this in detail. We then mentioned what python functions were not implemented 
+in our project. We compared Si Python and plain Python for using si units. We can see that 
+si python is much more intuitive than python but also much more readable and easier to
+understand than plain code. However, we came to the conclusion that Si Python has a lot of
+disadvantages, there are no tools for debugging the code, no highlighting, no checking for errors
+in lifetime, etc. Therefore, we recommend using Python plain with a si units library. Additionally.
+while evaluating the use of Python for unit calculation,
+we realized that there are better alternatives like R or C, 
+that provide similar support for si units through libraries, but with a static
+typed system and less energy consumption as well as higher execution speed. Concluding that the
+programming in other languages could be the best opportunity.    
+
+
