@@ -10,9 +10,8 @@ public class SIPythonTool extends SIPythonToolTOP {
 	@Override
 	public void runDefaultCoCos(ASTPythonScript ast) {
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
-		//checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo(new UseClassAfterClassDeclarationCoco());
-		checker.addCoCo((PythonASTIfStatementCoCo) new PythonFunctionDeclarationInStatementBlockCoco());
+		checker.addCoCo((PythonASTIfStatementCoCo) new PythonFunctionOrClassDeclarationInStatementBlockCoco());
 		checker.addCoCo(new PythonFunctionDuplicateParameterNameCoco());
 		checker.addCoCo(new PythonFunctionArgumentSizeCoco());
 		checker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
@@ -21,7 +20,6 @@ public class SIPythonTool extends SIPythonToolTOP {
 		checker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionAndClassCoco()));
 		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
 		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
-		// checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 
 		checker.checkAll(ast);
 	}

@@ -9,6 +9,8 @@ import de.monticore.python._visitor.PythonHandler;
 import de.monticore.python._visitor.PythonTraverser;
 import de.monticore.python._visitor.PythonVisitor2;
 
+import java.util.Arrays;
+
 public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	protected PythonTraverser pythonTraverser;
@@ -149,16 +151,9 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	@Override
 	public void traverse(ASTCommonForControl node) {
-		printer.print(node.getName());
+		node.getForVariable().accept(getTraverser());
 		printer.print(" in ");
-		node.getExpression().accept(getTraverser());
-	}
-
-	@Override
-	public void traverse(ASTArrayForControl node) {
-		printer.print(node.getName());
-		printer.print(" in ");
-		node.getArrayInit().accept(getTraverser());
+		node.getForIterable().accept(getTraverser());
 	}
 
 	@Override
@@ -170,10 +165,15 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			} else {
 				printer.print(", ");
 			}
-			printer.print(forVariable.getName());
+			forVariable.accept(getTraverser());
 		}
 		printer.print(" in ");
-		node.getExpression().accept(getTraverser());
+		node.getForIterable().accept(getTraverser());
+	}
+
+	@Override
+	public void traverse(ASTForVariable node) {
+		printer.print(node.getName());
 	}
 
 	//while statement
@@ -462,27 +462,27 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	@Override
 	public void traverse(ASTAndExpression node) {
 		node.getLeft().accept(getTraverser());
-		printer.print("and");
+		printer.print(" and ");
 		node.getRight().accept(getTraverser());
 	}
 
 	@Override
 	public void traverse(ASTOrExpression node) {
 		node.getLeft().accept(getTraverser());
-		printer.print("or");
+		printer.print(" or ");
 		node.getRight().accept(getTraverser());
 	}
 
 	@Override
 	public void traverse(ASTIsExpression node) {
 		node.getLeft().accept(getTraverser());
-		printer.print("is");
+		printer.print(" is ");
 		node.getRight().accept(getTraverser());
 	}
 
 	@Override
 	public void traverse(ASTNotExpression node) {
-		printer.print("not");
+		printer.print(" not ");
 		node.getExpression().accept(getTraverser());
 	}
 
@@ -496,7 +496,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	@Override
 	public void traverse(ASTNotInExpression node) {
 		node.getLeft().accept(getTraverser());
-		printer.print("not in");
+		printer.print(" not in ");
 		node.getRight().accept(getTraverser());
 	}
 
@@ -595,7 +595,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	// class function parameters
 	@Override
 	public void traverse(ASTClassFunctionParameters node) {
-		node.getSelfParameter().accept(getTraverser());
+		printer.print(node.getSelfParameter().getName());
 		for (ASTFunctionParameter argument : node.getFunctionParameterList()) {
 			printer.print(", ");
 			argument.accept(getTraverser());

@@ -20,9 +20,9 @@ public class PythonFunctionDuplicateParameterNameCoco implements PythonASTFuncti
 		List<ASTFunctionParameter> parameters = new ArrayList<>();
 
 		if (node instanceof ASTSimpleFunctionDeclaration) {
-			parameters = ((ASTSimpleFunctionDeclaration) node).getFunctionParameters().getFunctionParameterList();
+			parameters.addAll(((ASTSimpleFunctionDeclaration) node).getFunctionParameters().getFunctionParameterList());
 		} else if (node instanceof ASTClassFunctionDeclaration) {
-			parameters = ((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getFunctionParameterList();
+			parameters.addAll(((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getFunctionParameterList());
 			parameters.add(((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getSelfParameter());
 		}
 

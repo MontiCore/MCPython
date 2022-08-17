@@ -3,13 +3,13 @@ package de.monticore.python._cocos;
 import de.monticore.python._ast.*;
 import de.se_rwth.commons.logging.Log;
 
-public class PythonFunctionDeclarationInStatementBlockCoco implements PythonASTIfStatementCoCo,
+public class PythonFunctionOrClassDeclarationInStatementBlockCoco implements PythonASTIfStatementCoCo,
 		PythonASTWhileStatementCoCo, PythonASTForStatementCoCo {
 
 	protected void checkStatementBlock(ASTStatementBlock node) {
 		for (ASTStatement statement : node.getStatementBlockBody().getStatementList()) {
-			if (statement instanceof ASTFunctionDeclaration) {
-				Log.error("Function declarations are not allowed in statement block at " + statement.get_SourcePositionStart());
+			if (statement instanceof ASTFunctionDeclaration || statement instanceof ASTClassDeclaration) {
+				Log.error("Function/Class declarations are not allowed in statement block at " + statement.get_SourcePositionStart());
 			}
 		}
 	}

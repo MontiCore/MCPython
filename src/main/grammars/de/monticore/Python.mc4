@@ -45,9 +45,10 @@ grammar Python extends de.monticore.expressions.CommonExpressions,
                                             ElseStatementPart? ;
 
   interface ForControl ;
-  CommonForControl   implements ForControl, Variable =  Name          "in" Expression ;
-  ArrayForControl    implements ForControl, Variable =  Name          "in" ArrayInit  ;
-  UnpackedForControl implements ForControl           = (ForVariable || ",")+ "in" Expression ;
+  CommonForControl   implements ForControl =  ForVariable          "in" ForIterable ;
+  UnpackedForControl implements ForControl = (ForVariable || ",")+ "in" ForIterable ;
+
+  ForIterable = Expression | ArrayInit ;
   ForVariable implements Variable = Name ;
 
   // while statement

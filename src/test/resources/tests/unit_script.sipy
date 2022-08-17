@@ -11,7 +11,7 @@ print("Hello World")
 def calculate_velocity(distance, time):
     return distance / time
 
-calculate_velocity(x=1, time=5)
+calculate_velocity(distance=1, time=5)
 
 velocity = 3 dm/h
 y = velocity + 1 m/s

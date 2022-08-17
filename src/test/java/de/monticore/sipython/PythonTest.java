@@ -135,6 +135,11 @@ public class PythonTest extends AbstractTest {
 		);
 
 		parseModelFromStringAndExpectSuccess(
+				"for x,y in [1]:\n" +
+						"    print(x)\n"
+		);
+
+		parseModelFromStringAndExpectSuccess(
 				"for x in range(0, 3):\n" +
 						"    print(x)\n"
 		);
