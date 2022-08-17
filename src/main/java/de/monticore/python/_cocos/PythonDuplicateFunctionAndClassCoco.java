@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class PythonDuplicateFunctionAndClassCoco implements PythonASTPythonScriptCoCo, PythonASTStatementBlockCoCo, PythonASTClassStatementBlockCoCo {
+public class PythonDuplicateFunctionAndClassCoco implements PythonASTPythonScriptCoCo, PythonASTStatementBlockCoCo,
+		PythonASTClassStatementBlockCoCo {
 
 	@Override
 	public void check(ASTPythonScript node) {

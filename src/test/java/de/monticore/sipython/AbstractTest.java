@@ -30,8 +30,6 @@ public class AbstractTest {
 			e.printStackTrace();
 		}
 
-
-
 		return astPythonScriptOptional;
 	}
 

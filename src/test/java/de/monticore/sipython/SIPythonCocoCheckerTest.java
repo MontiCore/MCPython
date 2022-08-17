@@ -245,39 +245,6 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 
 	}
 
-	/*
-	@Test
-	public void checkSIPythonCommonExpressionsTypeCheckCoco() {
-		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"y = 0\n" +
-						"x = y + 5 dm/h + 3 km/h\n + y\n"
-		);
-
-		parseCodeStringAndCheckCoCosAndExpectError(
-				"x = 5 dm/h + 3 °C\n"
-		);
-
-		//checks that all distinct pairs of base units are not allowed in a common expression together
-		performCocoChecksForAllBaseUnits(this::parseCommonExpressionsWithTwoUnitsAndCheckCoCosAndExpectError);
-	}
-
-	 */
-
-	@Test
-	public void checkSIPythonSIUnitConversionTypeCheckCoco() {
-		parseCodeStringAndCheckCoCosAndExpectSuccess(
-				"x = dm/h(3 km/h)\n"
-		);
-
-		parseCodeStringAndCheckCoCosAndExpectError(
-				"x = dm/h(3 °C)\n"
-		);
-
-		//checks that all distinct pairs of base units are not allowed in a unit conversion expression together
-		performCocoChecksForAllBaseUnits(this::parseSIUnitConversionTypeCheckAndCheckCoCosAndExpectError);
-	}
-
-
 	@Test
 	public void checkPythonExpressionCoco() {
 		parseCodeStringAndCheckCoCosAndExpectSuccess(
@@ -339,7 +306,6 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		SIPythonCoCoChecker checker = new SIPythonCoCoChecker();
 		checker.addCoCo(new UseClassAfterClassDeclarationCoco());
 		checker.addCoCo(new PythonExpressionCoco());
-		checker.addCoCo(SIPythonSIUnitConversionTypeCheckCoco.getCoCo());
 		checker.addCoCo((PythonASTWhileStatementCoCo) new PythonFunctionOrClassDeclarationInStatementBlockCoco());
 		checker.addCoCo(new PythonFunctionDuplicateParameterNameCoco());
 		checker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionAndClassCoco()));
@@ -347,8 +313,6 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 		checker.addCoCo(new PythonVariableOrFunctionOrClassExistsCoco());
 		checker.addCoCo(new PythonLambdaDuplicateParameterNameCoco());
 		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
-
-		//checker.addCoCo((CommonExpressionsASTPlusExpressionCoCo) SIPythonCommonExpressionsTypeCheckCoco.getCoco());
 		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
 
 		return checker;

@@ -9,7 +9,7 @@ import de.monticore.sipython.generator.prettyprint.*;
 
 public class PrintAsSIPythonScript {
 
-    private SIPythonTraverser traverser;
+    private final SIPythonTraverser traverser;
 
     public PrintAsSIPythonScript(IndentPrinter indentPrinter) {
         traverser = SIPythonMill.traverser();

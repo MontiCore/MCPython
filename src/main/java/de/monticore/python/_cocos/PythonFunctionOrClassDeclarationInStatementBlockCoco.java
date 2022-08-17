@@ -9,7 +9,8 @@ public class PythonFunctionOrClassDeclarationInStatementBlockCoco implements Pyt
 	protected void checkStatementBlock(ASTStatementBlock node) {
 		for (ASTStatement statement : node.getStatementBlockBody().getStatementList()) {
 			if (statement instanceof ASTFunctionDeclaration || statement instanceof ASTClassDeclaration) {
-				Log.error("Function/Class declarations are not allowed in statement block at " + statement.get_SourcePositionStart());
+				Log.error("Function/Class declarations are not allowed in statement block at " +
+						statement.get_SourcePositionStart());
 			}
 		}
 	}

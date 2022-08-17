@@ -10,8 +10,9 @@ import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTBoo
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTLogicalNotExpressionCoCo;
 import de.se_rwth.commons.logging.Log;
 
-public class JavaBooleanExpressionCoco implements CommonExpressionsASTBooleanOrOpExpressionCoCo, CommonExpressionsASTBooleanAndOpExpressionCoCo,
-		CommonExpressionsASTBooleanNotExpressionCoCo, CommonExpressionsASTLogicalNotExpressionCoCo {
+public class JavaBooleanExpressionCoco implements CommonExpressionsASTBooleanOrOpExpressionCoCo,
+		CommonExpressionsASTBooleanAndOpExpressionCoCo, CommonExpressionsASTBooleanNotExpressionCoCo,
+		CommonExpressionsASTLogicalNotExpressionCoCo {
 
 	@Override
 	public void check(ASTBooleanAndOpExpression node) {

@@ -13,11 +13,13 @@ public class PythonExpressionCoco implements PythonASTExpressionStatementCoCo {
     public void check(ASTExpressionStatement node) {
 
 
-        if(!(node.getExpression() instanceof ASTCallExpression) && !(node.getExpression() instanceof ASTAssignmentExpression)){
+        if(!(node.getExpression() instanceof ASTCallExpression)
+            && !(node.getExpression() instanceof ASTAssignmentExpression)){
             Log.warn("Statement seems to have no effect " + node.get_SourcePositionStart());
         }
 
-        if (node.getExpression() instanceof ASTAssignmentExpression && ((ASTAssignmentExpression) node.getExpression()).getLeft() instanceof ASTLiteralExpression) {
+        if (node.getExpression() instanceof ASTAssignmentExpression
+            && ((ASTAssignmentExpression) node.getExpression()).getLeft() instanceof ASTLiteralExpression) {
             if (((ASTAssignmentExpression) node.getExpression()).getOperator() == 2) {
                 Log.error("Invalid variable declaration " + node.get_SourcePositionStart());
             }

@@ -5,9 +5,6 @@ import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
 import de.monticore.expressions.prettyprint.ExpressionsBasisPrettyPrinter;
 import de.monticore.prettyprint.CommentPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
-import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
-import de.monticore.symboltable.ISymbol;
-import de.monticore.types.check.SymTypeOfNumericWithSIUnit;
 
 public class SIPythonExpressionsBasisPrettyPrinter extends ExpressionsBasisPrettyPrinter {
 

@@ -1,8 +1,5 @@
 package de.monticore.sipython.generator.prettyprint;
 
-import de.monticore.literals.mccommonliterals._ast.ASTBasicDoubleLiteral;
-import de.monticore.literals.mccommonliterals._ast.ASTNatLiteral;
-import de.monticore.literals.mccommonliterals._ast.ASTNumericLiteral;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.siunits._ast.ASTSIUnitKindGroupWithExponent;
 import de.monticore.siunits._ast.ASTSIUnitPrimitive;

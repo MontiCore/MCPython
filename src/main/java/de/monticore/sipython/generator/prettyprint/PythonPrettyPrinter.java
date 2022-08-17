@@ -9,8 +9,6 @@ import de.monticore.python._visitor.PythonHandler;
 import de.monticore.python._visitor.PythonTraverser;
 import de.monticore.python._visitor.PythonVisitor2;
 
-import java.util.Arrays;
-
 public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	protected PythonTraverser pythonTraverser;

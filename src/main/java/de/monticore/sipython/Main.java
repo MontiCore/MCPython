@@ -30,13 +30,16 @@ public class Main {
 
 					executeScript = args[++i];
 				}
-			} else if (input == null) {
-				input = Path.of(arg);
-			} else if (output == null) {
-				output = Path.of(arg);
 			} else {
-				Log.error("Unable to read " + arg);
-				return;
+				final Path argPath = Path.of(arg);
+				if (input == null) {
+					input = argPath;
+				} else if (output == null) {
+					output = argPath;
+				} else {
+					Log.error("Unable to read " + arg);
+					return;
+				}
 			}
 		}
 

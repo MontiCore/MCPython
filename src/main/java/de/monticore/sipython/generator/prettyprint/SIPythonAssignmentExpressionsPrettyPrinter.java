@@ -1,22 +1,10 @@
 package de.monticore.sipython.generator.prettyprint;
 
 import de.monticore.expressions.assignmentexpressions._ast.ASTAssignmentExpression;
-import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
 import de.monticore.expressions.prettyprint.AssignmentExpressionsPrettyPrinter;
 import de.monticore.prettyprint.CommentPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
-import de.monticore.sipython.types.check.DeriveSymTypeOfSIPython;
-import de.monticore.siunits.utility.Converter;
-import de.monticore.symbols.basicsymbols._symboltable.IBasicSymbolsArtifactScope;
-import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
-import de.monticore.types.check.SymTypeExpression;
-import de.monticore.types.check.SymTypeOfNumericWithSIUnit;
-import de.monticore.types.check.TypeCalculator;
 import de.se_rwth.commons.logging.Log;
-
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.Unit;
-import java.util.Optional;
 
 public class SIPythonAssignmentExpressionsPrettyPrinter extends AssignmentExpressionsPrettyPrinter {
 
