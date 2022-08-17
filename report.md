@@ -6,11 +6,9 @@
     1. Description of the solution (alessandra)
     2. Languages
         1. Python (alessandra)
-            1. Description
-            2. Syntax
-            3. Grammar
-            5. Functionality (cocos)
-            6. Symbol Table 
+            1. Syntax/Grammar
+            2. Functionality (cocos)
+            3. Symbol Table 
         2. SIPython (lennart)
             1. Description
             2. Syntax
@@ -22,7 +20,8 @@
         2. application: showing example use case
 6. Discussion
     1. Evaluation of the Python/SIPython language (alessandra)
-        1. problems
+        1. MontiCore grammar creates the following problems.
+        2. Other Problems
     2. Comparison (lennart)
         1. with using plain Python + SiUnits library (pint)
     3. Evaluation of using python for unit calculation (lennart)
