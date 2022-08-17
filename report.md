@@ -21,8 +21,7 @@
 
 # Introduction
 The developed project is a python language software that offers support for calculation with si units, 
-automated unit compatibility checking, and unit conversion. It supports a verity of SI units, a few examples
-are electric units and every type of time units.  
+automated unit compatibility checking, and unit conversion. It supports a verity of SI units.   
 ## Motivation
 Nowadays most businesses use software in order to improve the revenue and facilitate life. We see software
 in most of our day-to-day life, and while software is used in most things nowadays, it is not yet adapted
@@ -48,6 +47,7 @@ An issue that cost millions of damage could have been very easy to solve. Having
 metrics would just automatically produce the results in the wished system, avoiding any type of further problems. 
 Building such a system will be our goal in this project. The result should be a software that supports programming in 
 python while using si units.
+
 [1] https://en.wikipedia.org/wiki/Mars_Climate_Orbiter
 
 ## Tools
@@ -58,6 +58,7 @@ us to define our language, Python, and use it together with the MontiCore-framew
 tools, like for example integrating our SI Units in the language. We could take advantage of the predefined language 
 components that Monticore comes with. Monticore creates the basic grammar and provides all components (statements, literls, etc.).
 Monticore then generates a parser that can check if the si python scripts are correct.
+
 [2] https://monticore.github.io/monticore/
 ### SI Units Project 
 The SI Units Project sets the grammar so that it can be read by Monticore, it mainly describes which units are valid and specifies 
@@ -69,6 +70,7 @@ operations between them and conversions from and to different units. It supports
 without monkey patching or wrapping numpy.Important to note it runs in Python 3.8+ with no other dependencies[3] Pint's 
 main job will be checking if the units match, if they can be converted and if the types match. Thanks to pint we can 
 avoid conversion errors like those that happened with the Mars Climate Orbiter.
+
 [3] https://pint.readthedocs.io/en/stable/
 # Approach
 ## Description of the solution
@@ -544,27 +546,53 @@ To show how the generated Python script of a SIPython script looks like, the fol
 
 ```python
 # This is an example script of a unit type supporting python-like language
+
 x = true
+
 import calendar
+
 print(_monthlen(2022, 07))
+
 print("Hello World")
+
 def calculate_velocity(distance, time):
     return distance / time
+
 calculate_velocity(x=1, time=5)
+
 velocity = 3 dm/h
 y = velocity + 1 m/s
+
+# casting/parsing
+v = km/h(3 dm/h)
 v1 = km/h(y)
+
 v2 = 4 m/ns^2
+
 print(velocity)
+
+distance = 200000 µm
+
+print(distance)
+
+time = 3 min
+
+print(time)
+
 print(calculate_velocity(distance, time))
+
 class calculator:
+
     def __init__(self):
         self.factor = 1
 
     def multiply(self, x):
         return self.factor * x
+
 c = calculator()
+
 print(c.multiply(1))
+
 ```
 Using the described Generator class, the following Python script is generated.
 
@@ -578,20 +606,26 @@ print(_monthlen(2022, 07))
 print("Hello World")
 def calculate_velocity(distance, time):
     return distance / time
-calculate_velocity(x = 1, time = 5)
+calculate_velocity(distance = 1, time = 5)
 velocity = 3 * ureg('dm/h')
 y = velocity + 1 * ureg('m/s')
+v = 3 * ureg('km/h')
 v1 = y * ureg('km/h')
 v2 = 4 * ureg('m/ns^2')
 print(velocity)
+distance = 200000 * ureg('µm')
+print(distance)
+time = 3 * ureg('min')
+print(time)
 print(calculate_velocity(distance, time))
 class calculator:
-    def __init__(self, self):
+    def __init__(self):
         self.factor = 1
-    def multiply(self, x, self):
+    def multiply(self, x):
         return self.factor * x
 c = calculator()
 print(c.multiply(1))
+
 ```
 
 ##### Generator-Tool
@@ -713,14 +747,12 @@ This evaluation, showed that there exist better alternatives for si unit support
 ## Not implemented python features
 There are some Python features that are not implemented at all in our project.
 
-### 1. Function Overload
+### 1. Function Overloading
 Function overloading is a feature that exists in a lot of programming languages. It is using different
 functions with different implementations, however with the same name. Depending on the context that the
 function is called, it executes the different implementations. An example would be: doSomething() and
-doSomething(Obj o), this two functions have the same name however are considered as two different functions,
-normally with different types of implementations, one not needing an object and the other one needing it.
-Another example could be: doSomething(String s) and doSomething(Int i), here we change the types of the
-arguments in the function, and considering these types the functions do different things.
+doSomething(parameter), this two functions have the same name however are considered as two different functions,
+normally with different types of implementations, one not needing an argument and the other one needing it.
 
 We could not implement this in our project. To succeed in implementing this feature, the symbol table
 must be adapted to prevent duplicate
@@ -731,17 +763,17 @@ use this feature.
 
 ### 2. Del/global/nonlocal/yield keywords
 These keywords are not as used as other keywords that we did implement, priority was given to the keywords that are
-most used in the Python language since we did not have enough time resources to implement everything.
+most used in the Python language.
 
 ### 3. Multiline comments
 For the multiline comments we have a problem of compatibility. The comments in Python begin and end with quotation marks,
-this is valid for two different types of quotation marks: the single quotation mark (') and the double quotation
-mark ("). However defining the comments with the double quotation mark
-in our grammar was impossible, it is confused for a String Literal and outputs an
+this is valid for two different types of quotation marks: the single quotation mark `'` and the double quotation
+mark `"`. However defining the comments with the double quotation mark
+in our grammar was impossible, it is confused for a String Literal of MontiCore and outputs an
 error, since we use 3 times the quotation marks between comments, which seems like they are uncompleted Strings. We
 tried to implement a Coco and tried to define the grammar differently, however nothing worked. We could not overwrite
 this issue so that it would not be read as String Literals and decided to not implement this feature. The solution
-for this should to basically use the one line comments repeatedly to create a kind of type of multiline comment or
+for this should to basically use the one line comments repeatedly to create a kind of type of multiline comment, or
 we just use the single quotation mark to create multiline comments.
 
 # Conclusion
