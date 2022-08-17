@@ -782,22 +782,20 @@ project could be useful. We explained what we did and what tools we used. The gr
 explained in detail as well as how the Generator works. We have two main grammars. Rhe Python
 grammar is a limited Python-like grammar, which supports almost all Python statements, literals
 and Expressions. In order for the Python grammar to work we implemented requirements with cocos.
-We extended the Python language with the SIPython language to support the specification of si 
+At next, we extended the Python language with the SIPython language to support the specification of si 
 unit literals, as well as conversions and compatibility checking of si units. 
 Furthermore, we developed a generator that performs the parsing of SIPython scripts and 
 generation of corresponding Python code.
 However, like in any other project we
 had some problems along the way. For some of these problems we found a solution and for others we
 did not, we described this in detail. We then mentioned what python functions were not implemented 
-in our project. We compared Si Python and plain Python for using si units. We can see that 
-si python is much more intuitive than python but also much more readable and easier to
-understand than plain code. However, we came to the conclusion that Si Python has a lot of
-disadvantages, there are no tools for debugging the code, no highlighting, no checking for errors
-in lifetime, etc. Therefore, we recommend using Python plain with a si units library. Additionally.
-while evaluating the use of Python for unit calculation,
+in our project. We compared SIPython and plain Python regarding their applicability for programming with si units. We can see that 
+SIPython is much more intuitive than Python, but also much more readable and easier to
+understand than plain code. However, we came to the conclusion that SIPython has a lot of
+disadvantages, e.g. there are no tools for debugging the code, no highlighting, or no error checking at development time. Therefore, we recommend using plain Python with a si units library for programming software containing si units. Additionally, while evaluating the use of Python for unit calculation,
 we realized that there are better alternatives like R or C, 
 that provide similar support for si units through libraries, but with a static
-typed system and less energy consumption as well as higher execution speed. Concluding that the
-programming in other languages could be the best opportunity.    
+typed system, and less energy consumption, as well as higher execution speed. Concluding that,
+programming in other languages could be the best opportunity.
 
 
