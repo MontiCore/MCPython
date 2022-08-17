@@ -1,35 +1,23 @@
 ### Table of Content
-1. Introduction (alessandra)
-2. Motivation (alessandra)
-    1. Problems with SIUnit calculation in software
+1. Introduction
+2. Motivation
 3. Approach
-    1. Description of the solution (alessandra)
-    2. Languages
-        1. Python (alessandra)
+   1. Languages
+        1. Python
             1. Syntax/Grammar
-            2. Functionality (cocos)
+            2. Functionality
             3. Symbol Table 
-        2. SIPython (lennart)
-            1. Description
-            2. Syntax
-            3. Grammar
-            4. SIUnits
-            5. Functionality (cocos)
-    3. Generator (lennart)
-        1. description of the prettyprinter
-        2. application: showing example use case
-6. Discussion
-    1. Evaluation of the Python/SIPython language (alessandra)
-        1. MontiCore grammar creates the following problems.
-        2. Other Problems
-    2. Comparison (lennart)
-        1. with using plain Python + SiUnits library (pint)
-    3. Evaluation of using python for unit calculation (lennart)
-        1. It's not as efficient as other programming languages
-        2. no type checking at compile time
-    4. Not implemented python features (alessandra)
-7. Conclusion (alessandra)
-    1. summary of previous chapters
+        2. SIPython
+           1. SI Unit Literals 
+           2. SI Unit Conversions
+           3. Compatibility Checking
+   2. Generator
+4. Discussion
+    1. Evaluation of the Python/SIPython language
+    2. Comparison between SIPython and plain Python
+    3. Evaluation of using Python for unit calculation
+    4. Not implemented python features
+5. Conclusion
 
 # Introduction
 The developed project is a python language software that offers support for calculation with si units, 
