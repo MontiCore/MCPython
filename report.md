@@ -93,15 +93,52 @@ that we defined and need checking.
 ## Languages
 
 ### Python
+The Python grammar is a limited Python-like grammar. 
+Python grammar allows us to parse python scripts. This grammar supports Statements, Literals and Expressions.
+The statements we define and consequently are supported by the grammar,
+are the import statements, the if-else statements, the assert statements, the for while statements, the break statements, 
+the try-except-finally statements, the with open statements, variable declarations and assignments including arrays
+and tuples (only with brackets, more information found in the Problems section), the return statement. Functions and 
+classes are also supported. We also needed to define String Literals and Boolean Literals since they were inconsistent 
+to the implementation defined on MCBasics. Lastly we also define Expressions, it supports the ternary-operator
+expression, mathematical and logical expressions and finally also lambda expressions.
+#### Syntax
+We tried to stay as true as possible to the original Python Syntax, the syntax is the same and can be used the same
+as in the Python language. Some examples are below.
 
-### SIPython
+![](FunctionDeclarationExp.png)
 
-## Generator
+Here we see how functions are declared, they are declared the same as in the Python languages, however
+here we can use SIUnits, cast them and convert them or do operation with them.
+
+![](PrintExamplePythonGrammar.png)
+
+Here we can see how we could use the print function in python. The same as would we write it normally
+while programming Python, however here we can use SIUnits, conversions or operations.
+#### Grammar
+We could reuse a lot from the Monticore MCBasics, however some things like the Boolean and String literals needed to be
+redefined since the original MCBasics definition was not correct for Python.
+
+#### Functionality (Cocos)
+In order for everything to work correctly we needed to implement some requirements in the form of Cocos.
+1. CallExpressionAfterFunctionDeclarationCoco
+
+2. JavaBooleanExpressionCoco
+3. PythonDuplicateFunctionCoco
+4. PythonExpressionCoco
+5. PythonFunctionArgumentSizeCoco
+6. PythonFunctionDeclarationInStatementBlockCoco
+7. PythonFunctionDuplicateParameterNameCoco
+8. PythonLambdaDuplicateParameterNameCoco
+9. PythonVariableOrFunctionOrClassExistsCoco
+#### Symbol Table
+
 
 # Discussion
 
-## Evaluation of the Approach
-
+## Evaluation of the Python/SIPython language
+We tried to define a Python language that works exactly like Python except we can use different types of SIUnits,
+we were successful to a certain extent, however there still remain some problems.
 ## MontiCore grammar creates the following problems:
 #### 1. Integer Division
 When we need to divide 2 numbers in python we separate the two numbers or the two variables by two forward slashes. Two

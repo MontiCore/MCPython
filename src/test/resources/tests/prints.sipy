@@ -13,11 +13,7 @@
   #7200010.0ms
 
 var = h(7200 s)
-
-
 print(20 km + 30m)
-
-
 print (var)
 
 print (2000 km / var)
