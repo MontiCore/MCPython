@@ -779,7 +779,7 @@ we just use the single quotation mark to create multiline comments.
 # Conclusion
 In this report we described firstly what our motivation was and explained in what cases this 
 project could be useful. We explained what we did and what tools we used. The grammars are
-explained in detail as well as how the Generator works. We have two main grammars. Rhe Python
+explained in detail as well as how the Generator works. We have two main grammars. The Python
 grammar is a limited Python-like grammar, which supports almost all Python statements, literals
 and Expressions. In order for the Python grammar to work we implemented requirements with cocos.
 At next, we extended the Python language with the SIPython language to support the specification of si 
@@ -793,7 +793,7 @@ in our project. We compared SIPython and plain Python regarding their applicabil
 SIPython is much more intuitive than Python, but also much more readable and easier to
 understand than plain code. However, we came to the conclusion that SIPython has a lot of
 disadvantages, e.g. there are no tools for debugging the code, no highlighting, or no error checking at development time. Therefore, we recommend using plain Python with a si units library for programming software containing si units. Additionally, while evaluating the use of Python for unit calculation,
-we realized that there are better alternatives like R or C, 
+we realized that there are better alternatives like Rust or C, 
 that provide similar support for si units through libraries, but with a static
 typed system, and less energy consumption, as well as higher execution speed. Concluding that,
 programming in other languages could be the best opportunity.

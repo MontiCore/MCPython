@@ -1,0 +1,33 @@
+from pint import UnitRegistry
+ureg = UnitRegistry()
+import time
+def print(text):
+    print(text)
+    if x == 0:
+        print("0")
+    if x == 0:
+        print("1")
+x = 1
+x1 = x + 1
+x += 1
+y = [1, 2, 3]
+print("1")
+if x == 1:
+    print("one")
+    print("ok")
+else:
+    print("not one")
+def calcVelocity(distance, time):
+    print("calculating...")
+    return distance / time
+calcVelocity(1, 1)
+for x in [0, 1, 2]:
+    print(x)
+for x in [0, 1, 2]:
+    print(x)
+    for y in [0, 1, 2, 3]:
+        print(y)
+        for i in [0, 1]:
+            print(i)
+while 1:
+    z = 4
