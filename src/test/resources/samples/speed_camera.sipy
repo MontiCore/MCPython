@@ -1,0 +1,47 @@
+# This sample script is an implementation of a speed camera.
+# The script reads the measured values from a file and calculates the velocity.
+# For a more precise measurement, the file contains two time values for two measuring sections.
+# If both speeds are above the limit, the script prints "flash",
+# else if one speed is above the limit, the script prints "unhappy",
+# else the script prints "happy".
+
+
+# Helper method to calculate the speed
+def calcSpeed(distance, time):
+    return distance / time
+
+# Defining the speed limit and the distance between the measurement points.
+limit = 50 km/h
+distance1 = 5 m
+distance2 = 2 m
+
+
+# Open the file with the measurements
+measurements = open('measurements.txt')
+
+# default values
+time1 = -1
+time2 = -1
+
+# Read the two measured times from the file line by line
+# Multiplying the times with 1ms, adds an unit to the values
+for i, line in enumerate(measurements):
+    if i == 1:
+        time1 = 1ms * line
+    elif i == 2:
+        time2 = 1ms * line
+
+if time1 == -1 or time2 == -1:
+    raise RuntimeError('Invalid measurements!')
+
+# Calculate the speeds
+speed1 = calcSpeed(distance1, time1)
+speed2 = calcSpeed(distance2, time2)
+
+# Flash if both speeds are above the limit
+if speed1 > limit and speed2 > limit:
+    print("flash")
+elif speed1 > limit or speed2 > limit:
+    print("unhappy")
+else:
+    print("happy")
