@@ -14,27 +14,26 @@ as in the Python language. Some examples are below.
 
 ```python
 def func1():
-     v1 = cm(5 dm)
-     v2 = mm(v1)
-     return func2(v2)/1 m
+     v1 = func2(5)
+     v2 = func2(v1)
+     return func2(v2)/1
 
 def func2(x):
-     return dm/h(x / 2 ms)
+     return x / 2
 
 func1()
 ```
 
-Here we see how functions are declared, they are declared the same as in the Python languages, however
-here we can use SIUnits, cast them and convert them or do operation with them.
+Here we see how functions are declared, they are declared the same as in the Python languages.
 
 ```python
-var = h(7200 s)
-print(20 km + 30m)
+var = 2700
+print(var + 30)
 print (var)
 ```
 
 Here we can see how we could use the print function in python. The same as would we write it normally
-while programming Python, however here we can use SIUnits, conversions or operations.
+while programming Python.
 
 We could reuse a lot from the Monticore MCBasics, however some things like the Boolean and String literals needed to be
 redefined since the original MCBasics definition was not correct for Python. Furthermore, the Monticore Syntax
