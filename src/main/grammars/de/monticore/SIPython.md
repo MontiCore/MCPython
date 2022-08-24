@@ -34,7 +34,7 @@ that we defined and need checking.
 
 
 ## SIPython
-With the previously presented language, it is possible to parse python scripts. However, only literals like strings,
+With the [Python language](https://git.rwth-aachen.de/monticore/languages/sipython/-/edit/main/src/main/grammars/de/monticore/Python.md)  it is possible to parse python scripts. However, only literals like strings,
 characters, numbers, and booleans are supported, as shown in the following code snippet.
 ```python
 c = 'a'
@@ -46,6 +46,32 @@ The support for si unit literals is still missing. The following code snippets s
 v = 3 dm/h
 ```
 Therefore, the language SIPython was created, which extends the Python language. As described in the previous section it adds support for si unit literals. For such a language to be used in practice it had to fulfill certain requirements, that we had to identify and solve, illustrated in the following.
+
+Some examples are below.
+
+```python
+def func1():
+     v1 = cm(5 dm)
+     v2 = mm(v1)
+     return func2(v2)/1 m
+
+def func2(x):
+     return dm/h(x / 2 ms)
+
+func1()
+```
+
+Here we see how functions are declared, they are declared the same as in the Python languages, however
+here we can use SIUnits, cast them and convert them or do operation with them.
+
+```python
+var = h(7200 s)
+print(20 km + 30m)
+print (var)
+```
+
+Here we can see how we could use the print function in python. The same as would we write it normally
+while programming Python, however here we can use SIUnits, conversions or operations.
 
 #### SI Unit Literals
 
