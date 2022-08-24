@@ -94,3 +94,14 @@ corresponds to a keyword in Python, to block the usage of these. We also have bu
 that helps us check whether something is getting used incorrectly. Finally, for each import we search all functions
 and classes in the imported classes and create corresponding symbols from those classes/functions in our table, to help
 us again understand what is being used and if it is being used correctly.
+
+## Further Information
+
+* [Project root: MontiCore @github](https://github.com/MontiCore/monticore)
+* [MontiCore documentation](http://www.monticore.de/)
+* [**List of languages**](https://github.com/MontiCore/monticore/blob/opendev/docs/Languages.md)
+* [**MontiCore Core Grammar Library**](https://github.com/MontiCore/monticore/blob/opendev/monticore-grammar/src/main/grammars/de/monticore/Grammars.md)
+* [Best Practices](https://github.com/MontiCore/monticore/blob/opendev/docs/BestPractices.md)
+* [Publications about MBSE and MontiCore](https://www.se-rwth.de/publications/)
+* [Licence definition](https://github.com/MontiCore/monticore/blob/master/00.org/Licenses/LICENSE-MONTICORE-3-LEVEL.md)
+
