@@ -646,17 +646,6 @@ use this feature.
 These keywords are not as used as other keywords that we did implement, priority was given to the keywords that are
 most used in the Python language.
 
-### 3. Multiline comments
-For the multiline comments we have a problem of compatibility. The comments in Python begin and end with quotation marks,
-this is valid for two different types of quotation marks: the single quotation mark `'` and the double quotation
-mark `"`. However defining the comments with the double quotation mark
-in our grammar was impossible, it is confused for a String Literal of MontiCore and outputs an
-error, since we use 3 times the quotation marks between comments, which seems like they are uncompleted Strings. We
-tried to implement a Coco and tried to define the grammar differently, however nothing worked. We could not overwrite
-this issue so that it would not be read as String Literals and decided to not implement this feature. The solution
-for this should to basically use the one line comments repeatedly to create a kind of type of multiline comment, or
-we just use the single quotation mark to create multiline comments.
-
 # Conclusion
 In this report we described firstly what our motivation was and explained in what cases this 
 project could be useful. We explained what we did and what tools we used. The grammars are
