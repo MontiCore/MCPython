@@ -644,11 +644,15 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectSuccess("'''Hello world'''\n");
 		parseModelFromStringAndExpectSuccess("'''This is another comment\n" +
 				"This is the second line of the comment'''\n");
+		parseModelFromStringAndExpectSuccess("\"\"\"Double quote multi line \n comment \"\"\"");
 	}
 	@Test
 	public void parseInvalidMultiLineComments(){
 		parseModelFromStringAndExpectFail("\"\"\"Hello world\n");
 		parseModelFromStringAndExpectFail("'''Hello world\n");
+		parseModelFromStringAndExpectFail("'''Hello world\n\"\"\"");
+		parseModelFromStringAndExpectFail("\" \"\"Double quote multi line \n comment \"\"\"");
+		parseModelFromStringAndExpectFail("\"\"\"Double quote multi line \n comment \" \"\"");
 		parseModelFromStringAndExpectFail("\"\"\"This is another comment\n" +
 				"This is the second line of the comment\n");
 	}

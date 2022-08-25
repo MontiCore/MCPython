@@ -1,7 +1,10 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore;
 
-grammar SIPython extends de.monticore.SIUnitLiterals, de.monticore.Python, de.monticore.SIUnits {
+grammar SIPython extends de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
+                         de.monticore.SIUnitLiterals,
+                         de.monticore.Python,
+                         de.monticore.SIUnits {
 
   start PythonScript ;
 

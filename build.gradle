@@ -99,6 +99,7 @@ def grammarDependencies = ext {
     SIPython = ["Python"]
     Python = []
     TestSIUnitLiterals = []
+    MultilineString = []
 }
 
 createGrammarTasksForDir(grammarDir, "main")
