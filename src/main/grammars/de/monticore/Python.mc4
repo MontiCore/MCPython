@@ -83,7 +83,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   SimpleInit implements VariableInit = Expression ;
   ArrayInit  implements VariableInit = "[" (VariableInit || ",")* "]" ;
   TupleInit  implements VariableInit = "(" (VariableInit || ",")* ")" ;
-
+  DictInit   implements VariableInit = "{" (DictEntry || ",")* "}" ;
+  DictEntry = key:VariableInit ":" value:VariableInit ;
 
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
