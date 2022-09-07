@@ -10,23 +10,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   PythonScript = (Statement | EOL)*;
 
   token SingleLineComment = "#" (~('\n' | '\r' ))* : ->skip {storeComment();};
-  // TODO: These are not comments but string literals, which are allowed to be the only content of a line!
-  // TODO: example for a legal python file:
-  /*
-  5 # Line is just a literal
-  print("Another statement")
 
-  "Just a string literal"
-  """
-  Just a multiline string literal
-  """
-  a = """
-  Multiline literal assignment
-  """
-
-  print(a)
-  */
-  token MultiLineComment = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter))) : -> skip {storeComment();};
+  // Often (mis)used as a multiline comment but can also be used as a string literal, this we can not skip it
+  token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
+  MultiLineStringLiteral implements Literal = MultiLineStringToken;
 
   // indentation token, 4 spaces or tabulator
   token Indent = "    " | "\t";

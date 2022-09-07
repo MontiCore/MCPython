@@ -679,4 +679,12 @@ public class PythonTest extends AbstractTest {
 		parseModelFromFileAndExpectErrors(model, 1);
 	}
 
+	@Test
+	public void parseLiteralsAsLine(){
+		// Python allows the only element of a line to be a literal like "Test" or 5
+		parseModelFromStringAndExpectSuccess("5\n");
+		parseModelFromStringAndExpectSuccess("'string'\n");
+		parseModelFromStringAndExpectSuccess("\"string\"\n");
+		parseModelFromStringAndExpectSuccess("\"\"\"multiline\nstring\"\"\"\n");
+	}
 }
