@@ -630,29 +630,20 @@ public class PythonTest extends AbstractTest {
 	}
 
 	@Test
-	public void parseValidMultiLineComments(){
-		/*
-		parseModelFromStringAndExpectSuccess("\"\"\"Hello world\"\"\"\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
-				"This is the second line of the comment\"\"\"\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
-				"This is the \"\"\"second\"\"\" line of the comment\"\"\"\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
-				"This is the '''second''' line of the comment\"\"\"\n");
-
-		 */
+	public void parseValidMultiLineStringLiterals(){
 		parseModelFromStringAndExpectSuccess("'''Hello world'''\n");
 		parseModelFromStringAndExpectSuccess("'''This is another comment\n" +
 				"This is the second line of the comment'''\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"Double quote multi line \n comment \"\"\"");
+		parseModelFromStringAndExpectSuccess("\"\"\"Double quote multi line \n comment \"\"\"\n");
 	}
+
 	@Test
-	public void parseInvalidMultiLineComments(){
+	public void parseInvalidMultiLineStringLiterals(){
 		parseModelFromStringAndExpectFail("\"\"\"Hello world\n");
 		parseModelFromStringAndExpectFail("'''Hello world\n");
-		parseModelFromStringAndExpectFail("'''Hello world\n\"\"\"");
-		parseModelFromStringAndExpectFail("\" \"\"Double quote multi line \n comment \"\"\"");
-		parseModelFromStringAndExpectFail("\"\"\"Double quote multi line \n comment \" \"\"");
+		parseModelFromStringAndExpectFail("'''Hello world\n\"\"\"\n");
+		parseModelFromStringAndExpectFail("\" \"\"Double quote multi line \n comment \"\"\"\n");
+		parseModelFromStringAndExpectFail("\"\"\"Double quote multi line \n comment \" \"\"\n");
 		parseModelFromStringAndExpectFail("\"\"\"This is another comment\n" +
 				"This is the second line of the comment\n");
 	}
