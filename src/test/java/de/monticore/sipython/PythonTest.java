@@ -630,29 +630,20 @@ public class PythonTest extends AbstractTest {
 	}
 
 	@Test
-	public void parseValidMultiLineComments(){
-		/*
-		parseModelFromStringAndExpectSuccess("\"\"\"Hello world\"\"\"\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
-				"This is the second line of the comment\"\"\"\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
-				"This is the \"\"\"second\"\"\" line of the comment\"\"\"\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"This is another comment\n" +
-				"This is the '''second''' line of the comment\"\"\"\n");
-
-		 */
+	public void parseValidMultiLineStringLiterals(){
 		parseModelFromStringAndExpectSuccess("'''Hello world'''\n");
 		parseModelFromStringAndExpectSuccess("'''This is another comment\n" +
 				"This is the second line of the comment'''\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"Double quote multi line \n comment \"\"\"");
+		parseModelFromStringAndExpectSuccess("\"\"\"Double quote multi line \n comment \"\"\"\n");
 	}
+
 	@Test
-	public void parseInvalidMultiLineComments(){
+	public void parseInvalidMultiLineStringLiterals(){
 		parseModelFromStringAndExpectFail("\"\"\"Hello world\n");
 		parseModelFromStringAndExpectFail("'''Hello world\n");
-		parseModelFromStringAndExpectFail("'''Hello world\n\"\"\"");
-		parseModelFromStringAndExpectFail("\" \"\"Double quote multi line \n comment \"\"\"");
-		parseModelFromStringAndExpectFail("\"\"\"Double quote multi line \n comment \" \"\"");
+		parseModelFromStringAndExpectFail("'''Hello world\n\"\"\"\n");
+		parseModelFromStringAndExpectFail("\" \"\"Double quote multi line \n comment \"\"\"\n");
+		parseModelFromStringAndExpectFail("\"\"\"Double quote multi line \n comment \" \"\"\n");
 		parseModelFromStringAndExpectFail("\"\"\"This is another comment\n" +
 				"This is the second line of the comment\n");
 	}
@@ -679,4 +670,12 @@ public class PythonTest extends AbstractTest {
 		parseModelFromFileAndExpectErrors(model, 1);
 	}
 
+	@Test
+	public void parseLiteralsAsLine(){
+		// Python allows the only element of a line to be a literal like "Test" or 5
+		parseModelFromStringAndExpectSuccess("5\n");
+		parseModelFromStringAndExpectSuccess("'string'\n");
+		parseModelFromStringAndExpectSuccess("\"string\"\n");
+		parseModelFromStringAndExpectSuccess("\"\"\"multiline\nstring\"\"\"\n");
+	}
 }
