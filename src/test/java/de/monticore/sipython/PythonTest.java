@@ -42,7 +42,6 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("from import as\n");
 
 		parseModelFromStringAndExpectFail("from module import var as\n");
-		System.out.print("hahaha");
 	}
 
 	//valid if-else statements
