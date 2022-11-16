@@ -23,6 +23,7 @@ public class PythonTest extends AbstractTest {
 	@Test
 	public void parseValidImportStatement() {
 		parseModelFromStringAndExpectSuccess("from module import var\n");
+		parseModelFromStringAndExpectSuccess("from module import var as alias\n");
 	}
 
 	@Test
@@ -33,6 +34,15 @@ public class PythonTest extends AbstractTest {
 		parseModelFromStringAndExpectFail("module import var\n");
 		parseModelFromStringAndExpectFail("from module var\n");
 		parseModelFromStringAndExpectFail("from import\n");
+
+		parseModelFromStringAndExpectFail("from import var as\n");
+		parseModelFromStringAndExpectFail("from module import as\n");
+		parseModelFromStringAndExpectFail("module import var as\n");
+		parseModelFromStringAndExpectFail("from module var as\n");
+		parseModelFromStringAndExpectFail("from import as\n");
+
+		parseModelFromStringAndExpectFail("from module import var as\n");
+		System.out.print("hahaha");
 	}
 
 	//valid if-else statements
