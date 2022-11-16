@@ -34,7 +34,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ElseStatementPart = IndentCheck "else" ":" StatementBlock;
 
   // import statement
-  ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ EOL ;
+  ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ ( "as" alias:Name )? EOL ;
 
   // if-else statement
   IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
