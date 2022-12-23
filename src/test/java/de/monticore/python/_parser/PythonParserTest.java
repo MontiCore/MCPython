@@ -43,4 +43,18 @@ public class PythonParserTest {
         assertEquals(expectedOutput, addBracketsToPythonBlocks(input));
     }
 
+    @Test
+    public void testNoBlocks() {
+        String input = "print('Hello World')";
+        String expectedOutput = "print('Hello World')";
+        assertEquals(expectedOutput, addBracketsToPythonBlocks(input));
+    }
+
+    @Test
+    public void testBlockThenNeutral() {
+        String input = "if x > 0:\n  print(x)\nfor i in range(10):\n  print(i)\nprint('test')";
+        String expectedOutput = "if x > 0:{\n  print(x)\n}\nfor i in range(10):{\n  print(i)\n}\nprint('test')";
+        assertEquals(expectedOutput, addBracketsToPythonBlocks(input));
+    }
+
 }
