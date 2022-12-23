@@ -96,8 +96,8 @@ public class PythonParser extends PythonParserTOP {
         }
 
         // Close all remaining blocks
-        Integer nextBlock;
-        do {
+        Integer nextBlock = blocks.peek();
+        if (nextBlock != 0) do {
             blocks.pop();
             nextBlock = blocks.peek();
 
