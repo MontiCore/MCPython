@@ -4,7 +4,7 @@ package de.monticore.python._cocos;
 import de.monticore.expressions.commonexpressions._ast.ASTCallExpression;
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTCallExpressionCoCo;
 import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
-import de.monticore.python._symboltable.ClassSymbol;
+import de.monticore.python._symboltable.PythonClassSymbol;
 import de.monticore.python._symboltable.IPythonScope;
 import de.se_rwth.commons.SourcePosition;
 import de.se_rwth.commons.logging.Log;
@@ -17,10 +17,10 @@ public class UseClassAfterClassDeclarationCoco implements CommonExpressionsASTCa
 
     @Override
     public void check(ASTCallExpression node) {
-        Optional<ClassSymbol> optionalClassSymbol = getClassSymbol(node);
+        Optional<PythonClassSymbol> optionalPythonClassSymbol = getPythonClassSymbol(node);
 
-        if (optionalClassSymbol.isPresent()) {
-            ClassSymbol symbol = optionalClassSymbol.get();
+        if (optionalPythonClassSymbol.isPresent()) {
+            PythonClassSymbol symbol = optionalPythonClassSymbol.get();
 
             SourcePosition symbolPosition = symbol.getAstNode().get_SourcePositionStart();
             SourcePosition nodePosition = node.get_SourcePositionStart();
@@ -37,9 +37,9 @@ public class UseClassAfterClassDeclarationCoco implements CommonExpressionsASTCa
         }
     }
 
-    private Optional<ClassSymbol> getClassSymbol(ASTCallExpression node) {
+    private Optional<PythonClassSymbol> getPythonClassSymbol(ASTCallExpression node) {
         if(node.getExpression() instanceof ASTNameExpression){
-            return ((IPythonScope) node.getEnclosingScope()).resolveClass(((ASTNameExpression) node.getExpression()).getName());
+            return ((IPythonScope) node.getEnclosingScope()).resolvePythonClass(((ASTNameExpression) node.getExpression()).getName());
         }
         return Optional.empty();
     }

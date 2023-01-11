@@ -1,6 +1,6 @@
 package de.monticore.sipython._symboltable;
 
-import de.monticore.python._symboltable.ClassSymbol;
+import de.monticore.python._symboltable.PythonClassSymbol;
 import de.monticore.symbols.basicsymbols._symboltable.FunctionSymbol;
 import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
 import de.monticore.symbols.oosymbols._symboltable.FieldSymbol;
@@ -59,7 +59,7 @@ public class SIPythonScope extends SIPythonScopeTOP {
 	}
 
 	@Override
-	public void add(ClassSymbol symbol) {
+	public void add(PythonClassSymbol symbol) {
 		super.add(symbol);
 		this.checkNameIsKeyword(symbol);
 	}

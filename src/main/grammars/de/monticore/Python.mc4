@@ -160,10 +160,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   /*===========================Classes======================================*/
 
   // class symbol
-  interface scope symbol Class = Name ;
+  interface scope symbol PythonClass = Name ;
 
   // class declaration statement
-  ClassDeclaration implements Class, Statement, ClassStatement = "class" Name ( "(" superClass:Name@Class? ")" )? ":" EOL ClassStatementBlock ;
+  ClassDeclaration implements PythonClass, Statement, ClassStatement = "class" Name ( "(" superClass:Name@PythonClass? ")" )? ":" ClassStatementBlock ;
 
   interface ClassStatement;
 
