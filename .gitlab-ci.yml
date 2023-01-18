@@ -12,6 +12,10 @@ cache:
 
 before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
+  - apt update
+  - apt install -y python3-pip
+  - pip install yapf==0.32.0
+  - apt install -y python-is-python3
 
 stages:
 #  - build
