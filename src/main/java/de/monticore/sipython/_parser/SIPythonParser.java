@@ -7,7 +7,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.stream.Collectors;
 
-import de.monticore.python._parser.PythonParser;
+import de.monticore.python.PythonPreprocessor;
 
 public class SIPythonParser extends SIPythonParserTOP {
 
@@ -17,7 +17,7 @@ public class SIPythonParser extends SIPythonParserTOP {
         var asString = new BufferedReader(reader).lines().collect(Collectors.joining("\n"));
 
         // Then, convert to C-language style python
-        var cPython = PythonParser.addBracketsToPythonBlocks(asString);
+        var cPython = PythonPreprocessor.process(asString);
 
         // Finally, return the original parser
         return super.create(new StringReader(cPython));
