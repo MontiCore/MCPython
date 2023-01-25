@@ -123,16 +123,20 @@ public class PythonPreprocessorTest {
     @Test
     public void testFormattingShortMultilineString() {
         String input = "\'".repeat(3) + "abc\ndef" + "\'".repeat(3);
-        String result = formatPython(input);
+        String result = multilineStringToSingleLine(input);
         assertTrue(result, result.lines().count() == 1);
+        assertEquals(result, "\'".repeat(3) + "abc\\ndef" + "\'".repeat(3));
     }
 
     @Test
     public void testFormattingBigMultilineString() {
-        String elements = "abcdefghijklmnop\n".repeat(30);
+        String elements = "abcdefghijklmnop\n".repeat(2);
         String input = "\"".repeat(3) + elements + "\"".repeat(3);
-        String result = formatPython(input);
+        String result = multilineStringToSingleLine(input);
+        String expectedElements = "abcdefghijklmnop\\n".repeat(2);
+        String expected = "\"".repeat(3) + expectedElements + "\"".repeat(3);
         assertTrue(result, result.lines().count() == 1);
+        assertEquals(result, expected);
     }
 
     @Test
