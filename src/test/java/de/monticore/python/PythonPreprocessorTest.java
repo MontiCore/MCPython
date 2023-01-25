@@ -2,6 +2,7 @@ package de.monticore.python;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -63,6 +64,35 @@ public class PythonPreprocessorTest {
         String input = "print('x')";
         String result = formatPython(input);
         assertNotNull(result);
+    }
+
+    @Test
+    public void testFormattingIf() {
+        String input = "if x: print('x')";
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 2);
+    }
+
+    @Test
+    public void testFormattingFor() {
+        String input = "for x in y: print('x')";
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 2);
+    }
+
+    @Test
+    public void testFormattingDict() {
+        String input = "x = {\n  a\n}";
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 1);
+    }
+    
+    @Test
+    public void testFormattingLargeDict() {
+        String elements = "element,\n".repeat(30);
+        String input = "x = {\n  " + elements + "\n}";
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 1);
     }
 
 }
