@@ -6,16 +6,22 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.function.Function;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.Ordering;
 
 public class PythonPreprocessor {
 
     public static String process(String python) {
         String formatted = formatPython(python);
-        String withSemicolons = addStatementEnds(formatted);
+        String singleLineStrings = multilineStringToSingleLine(formatted);
+        String withSemicolons = addStatementEnds(singleLineStrings);
         return addBracketsToPythonBlocks(withSemicolons);
     }
 
@@ -55,6 +61,31 @@ public class PythonPreprocessor {
         }
 
         return result.toString();
+    }
+
+    public static String multilineStringToSingleLine(String python) {
+        var regex = "('''[\\s\\S]*?''')|(\\\"\\\"\\\"[\\s\\S]*?\\\"\\\"\\\")";
+
+        var pattern = Pattern.compile(regex, Pattern.MULTILINE);
+        var matcher = pattern.matcher(python);
+
+        var results = matcher.results().collect(Collectors.toList());
+
+        // reverse sort by match start
+        Comparator<MatchResult> comp = (a, b) -> -Integer.compare(a.start(), b.start());
+        var sortedResults = Ordering.from(comp).sortedCopy(results);
+
+        var sb = new StringBuilder(python);
+        for (var result : sortedResults) {
+            var start = result.start() + 3;
+            var end = result.end() - 3;
+            var inner = sb.substring(start, end);
+            var innerNoNewLine = inner.replace("\r\n", "\\r\\n");
+            innerNoNewLine = innerNoNewLine.replace("\n", "\\n");
+            sb.replace(start, end, innerNoNewLine);
+        }
+
+        return sb.toString();
     }
 
     public static final String STATEMENT_END = "\u204f";
