@@ -17,14 +17,14 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   interface Statement;
 
   // The StatementBlock represents a number of statements with the same indentation
-  scope StatementBlock = "{" StatementBlockBody "}";
+  scope StatementBlock = "⦃" StatementBlockBody "⦄";
   StatementBlockBody = Statement+;
 
   /*===========================Statements======================================*/
   ElseStatementPart = "else" ":" StatementBlock;
 
   // import statement
-  ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ ( "as" alias:Name )?;
+  ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ ( "as" alias:Name )? "⁏";
 
   // if-else statement
   IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
@@ -32,7 +32,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
                                    ElseStatementPart?;
 
   // assert statement
-  AssertStatement implements Statement = "assert" condition:Expression "," errorMessage:String;
+  AssertStatement implements Statement = "assert" condition:Expression "," errorMessage:String "⁏";
 
   // for statement
   scope ForStatement implements Statement = "for" ForControl ":" StatementBlock
@@ -49,8 +49,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   WhileStatement implements Statement = "while" condition:Expression ":" StatementBlock
                                       ElseStatementPart? ;
 
-  BreakStatement implements Statement = "break";
-  ContinueStatement implements Statement = "continue";
+  BreakStatement implements Statement = "break" "⁏";
+  ContinueStatement implements Statement = "continue" "⁏";
 
   // try-except-finally statement
   TryExceptStatement implements Statement = "try"                           ":" tryStatement:StatementBlock
@@ -67,7 +67,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   OpenFileExpression = Expression "as" fileName:Name ;
 
   // variable declaration statement
-  LocalVariableDeclarationStatement implements Statement = VariableDeclaration;
+  LocalVariableDeclarationStatement implements Statement = VariableDeclaration "⁏";
 
   VariableDeclaration implements Variable = Name "=" VariableInit ;
 
@@ -93,12 +93,12 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   VarArgFunctionParameter   implements FunctionParameter = "*" Name ;
 
   // return statement
-  ReturnStatement implements Statement = "return" Expression?;
+  ReturnStatement implements Statement = "return" Expression? "⁏";
 
-  RaiseStatement implements Statement = "raise" Expression?;
+  RaiseStatement implements Statement = "raise" Expression? "⁏";
 
   // expression statement
-  ExpressionStatement implements Statement = Expression;
+  ExpressionStatement implements Statement = Expression "⁏";
 
   /*===========================Literals======================================*/
 
