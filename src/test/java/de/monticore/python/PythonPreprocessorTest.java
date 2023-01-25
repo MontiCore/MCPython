@@ -121,6 +121,21 @@ public class PythonPreprocessorTest {
     }
 
     @Test
+    public void testFormattingShortMultilineString() {
+        String input = "\'".repeat(3) + "abc\ndef" + "\'".repeat(3);
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 1);
+    }
+
+    @Test
+    public void testFormattingBigMultilineString() {
+        String elements = "abcdefghijklmnop\n".repeat(30);
+        String input = "\"".repeat(3) + elements + "\"".repeat(3);
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 1);
+    }
+
+    @Test
     public void testLineEnd() {
         String input = "if x:\n  print('a')";
         String result = addStatementEnds(input);
