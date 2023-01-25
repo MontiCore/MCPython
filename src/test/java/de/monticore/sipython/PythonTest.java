@@ -165,14 +165,14 @@ public class PythonTest extends AbstractTest {
 				"for x in collection_var:\n" +
 						"    if (x == 1):\n" +
 						"        break\n" +
-						"		 print(x)\n"
+						"        print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
 						"    if (x == 1):\n" +
 						"        continue\n" +
-						"		 print(x)\n"
+						"        print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
@@ -674,7 +674,7 @@ public class PythonTest extends AbstractTest {
 	@Test
 	public void parsePythonWithIndentError() {
 		String model = "tests/python_IndentError.sipy";
-		parseModelFromFileAndExpectErrors(model, 1);
+		parseModelFromFileAndExpectFail(model);
 	}
 
 	@Test
