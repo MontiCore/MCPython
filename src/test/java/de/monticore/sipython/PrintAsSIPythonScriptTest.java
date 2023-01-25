@@ -61,20 +61,20 @@ public class PrintAsSIPythonScriptTest extends AbstractTest{
     public void printForStatement() {
         parsePrintAndAssertEqualityOfOutputCode(
                 "for x in [0, 1, 2]:\n" +
-                        "    x++\n"
+                        "    x += 1\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "some_collection = [0, 1, 2]\n" +
                     "for x in some_collection:\n" +
-                        "    x++\n"
+                        "    x += 1\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "for x in range(0, 3):\n" +
-                        "    x++\n"
+                        "    x += 1\n"
         );
         parsePrintAndAssertEqualityOfOutputCode(
                 "for x in range(3):\n" +
-                        "    x++\n"
+                        "    x += 1\n"
         );
     }
 
