@@ -157,7 +157,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   interface ClassStatement;
 
-  ClassStatementBlock = "{" ClassStatementBlockBody "}";
+  ClassStatementBlock = "⦃" ClassStatementBlockBody "⦄";
   ClassStatementBlockBody = ClassStatement+;
 
   ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock;
@@ -166,5 +166,5 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   SelfParameter implements FunctionParameter = Name ;
 
-  ClassAttributes implements ClassStatement = VariableDeclaration;
+  ClassAttributes implements ClassStatement = VariableDeclaration "⁏";
 }
