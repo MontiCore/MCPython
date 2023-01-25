@@ -34,13 +34,13 @@ public class AbstractTest {
 		return astPythonScriptOptional;
 	}
 
-	public int parseModelFromFileAndReturnErrorsCount(String modelFileName) {
+	public int parseModelFromFileAndReturnErrorCount(String modelFileName) {
 		parseModelFromFileAndReturnASTPythonScript(modelFileName);
 		return (int)Log.getErrorCount();
 	}
 
 	public void parseModelFromFileAndExpectErrors(String modelFileName, int expectedErrorCount) {
-		assertEquals(expectedErrorCount, parseModelFromFileAndReturnErrorsCount(modelFileName));
+		assertEquals(expectedErrorCount, parseModelFromFileAndReturnErrorCount(modelFileName));
 	}
 
 	public void parseModelFromFileAndExpectSuccess(String modelFileName) {
@@ -73,6 +73,15 @@ public class AbstractTest {
 
 	public void parseModelFromStringAndExpectSuccess(String codeString) {
 		parseModelFromStringAndExpectErrorCount(codeString,0);
+	}
+
+	public void parseModelFromFileAndExpectFail(String codeString) {
+		try {
+			var errorCount = parseModelFromFileAndReturnErrorCount(codeString);
+			assertTrue("Expected some errors here, but no occurred!", errorCount > 0);
+		} catch(Exception e) {
+			assertNotNull(e);
+		}
 	}
 
 	public void parseModelFromStringAndExpectFail(String codeString) {
