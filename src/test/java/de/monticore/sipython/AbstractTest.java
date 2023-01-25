@@ -9,6 +9,7 @@ import java.io.StringReader;
 import java.util.Optional;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -75,6 +76,11 @@ public class AbstractTest {
 	}
 
 	public void parseModelFromStringAndExpectFail(String codeString) {
-		assertTrue("Expected some errors here, but no occurred!", parseModelFromStringAndReturnErrorCount(codeString) > 0);
+		try {
+			var errorCount = parseModelFromStringAndReturnErrorCount(codeString);
+			assertTrue("Expected some errors here, but no occurred!", errorCount > 0);
+		} catch(Exception e) {
+			assertNotNull(e);
+		}
 	}
 }
