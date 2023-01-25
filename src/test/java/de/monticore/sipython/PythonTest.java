@@ -65,8 +65,6 @@ public class PythonTest extends AbstractTest {
 	//invalid if-else statements
 	@Test
 	public void parseInvalidIfStatement() {
-		//in normal python it should be possible to write an if-statement in one line, however it is not yet implemented int this language.
-		parseModelFromStringAndExpectFail("if x == 1: print(\"one\")\n");
 		parseModelFromStringAndExpectFail("if x == 1:\nprint(\"one\")\n");
 
 		//missing ":"
