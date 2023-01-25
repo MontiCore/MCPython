@@ -21,7 +21,7 @@ public class PythonPreprocessor {
     public static String formatPython(String python) {
         Process formatProcess;
         try {
-            formatProcess = new ProcessBuilder("python", "-m", "yapf").start();
+            formatProcess = new ProcessBuilder("python", "-m", "yapf", "--style", "src/main/resources/formatter/.style.yapf").start();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
