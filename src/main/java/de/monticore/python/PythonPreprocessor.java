@@ -8,13 +8,14 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PythonPreprocessor {
 
     public static String process(String python) {
         String formatted = formatPython(python);
-        String withSemicolons = addSemicolonStatementEnds(formatted);
+        String withSemicolons = addStatementEnds(formatted);
         return addBracketsToPythonBlocks(withSemicolons);
     }
 
@@ -56,8 +57,17 @@ public class PythonPreprocessor {
         return result.toString();
     }
 
-    public static String addSemicolonStatementEnds(String python) {
-        return python;
+    public static final String STATEMENT_END = "\u204f";
+
+    public static String addStatementEnds(String python) {
+        Function<String, String> mapper = s -> {
+            if (s.isBlank()) return s;
+            if (s.endsWith(":")) return s;
+            return s + STATEMENT_END;
+        };
+
+        var result = python.lines().map(mapper).collect(Collectors.joining("\n"));
+        return result;
     }
 
     public static final String BLOCK_START = "\u2983";
