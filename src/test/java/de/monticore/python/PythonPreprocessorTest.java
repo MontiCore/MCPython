@@ -88,8 +88,32 @@ public class PythonPreprocessorTest {
     }
     
     @Test
-    public void testFormattingLargeDict() {
+    public void testFormattingLargeSet() {
         String elements = "element,\n".repeat(30);
+        String input = "x = {\n  " + elements + "\n}";
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 1);
+    }
+    
+    @Test
+    public void testFormattingLargeArray() {
+        String elements = "element,\n".repeat(30);
+        String input = "x = [\n  " + elements + "\n]";
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 1);
+    }
+    
+    @Test
+    public void testFormattingLargeDictSingleLine() {
+        String elements = "'element': abc,\n".repeat(30);
+        String input = "x = {\n  " + elements + "\n}";
+        String result = formatPython(input);
+        assertTrue(result, result.lines().count() == 1);
+    }
+    
+    @Test
+    public void testFormattingLargeDictMultiLine() {
+        String elements = "'element':\n  abc,\n".repeat(30);
         String input = "x = {\n  " + elements + "\n}";
         String result = formatPython(input);
         assertTrue(result, result.lines().count() == 1);
