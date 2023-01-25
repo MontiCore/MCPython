@@ -233,9 +233,9 @@ public class PythonTest extends AbstractTest {
 		//else statements for while loops
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
-						"    i += 1\n" +
-						" else:\n" +
-						"    print(x)\n"
+				"    i += 1\n" +
+				"else:\n" +
+				"    print(x)\n"
 		);
 	}
 
