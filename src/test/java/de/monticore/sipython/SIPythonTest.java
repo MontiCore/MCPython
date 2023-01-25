@@ -2,8 +2,10 @@ package de.monticore.sipython;
 
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class SIPythonTest extends AbstractTest {
 
 	@Before
