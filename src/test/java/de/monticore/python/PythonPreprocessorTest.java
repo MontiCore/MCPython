@@ -1,6 +1,7 @@
 package de.monticore.python;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -117,6 +118,14 @@ public class PythonPreprocessorTest {
         String input = "x = {\n  " + elements + "\n}";
         String result = formatPython(input);
         assertTrue(result, result.lines().count() == 1);
+    }
+
+    @Test
+    public void testLineEnd() {
+        String input = "if x:\n  print('a')";
+        String result = addStatementEnds(input);
+        assertTrue(result.endsWith(STATEMENT_END));
+        assertFalse(result.substring(0, result.length() - 1).contains(STATEMENT_END));
     }
 
 }
