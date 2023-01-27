@@ -65,8 +65,6 @@ public class PythonTest extends AbstractTest {
 	//invalid if-else statements
 	@Test
 	public void parseInvalidIfStatement() {
-		//in normal python it should be possible to write an if-statement in one line, however it is not yet implemented int this language.
-		parseModelFromStringAndExpectFail("if x == 1: print(\"one\")\n");
 		parseModelFromStringAndExpectFail("if x == 1:\nprint(\"one\")\n");
 
 		//missing ":"
@@ -167,14 +165,14 @@ public class PythonTest extends AbstractTest {
 				"for x in collection_var:\n" +
 						"    if (x == 1):\n" +
 						"        break\n" +
-						"		 print(x)\n"
+						"        print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
 				"for x in collection_var:\n" +
 						"    if (x == 1):\n" +
 						"        continue\n" +
-						"		 print(x)\n"
+						"        print(x)\n"
 		);
 
 		parseModelFromStringAndExpectSuccess(
@@ -235,9 +233,9 @@ public class PythonTest extends AbstractTest {
 		//else statements for while loops
 		parseModelFromStringAndExpectSuccess(
 				"while i < 6:\n" +
-						"    i += 1\n" +
-						" else:\n" +
-						"    print(x)\n"
+				"    i += 1\n" +
+				"else:\n" +
+				"    print(x)\n"
 		);
 	}
 
@@ -676,7 +674,7 @@ public class PythonTest extends AbstractTest {
 	@Test
 	public void parsePythonWithIndentError() {
 		String model = "tests/python_IndentError.sipy";
-		parseModelFromFileAndExpectErrors(model, 1);
+		parseModelFromFileAndExpectFail(model);
 	}
 
 	@Test

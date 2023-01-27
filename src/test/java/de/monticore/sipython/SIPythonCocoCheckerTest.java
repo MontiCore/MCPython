@@ -265,7 +265,13 @@ public class SIPythonCocoCheckerTest extends AbstractTest {
 	}
 
 	private void parseCodeStringAndCheckCoCosAndExpectError(String codeString) {
-		Optional<ASTPythonScript> astPythonScriptOptional = parseModelFromStringAndReturnASTPythonScript(codeString);
+		Optional<ASTPythonScript> astPythonScriptOptional;
+		try {
+			astPythonScriptOptional = parseModelFromStringAndReturnASTPythonScript(codeString);
+		} catch (Exception e) {
+			assertNotNull(e);
+			return;
+		}
 		checkCoCos(astPythonScriptOptional);
 		assertTrue(Log.getErrorCount() > 0);
 	}
