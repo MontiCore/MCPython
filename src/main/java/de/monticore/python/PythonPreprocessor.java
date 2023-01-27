@@ -18,6 +18,11 @@ import com.google.common.collect.Ordering;
 
 public class PythonPreprocessor {
 
+    /**
+     * Python code is preprocessed into a C-Style format.
+     * @param python Python code
+     * @return Python code in C-Style
+     */
     public static String process(String python) {
         String formatted = formatPython(python);
         String singleLineStrings = multilineStringToSingleLine(formatted);
@@ -25,7 +30,13 @@ public class PythonPreprocessor {
         return addBracketsToPythonBlocks(withSemicolons);
     }
 
+    /**
+     * Python code is formatted using the yapf formatter. Therefore python is required on the path. Yapf must be installed.
+     * @param python Python code
+     * @return Python code formatted with yapf
+     */
     public static String formatPython(String python) {
+        // Build process to call formatter (python must be on path and yapf must be installed)
         Process formatProcess;
         try {
             formatProcess = new ProcessBuilder("python", "-m", "yapf", "--style", "src/main/resources/formatter/.style.yapf").start();
@@ -34,6 +45,7 @@ public class PythonPreprocessor {
             return null;
         }
 
+        // Construct readers and writers
         var in = formatProcess.getInputStream();
         var bufferedIn = new BufferedInputStream(in);
         var reader = new Scanner(bufferedIn, Charset.forName("UTF-8"));
@@ -42,20 +54,21 @@ public class PythonPreprocessor {
         var bufferedOut = new BufferedOutputStream(out);
         var writer = new PrintWriter(bufferedOut);
 
+        // Write python code to formatter
         python.lines().forEach(writer::println);
         writer.flush();
         writer.close();
 
+        // Read formatted code
         var result = new StringBuilder();
-
         while (reader.hasNextLine()) {
             var line = reader.nextLine();
             result.append(line + "\n");
         }
         reader.close();
 
+        // Check exit code to catch errors
         formatProcess.onExit().join();
-
         if (formatProcess.exitValue() != 0) {
             throw new RuntimeException("The formatter exited with code " + formatProcess.exitValue() + ".");
         }
@@ -63,6 +76,11 @@ public class PythonPreprocessor {
         return result.toString();
     }
 
+    /**
+     * Moves all multiline python strings into single lines
+     * @param python Python code
+     * @return Python code with all multiline strings in single lines
+     */
     public static String multilineStringToSingleLine(String python) {
         var regex = "('''[\\s\\S]*?''')|(\\\"\\\"\\\"[\\s\\S]*?\\\"\\\"\\\")";
 
@@ -90,6 +108,11 @@ public class PythonPreprocessor {
 
     public static final String STATEMENT_END = "\u204f";
 
+    /**
+     * Adds C-Like line ends to statements.
+     * @param python Python code formatted with {@link #formatPython(String)} and {@link #multilineStringToSingleLine(String)}
+     * @return Python code with C-like statement ends
+     */
     public static String addStatementEnds(String python) {
         Function<String, String> mapper = s -> {
             if (s.isBlank()) return s;
@@ -106,7 +129,8 @@ public class PythonPreprocessor {
     
     /**
      * Replaces indentation (w/ spaces, no tabs) based python blocks by C-style bracketed blocks.
-     * @param python A python script
+     * @param python Python code formatted with {@link #formatPython(String)} and {@link #multilineStringToSingleLine(String)}
+     * and {@link #addStatementEnds(String)}
      * @return The python script with C-style blocks
      */
     public static String addBracketsToPythonBlocks(String python) {
