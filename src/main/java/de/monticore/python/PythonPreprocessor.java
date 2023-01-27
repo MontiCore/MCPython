@@ -5,8 +5,12 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.function.Function;
@@ -36,10 +40,13 @@ public class PythonPreprocessor {
      * @return Python code formatted with yapf
      */
     public static String formatPython(String python) {
+        // Extract .style.yapf
+        var stylePath = unpackStyleYapf();
+
         // Build process to call formatter (python must be on path and yapf must be installed)
         Process formatProcess;
         try {
-            formatProcess = new ProcessBuilder("python", "-m", "yapf", "--style", "src/main/resources/formatter/.style.yapf").start();
+            formatProcess = new ProcessBuilder("python", "-m", "yapf", "--style", stylePath.toString()).start();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -74,6 +81,25 @@ public class PythonPreprocessor {
         }
 
         return result.toString();
+    }
+
+    /**
+     * Extracts the .style.yapf out of the jar into a temporary file to be accessed by the local python installation
+     * @return Absolute path to the extracted .style.yapf
+     */
+    public static Path unpackStyleYapf() {
+        final Path stylePath;
+        try (var is = PythonPreprocessor.class.getResourceAsStream("/formatter/.style.yapf")) {
+            stylePath = Files.createTempFile(".style-", ".yapf");
+            Files.copy(Objects.requireNonNull(is), stylePath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Clean up
+        stylePath.toFile().deleteOnExit();
+
+        return stylePath.toAbsolutePath();
     }
 
     /**

@@ -5,6 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
 import org.junit.Test;
 
 import static de.monticore.python.PythonPreprocessor.*;
@@ -145,6 +148,17 @@ public class PythonPreprocessorTest {
         String result = addStatementEnds(input);
         assertTrue(result.endsWith(STATEMENT_END));
         assertFalse(result.substring(0, result.length() - 1).contains(STATEMENT_END));
+    }
+
+    @Test
+    public void testStyleUnpack() throws IOException {
+        var stylePath = unpackStyleYapf();
+
+        assertTrue(stylePath.toFile().exists());
+        assertTrue(stylePath.toFile().isFile());
+        assertTrue(stylePath.toFile().canRead());
+
+        assertTrue(Files.readString(stylePath).startsWith("[style]"));
     }
 
 }
