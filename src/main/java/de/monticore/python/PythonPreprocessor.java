@@ -28,6 +28,7 @@ public class PythonPreprocessor {
      * @return Python code in C-Style
      */
     public static String process(String python) {
+        // Formatting is needed to easily insert C-Style like brackets for blocks and statement ends
         String formatted = formatPython(python);
         String singleLineStrings = multilineStringToSingleLine(formatted);
         String withSemicolons = addStatementEnds(singleLineStrings);

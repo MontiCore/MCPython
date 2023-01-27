@@ -11,12 +11,14 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   token SingleLineComment = "#" (~('\n' | '\r' ))* : ->skip {storeComment();};
 
+  // Often (mis)used as a multiline comment but can also be used as a string literal, this we can not skip it
   token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
   MultiLineStringLiteral implements Literal = MultiLineStringToken;
 
   interface Statement;
 
   // The StatementBlock represents a number of statements with the same indentation
+  // Here, C-Style brackets are used instead of indentation
   scope StatementBlock = "⦃" StatementBlockBody "⦄";
   StatementBlockBody = Statement+;
 
