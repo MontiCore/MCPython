@@ -1,6 +1,11 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore;
 
+/*
+ * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
+ * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏  
+ */
+
 grammar Python extends  de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
                         de.monticore.expressions.CommonExpressions,
                         de.monticore.expressions.AssignmentExpressions,
