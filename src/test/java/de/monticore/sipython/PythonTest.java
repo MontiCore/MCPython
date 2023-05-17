@@ -1,6 +1,13 @@
 package de.monticore.sipython;
 
+import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Log;
+
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.io.StringReader;
+
 import org.junit.Before;
 import org.junit.Test;
 
