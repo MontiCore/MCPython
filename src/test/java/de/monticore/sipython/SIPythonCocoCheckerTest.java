@@ -14,7 +14,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.*;
 
-public class SIPythonCocoCheckerTest extends AbstractTest {
+public class SIPythonCocoCheckerTest extends AbstractSIPythonTest {
 
 	@Before
 	public void init() {

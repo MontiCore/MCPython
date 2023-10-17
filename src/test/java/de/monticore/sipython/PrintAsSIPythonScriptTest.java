@@ -13,7 +13,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class PrintAsSIPythonScriptTest extends AbstractTest{
+public class PrintAsSIPythonScriptTest extends AbstractSIPythonTest {
 
     @Before
     public void init() {

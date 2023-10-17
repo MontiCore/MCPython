@@ -13,7 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class AbstractTest {
+public class AbstractSIPythonTest {
 
 	private static final SIPythonTool siPythonTool = new SIPythonTool();
 

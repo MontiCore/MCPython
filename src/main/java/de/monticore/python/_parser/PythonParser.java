@@ -8,19 +8,30 @@ import java.io.StringReader;
 import java.util.stream.Collectors;
 
 import de.monticore.python.PythonPreprocessor;
+import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.CommonToken;
 
 public class PythonParser extends PythonParserTOP {
 
     @Override
     protected PythonAntlrParser create(Reader reader) throws IOException {
-        // Convert reader to String joined by \n
-        var asString = new BufferedReader(reader).lines().collect(Collectors.joining("\n"));
+        PythonAntlrLexer lexer = new PythonAntlrLexer(org.antlr.v4.runtime.CharStreams.fromReader(reader));
 
-        // Then, convert to C-language style python
-        var cPython = PythonPreprocessor.process(asString);
+        WhitespacePreprocessingTokenSource tokensWithPreprocessing = new WhitespacePreprocessingTokenSource(
+            lexer,
+            new CommonToken(PythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
+            new CommonToken(PythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
+            new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END)
+        );
+        BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
 
-        // Finally, return the original parser
-        return super.create(new StringReader(cPython));
+        PythonAntlrParser parser = new PythonAntlrParser(stream);
+        lexer.setMCParser(parser);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(new de.monticore.antlr4.MCErrorListener(parser));
+        parser.setFilename("StringReader");
+        setError(false);
+        return parser;
     }
 
     @Override

@@ -5,8 +5,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
-public class SIPythonTest extends AbstractTest {
+public class SIPythonTest extends AbstractSIPythonTest {
 
 	@Before
 	public void init() {

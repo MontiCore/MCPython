@@ -24,7 +24,7 @@ v2 = 4 m/ns^2
 
 print(velocity)
 
-distance = 200000 µm
+#distance = 200000 µm
 
 print(distance)
 

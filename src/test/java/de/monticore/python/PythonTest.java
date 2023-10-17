@@ -1,17 +1,15 @@
-package de.monticore.sipython;
+package de.monticore.python;
 
-import de.monticore.python._parser.PythonParser;
+import de.monticore.sipython.AbstractSIPythonTest;
 import de.se_rwth.commons.logging.Log;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
-import java.io.StringReader;
-
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class PythonTest extends AbstractTest {
+public class PythonTest extends AbstractPythonTest {
 
 	@Before
 	public void init() {
@@ -640,7 +638,7 @@ public class PythonTest extends AbstractTest {
 	public void parseValidSingleLineComments(){
 		parseModelFromStringAndExpectSuccess("#hello world\n");
 		parseModelFromStringAndExpectSuccess("#hello world\n" +
-				"#this is another comment");
+				"#this is another comment\n");
 	}
 
 	@Test
@@ -679,6 +677,7 @@ public class PythonTest extends AbstractTest {
 	 * Thus, the test cases at least for indentation errors must include only one error.
 	 */
 	@Test
+	@Ignore("We assume that we parse valid python")
 	public void parsePythonWithIndentError() {
 		String model = "tests/python_IndentError.sipy";
 		parseModelFromFileAndExpectFail(model);

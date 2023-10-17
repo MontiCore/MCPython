@@ -1,9 +1,5 @@
 # SIPython
 
-## Requirements
-
-A `python` installation is required on the system path. Additionally, the python package `yapf` needs to be installed.
-
 ## Motivation and Basic Example
 Nowadays most businesses use software in order to improve the revenue and facilitate life. We see software
 in most of our day-to-day life, and while software is used in most things nowadays, it is not yet adapted
