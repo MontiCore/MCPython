@@ -78,13 +78,13 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print("import ");
 
 		boolean first = true;
-		for (String name : node.getNameList()) {
+		for (ASTPyQualifiedName name : node.getNameList()) {
 			if (first) {
 				first = false;
 			} else {
 				printer.print(", ");
 			}
-			printer.print(name);
+			printer.print(name.joined());
 
 		}
 		printer.println();
@@ -218,7 +218,15 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		for (ASTExceptStatement statement : node.getExceptStatementList()) {
 			printer.print("except ");
-			if (statement.isPresentName()) printer.print(statement.getName());
+			if(statement.isEmptyNames()){
+				// Ignore
+			}else if(statement.sizeNames() == 1) {
+				printer.print(statement.getName(0));
+			}else{
+				printer.print("(");
+				printer.print(String.join(", ", statement.getNameList()));
+				printer.print(")");
+			}
 			printer.println(":");
 			statement.getStatementBlock().accept(getTraverser());
 		}
@@ -282,7 +290,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
-	public void traverse(ASTArrayInit node) {
+	public void traverse(ASTArrayLiteralExpression node) {
 		printer.print("[");
 
 		boolean first = true;
@@ -299,7 +307,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	}
 
 	@Override
-	public void traverse(ASTTupleInit node) {
+	public void traverse(ASTTupleLiteralExpression node) {
 		printer.print("(");
 
 		boolean first = true;

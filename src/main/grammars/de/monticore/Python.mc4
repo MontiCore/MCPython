@@ -33,8 +33,13 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   /*===========================Statements======================================*/
   ElseStatementPart = "else" ":" StatementBlock;
 
+  PyQualifiedName = (Name || ".")+;
+  astrule PyQualifiedName = method public String joined(){
+    return String.join(".", getNameList());
+  };
+
   // import statement
-  ImportStatement implements Statement = ( "from" module:Name )? "import" (Name || ",")+ ( "as" alias:Name )? STATEMENT_END;
+  ImportStatement implements Statement = ( "from" module:PyQualifiedName )? "import" name:(PyQualifiedName || ",")+ ( "as" alias:Name )? STATEMENT_END;
 
   // if-else statement
   IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
@@ -52,7 +57,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   CommonForControl   implements ForControl =  ForVariable          "in" ForIterable ;
   UnpackedForControl implements ForControl = (ForVariable || ",")+ "in" ForIterable ;
 
-  ForIterable = Expression | ArrayInit;
+  ForIterable = Expression;
   ForVariable implements Variable = Name;
 
   // while statement
@@ -68,7 +73,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
                                                         ElseStatementPart ?
                                           ("finally"           ":" finallyStatement:StatementBlock )? ;
 
-  ExceptStatement = ( "except" Name? ":" StatementBlock ) ;
+  ExceptStatement = ( "except" (Name? | "(" (Name || ",")+ ")") ("as" alias:Name)? ":" StatementBlock ) ;
 
   // with open file statement
   scope WithOpenFileStatement implements Statement = "with" (OpenFileExpression || ",")+ ":"
@@ -81,26 +86,32 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   VariableDeclaration implements Variable = Name "=" VariableInit ;
 
+  MultiVariableDeclaration implements Statement = (Name || ",")+ "=" Expression;
+
   interface VariableInit ;
 
   SimpleInit implements VariableInit = Expression ;
-  ArrayInit  implements VariableInit = "[" (VariableInit || ",")* "]" ;
-  TupleInit  implements VariableInit = "(" (VariableInit || ",")* ")" ;
-  DictInit   implements VariableInit = "{" (DictEntry || ",")* "}" ;
+
+  ArrayLiteralExpression  implements Expression = "[" (VariableInit || ",")* "]" ;
+  TupleLiteralExpression  implements Expression = "(" (VariableInit || ",")* ")" ;
+  DictLiteralExpression   implements Expression = "{" (DictEntry || ",")* "}" ;
+
   DictEntry = key:VariableInit ":" value:VariableInit ;
 
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
 
-  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = "def" Name "(" FunctionParameters ")" ":"
+  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator? "def" Name "(" FunctionParameters ")" ":"
                                                         StatementBlock ;
   FunctionParameters = (FunctionParameter  || ",")*;
 
   interface FunctionParameter extends Variable;
 
-  SimpleFunctionParameter   implements FunctionParameter = Name ;
-  OptionalFunctionParameter implements FunctionParameter = Name "=" Expression ;
-  VarArgFunctionParameter   implements FunctionParameter = "*" Name ;
+  SimpleFunctionParameter   implements FunctionParameter = Name (":" type:Name)?;
+  OptionalFunctionParameter implements FunctionParameter = Name (":" type:Name)? "=" Expression ;
+  VarArgFunctionParameter   implements FunctionParameter = "*" Name (":" type:Name)?;
+
+  PyDecorator = "@" Name ("(" PyQualifiedName ")")? STATEMENT_END;
 
   // return statement
   ReturnStatement implements Statement = "return" Expression? STATEMENT_END;

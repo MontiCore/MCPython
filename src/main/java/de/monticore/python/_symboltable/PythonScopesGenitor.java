@@ -129,9 +129,9 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 			// create symbol table for each import
 			for (ASTStatement statement : ast.getStatementList()) {
 				if (statement instanceof ASTImportStatement) {
-					String moduleName = ((ASTImportStatement) statement).isPresentModule() ? ((ASTImportStatement) statement).getModule() : null;
-					for (String name : ((ASTImportStatement) statement).getNameList()) {
-						this.createImportScope(functionsResolverScript, moduleName, name);
+					String moduleName = ((ASTImportStatement) statement).isPresentModule() ? ((ASTImportStatement) statement).getModule().joined() : null;
+					for (ASTPyQualifiedName name : ((ASTImportStatement) statement).getNameList()) {
+						this.createImportScope(functionsResolverScript, moduleName, name.joined());
 					}
 				}
 			}

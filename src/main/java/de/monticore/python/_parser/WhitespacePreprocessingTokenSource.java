@@ -92,7 +92,7 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
       res = queue.poll();
     }
 
-    if (isNewLine(res)) {
+    if (isNewLine(res) && parenDepth == 0) {
       lastIndent = getIndent(res);
     }
     lastLine = res.getLine();
@@ -112,6 +112,10 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
   }
 
   protected boolean needsEol(Token token) {
+    if(parenDepth > 0){
+      return false;
+    }
+
     if (alreadyProcessedEol.contains(token)) {
       return false;
     }
