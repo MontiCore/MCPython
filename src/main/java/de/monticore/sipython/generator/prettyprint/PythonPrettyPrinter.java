@@ -74,7 +74,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTImportStatement node) {
 		if (node.isPresentModule()) {
 			printer.print("from ");
-			printer.print(node.getModule());
+			printer.print(node.getModule().joined());
 			printer.print(" ");
 		}
 		printer.print("import ");
@@ -383,6 +383,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			ASTExpression exp = node.getExpression(i);
 			if(i != 0){
 				printer.print(", ");
+			}else{
+				printer.print(" ");
 			}
 			exp.accept(getTraverser());
 		}

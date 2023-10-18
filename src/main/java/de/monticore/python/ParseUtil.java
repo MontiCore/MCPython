@@ -22,12 +22,10 @@ public class ParseUtil {
                         System.out.println("Parsing file:///" + p.toFile().toString().replace("\\", "/"));
                         PythonMill.parser().parse(p.toString());
                       List<Finding> errors = Log.getFindings().stream().filter(Finding::isError).collect(Collectors.toList());
-                      if(errors.size() > 0){
-                        for (Finding error : errors) {
-                          System.out.println(error);
-                        }
-                          System.out.println(errors + " errors while parsing");
-                        }
+                      for (Finding error : errors) {
+                        System.out.println(error);
+                      }
+                      System.out.println(errors + " errors while parsing");
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

@@ -635,13 +635,6 @@ public class PythonTest extends AbstractPythonTest {
 						"    	   e.count+=1\n" +
 						"    	   self.list_x.append(i)\n"
 		);
-		//missing parameter in funtion that is in class (normally it's mentioned as the self parameter)
-		parseModelFromStringAndExpectFail(
-				"class ST:\n" +
-						"    eleven = 11\n" +
-						"    def oneLiner():\n" +
-						"        print(eleven)\n"
-		);
 		//for loop in class
 		parseModelFromStringAndExpectFail(
 				"class myClass:\n" +

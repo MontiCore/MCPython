@@ -91,9 +91,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   VariableDeclaration implements Variable = Name "=" VariableInit ;
 
-  GlobalVariableDeclaration implements Statement = "global" Name;
+  GlobalVariableDeclaration implements Statement = "global" Name STATEMENT_END;
 
-  MultiVariableDeclaration implements Statement = (Name || ",")+ "=" Expression;
+  MultiVariableDeclaration implements Statement = (Name || ",")+ "=" Expression STATEMENT_END;
 
   interface VariableInit ;
 

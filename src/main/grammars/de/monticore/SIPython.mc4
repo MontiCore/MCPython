@@ -2,8 +2,8 @@
 package de.monticore;
 
 grammar SIPython extends de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
-                         de.monticore.SIUnitLiterals,
                          de.monticore.Python,
+                         de.monticore.SIUnitLiterals,
                          de.monticore.SIUnits {
 
   start PythonScript ;
