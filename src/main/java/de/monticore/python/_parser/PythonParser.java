@@ -21,7 +21,8 @@ public class PythonParser extends PythonParserTOP {
             lexer,
             new CommonToken(PythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
             new CommonToken(PythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
-            new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END)
+            new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
+            PythonAntlrLexer.CONTINUE_LINE_TOKEN
         );
         BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
 

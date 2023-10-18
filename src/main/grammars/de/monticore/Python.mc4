@@ -14,10 +14,15 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   PythonScript = Statement*;
 
-  token SingleLineComment = "#" (~('\n' | '\r' ))* : ->skip {storeComment();};
+  @Override
+  token SL_COMMENT = "#" (~('\n' | '\r' ))* : ->skip {storeComment();};
   token BLOCK_START = '\u2983';
   token BLOCK_END = '\u2984';
   token STATEMENT_END = '\u204f';
+
+  // Will be filtered out by the WhitespacePreprocessingTokenSource
+  // Used break a line without finishing the statement
+  token CONTINUE_LINE_TOKEN = '\\' '\r'? '\n';
 
   // Often (mis)used as a multiline comment but can also be used as a string literal, this we can not skip it
   token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
@@ -39,7 +44,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   };
 
   // import statement
-  ImportStatement implements Statement = ( "from" module:PyQualifiedName )? "import" name:(PyQualifiedName || ",")+ ( "as" alias:Name )? STATEMENT_END;
+  ImportStatement implements Statement = ( "from" (leadingDot:".")? module:PyQualifiedName )? "import" name:(PyQualifiedName || ",")+ ( "as" alias:Name )? STATEMENT_END;
 
   // if-else statement
   IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
@@ -86,6 +91,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   VariableDeclaration implements Variable = Name "=" VariableInit ;
 
+  GlobalVariableDeclaration implements Statement = "global" Name;
+
   MultiVariableDeclaration implements Statement = (Name || ",")+ "=" Expression;
 
   interface VariableInit ;
@@ -97,6 +104,22 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   DictLiteralExpression   implements Expression = "{" (DictEntry || ",")* "}" ;
 
   DictEntry = key:VariableInit ":" value:VariableInit ;
+
+  IndexExpression implements Expression = Expression "[" (IndexExpressionInner || ",")+ "]";
+
+  interface IndexExpressionInner;
+
+  SimpleIndex implements IndexExpressionInner = Expression;
+  AllIndex implements IndexExpressionInner = ":";
+  FromIndex implements IndexExpressionInner = from:Expression ":";
+  UntilIndex implements IndexExpressionInner = ":" until:Expression;
+  RangeIndex implements IndexExpressionInner = from:Expression (":"  step:Expression )? ":" until:Expression;
+
+  // List/Set/Dict comprehension
+  ListComprehensionExpression implements Expression = "[" Expression "for" ForControl "]";
+  SetComprehensionExpression implements Expression = "{" Expression "for" ForControl "}";
+  DictComprehensionExpression implements Expression = "{" Name ":" Expression "for" ForControl "}";
+  GeneratorExpression implements Expression = Expression "for" ForControl;
 
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
@@ -114,7 +137,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   PyDecorator = "@" Name ("(" PyQualifiedName ")")? STATEMENT_END;
 
   // return statement
-  ReturnStatement implements Statement = "return" Expression? STATEMENT_END;
+  ReturnStatement implements Statement = "return" (Expression || ",")* STATEMENT_END;
 
   RaiseStatement implements Statement = "raise" Expression? STATEMENT_END;
 
@@ -154,7 +177,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
                                        "else" elseExpression:Expression )+ ;
 
   //mathematical expression
-  IntegerDivisionExpression implements Expression <180>, InfixExpression = left:Expression operator:" // " right:Expression ;
+  IntegerDivisionExpression implements Expression <165>, InfixExpression = left:Expression  operator:"//" right:Expression ;
   IntegerPowExpression implements Expression <195>, InfixExpression = left:Expression operator:"**" right:Expression ;
 
   //logical expressions
@@ -183,11 +206,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassStatementBlock = BLOCK_START ClassStatementBlockBody BLOCK_END;
   ClassStatementBlockBody = ClassStatement+;
 
-  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = "def" Name "(" ClassFunctionParameters ")" ":" StatementBlock;
+  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:PyQualifiedName)? ":" StatementBlock;
 
-  ClassFunctionParameters = (SelfParameter ("," FunctionParameter)*) ;
-
-  SelfParameter implements FunctionParameter = Name ;
+  ClassFunctionParameters = (FunctionParameter || ",")*;
 
   ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
 }

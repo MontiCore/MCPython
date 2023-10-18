@@ -50,7 +50,8 @@ public class SIPythonParser extends SIPythonParserTOP {
             lexer,
             new CommonToken(SIPythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
             new CommonToken(SIPythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
-            new CommonToken(SIPythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END)
+            new CommonToken(SIPythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
+            SIPythonAntlrLexer.CONTINUE_LINE_TOKEN
         );
         return new BufferedTokenStream(ws);
     }

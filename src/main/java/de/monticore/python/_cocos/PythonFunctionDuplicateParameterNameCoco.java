@@ -23,7 +23,6 @@ public class PythonFunctionDuplicateParameterNameCoco implements PythonASTFuncti
 			parameters.addAll(((ASTSimpleFunctionDeclaration) node).getFunctionParameters().getFunctionParameterList());
 		} else if (node instanceof ASTClassFunctionDeclaration) {
 			parameters.addAll(((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getFunctionParameterList());
-			parameters.add(((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getSelfParameter());
 		}
 
 		for (ASTFunctionParameter parameter : parameters) {

@@ -24,6 +24,26 @@ public class PythonTest extends AbstractPythonTest {
 
 	/*===========================Statements======================================*/
 
+	@Test
+	public void parseContinuedLine(){
+		parseModelFromStringAndExpectSuccess("a = \\\n3\n");
+	}
+
+	@Test
+	public void parseFloorDiv(){
+		parseModelFromStringAndExpectSuccess("a = test(1 // 3)\n");
+	}
+
+	@Test
+	public void parseListComprehension(){
+		parseModelFromStringAndExpectSuccess("rgb = [i for i in range(0, hlen, hlen // 3)]\n");
+	}
+
+	@Test
+	public void parseReturnInFunction(){
+		parseModelFromStringAndExpectSuccess("def a():\n\treturn foo[['bar']]\n");
+	}
+
 	//import valid statements
 	@Test
 	public void parseValidImportStatement() {

@@ -14,10 +14,11 @@ import java.util.Set;
 import java.util.Stack;
 
 public class WhitespacePreprocessingTokenSource implements TokenSource {
-  private final Lexer delegate;
-  private final Token eolTokenProto;
-  private final Token incIndentTokenProto;
-  private final Token decIndentTokenProto;
+  protected final Lexer delegate;
+  protected final Token eolTokenProto;
+  protected final Token incIndentTokenProto;
+  protected final Token decIndentTokenProto;
+  protected final int continueLineTokenType;
   protected int lastLine = 1;
   protected int lastIndent = 0;
   protected Token lastToken;
@@ -25,15 +26,16 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
   protected Set<Token> alreadyProcessedEol = new HashSet<>();
   protected Set<Token> alreadyProcessedBlockStart = new HashSet<>();
   protected Set<Token> alreadyProcessedBlockEnd = new HashSet<>();
-  LinkedList<Token> queue = new LinkedList<>();
-  private int indentDepth = 0;
-  private int parenDepth = 0;
+  protected LinkedList<Token> queue = new LinkedList<>();
+  protected int indentDepth = 0;
+  protected int parenDepth = 0;
 
-  public WhitespacePreprocessingTokenSource(Lexer delegate, Token eolTokenProto, Token incIndentTokenProto, Token decIndentTokenProto) {
+  public WhitespacePreprocessingTokenSource(Lexer delegate, Token eolTokenProto, Token incIndentTokenProto, Token decIndentTokenProto, int continueLineTokenType) {
     this.delegate = delegate;
     this.eolTokenProto = eolTokenProto;
     this.incIndentTokenProto = incIndentTokenProto;
     this.decIndentTokenProto = decIndentTokenProto;
+    this.continueLineTokenType = continueLineTokenType;
     source = new Pair<>(this, delegate.getInputStream());
   }
 
@@ -53,6 +55,11 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
       Token token;
       if (res == null) {
         token = delegate.nextToken();
+        if(token.getType() == continueLineTokenType){
+          lastLine++;
+          token = delegate.nextToken();
+        }
+
         queue.add(0, token);
         res = token;
       } else {
@@ -92,7 +99,7 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
       res = queue.poll();
     }
 
-    if (isNewLine(res) && parenDepth == 0) {
+    if (isNewLine(res) && parenDepth == 0 && !isClosingParen(res)) {
       lastIndent = getIndent(res);
     }
     lastLine = res.getLine();
@@ -147,8 +154,6 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
 
   Stack<Integer> indentStops = new Stack<>();
 
-  // TODO: multiple decreases in on go possible
-  // TODO: save current stops in stack
   protected boolean indentDecreased(Token token) {
     if (alreadyProcessedBlockEnd.contains(token)) {
       return false;

@@ -9,6 +9,8 @@ import de.monticore.python._visitor.PythonHandler;
 import de.monticore.python._visitor.PythonTraverser;
 import de.monticore.python._visitor.PythonVisitor2;
 
+import java.util.List;
+
 public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	protected PythonTraverser pythonTraverser;
@@ -377,9 +379,12 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
 		printer.print("return");
-		if (node.isPresentExpression()) {
-			printer.print(" ");
-			node.getExpression().accept(getTraverser());
+		for (int i = 0; i < node.getExpressionList().size(); i++) {
+			ASTExpression exp = node.getExpression(i);
+			if(i != 0){
+				printer.print(", ");
+			}
+			exp.accept(getTraverser());
 		}
 		printer.println();
 
@@ -592,18 +597,15 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	}
 
-	//class self parameter
-	@Override
-	public void traverse(ASTSelfParameter node) {
-		printer.print(node.getName());
-	}
-
 	// class function parameters
 	@Override
 	public void traverse(ASTClassFunctionParameters node) {
-		printer.print(node.getSelfParameter().getName());
-		for (ASTFunctionParameter argument : node.getFunctionParameterList()) {
-			printer.print(", ");
+		List<ASTFunctionParameter> functionParameterList = node.getFunctionParameterList();
+		for (int i = 0; i < functionParameterList.size(); i++) {
+			ASTFunctionParameter argument = functionParameterList.get(i);
+			if(i != 0) {
+				printer.print(", ");
+			}
 			argument.accept(getTraverser());
 		}
 	}

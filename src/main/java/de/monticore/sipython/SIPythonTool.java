@@ -20,6 +20,7 @@ public class SIPythonTool extends SIPythonToolTOP {
 		checker.addCoCo(((PythonASTPythonScriptCoCo) new PythonDuplicateFunctionAndClassCoco()));
 		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
 		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
+		checker.addCoCo(new SelfParameterIsFirstCoCo());
 
 		checker.checkAll(ast);
 	}
