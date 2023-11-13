@@ -44,7 +44,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   };
 
   // import statement
-  ImportStatement implements Statement = ( "from" (leadingDot:".")? module:PyQualifiedName )? "import" name:(PyQualifiedName || ",")+ ( "as" alias:Name )? STATEMENT_END;
+  ImportStatement implements Statement = ( "from" (leadingDot:".")? module:PyQualifiedName )? "import" (star:"*" | name:(PyQualifiedName || ",")+) ( "as" alias:Name )? STATEMENT_END;
 
   // if-else statement
   IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
