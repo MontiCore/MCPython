@@ -44,7 +44,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   };
 
   // import statement
-  ImportStatement implements Statement = ( "from" (leadingDot:".")? module:PyQualifiedName )? "import" (star:"*" | name:(PyQualifiedName || ",")+) ( "as" alias:Name )? STATEMENT_END;
+  ImportStatement implements Statement = ( "from" (leadingDots:"."+)? module:PyQualifiedName )? "import" (star:"*" | name:(PyQualifiedName || ",")+) ( "as" alias:Name )? STATEMENT_END;
 
   // if-else statement
   IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
@@ -127,15 +127,18 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
 
-  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator? "def" Name "(" FunctionParameters ")" ":"
+  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator? "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
                                                         StatementBlock ;
   FunctionParameters = (FunctionParameter  || ",")*;
 
   interface FunctionParameter extends Variable;
 
-  SimpleFunctionParameter   implements FunctionParameter = Name (":" type:Name)?;
-  OptionalFunctionParameter implements FunctionParameter = Name (":" type:Name)? "=" Expression ;
-  VarArgFunctionParameter   implements FunctionParameter = "*" Name (":" type:Name)?;
+  TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeParam || ",")* "]")?;
+  TypeParam = PyQualifiedName;
+
+  SimpleFunctionParameter   implements FunctionParameter = Name (":" TypeAnnotation)?;
+  OptionalFunctionParameter implements FunctionParameter = Name (":" TypeAnnotation)? "=" Expression ;
+  VarArgFunctionParameter   implements FunctionParameter = "*" Name (":" TypeAnnotation)?;
 
   PyDecorator = "@" Name ("(" PyQualifiedName ")")? STATEMENT_END;
 
@@ -167,7 +170,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
              | OctalEscape | UnicodeEscape;
 
    StringLiteralPython implements Literal, SignedLiteral =
-       source:StringPython;
+        (type:key("u") | type:key("f") | type:key("r") | type:key("b")) source:StringPython;
 
   // boolean literals for python
   BooleanLiteralPython implements Literal, SignedLiteral =
@@ -209,7 +212,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassStatementBlock = BLOCK_START ClassStatementBlockBody BLOCK_END;
   ClassStatementBlockBody = ClassStatement+;
 
-  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:PyQualifiedName)? ":" StatementBlock;
+  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
   ClassFunctionParameters = (FunctionParameter || ",")*;
 
