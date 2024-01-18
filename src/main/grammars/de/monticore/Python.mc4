@@ -159,6 +159,11 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   EmptyStatement implements Statement = STATEMENT_END;
 
+  MatchStatement implements Statement = "match" Expression ":" MatchBlock;
+
+  scope MatchBlock = BLOCK_START CaseStatement* BLOCK_END;
+  CaseStatement = "case" (Expression || "|")+ ":" StatementBlock;
+
   /*===========================Literals======================================*/
 
   // string literals for python
