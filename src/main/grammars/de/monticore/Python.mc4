@@ -115,6 +115,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   UntilIndex implements IndexExpressionInner = ":" until:Expression;
   RangeIndex implements IndexExpressionInner = from:Expression (":"  step:Expression )? ":" until:Expression;
 
+  // Walrus operator
+  PyAssignmentExpression implements Expression = variable:Name operator:":=" right:Expression;
+
   // List/Set/Dict comprehension
   ListComprehensionExpression implements Expression = "[" Expression "for" ForControl "]";
   SetComprehensionExpression implements Expression = "{" Expression "for" ForControl "}";
