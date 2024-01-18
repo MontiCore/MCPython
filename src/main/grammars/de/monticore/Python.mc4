@@ -99,9 +99,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   SimpleInit implements VariableInit = Expression ;
 
-  ArrayLiteralExpression  implements Expression = "[" (VariableInit || ",")* "]" ;
-  TupleLiteralExpression  implements Expression = "(" (VariableInit || ",")* ")" ;
-  DictLiteralExpression   implements Expression = "{" (DictEntry || ",")* "}" ;
+  ArrayLiteralExpression  implements Expression = "[" (VariableInit || ",")* ","? "]" ;
+  TupleLiteralExpression  implements Expression = "(" (VariableInit || ",")* ","? ")" ;
+  DictLiteralExpression   implements Expression = "{" (DictEntry || ",")* ","? "}" ;
 
   DictEntry = key:VariableInit ":" value:VariableInit ;
 
