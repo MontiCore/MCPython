@@ -1,7 +1,9 @@
 package de.monticore.python;
 
+import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Finding;
 import de.se_rwth.commons.logging.Log;
+import org.antlr.v4.runtime.BufferedTokenStream;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,7 +26,23 @@ public class ParseUtil {
                     try {
                         Log.getFindings().clear();
                         System.out.println("Parsing file:///" + p.toFile().toString().replace("\\", "/"));
-                        PythonMill.parser().parse(p.toString());
+                      PythonParser parser = PythonMill.parser();
+                      parser.parse(p.toString());
+
+                      StringBuilder b = new StringBuilder();
+
+                      BufferedTokenStream ts = parser.currentTokenStream;
+                      List<String> linebreaks = List.of("⦃", "⁏", "⦄");
+                      for (int i = 0; i < ts.size(); i++){
+                        String text = ts.get(i).getText();
+                        b.append(text);
+                        if(linebreaks.contains(text)){
+                          b.append("\n");
+                        }else{
+                          b.append(" ");
+                        }
+                      }
+
                       List<Finding> errors = Log.getFindings().stream().filter(Finding::isError).collect(Collectors.toList());
                       for (Finding error : errors) {
                         System.out.println(error);
