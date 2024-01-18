@@ -140,6 +140,13 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   OptionalFunctionParameter implements FunctionParameter = Name (":" TypeAnnotation)? "=" Expression ;
   VarArgFunctionParameter   implements FunctionParameter = "*" Name (":" TypeAnnotation)?;
 
+  @Override
+  Arguments = "("
+     ((paramName:Name "=")? Expression)?
+     ( "," ((paramName:Name "=")? Expression) )*
+     ","?
+  ")";
+
   PyDecorator = "@" Name ("(" PyQualifiedName ")")? STATEMENT_END;
 
   // return statement
