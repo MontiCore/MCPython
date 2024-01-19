@@ -182,7 +182,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
              | OctalEscape | UnicodeEscape;
 
    StringLiteralPython implements Literal, SignedLiteral =
-        (type:key("u") | type:key("f") | type:key("r") | type:key("b")) source:StringPython;
+        (type:key("u") | type:key("f") | type:key("r") | type:key("b") | type:key("R") | type:key("U")
+        | type:key("F") | type:key("fr") | type:key("Fr") | type:key("fR") | type:key("FR") | type:key("rf")
+        | type:key("rF") | type:key("Rf") | type:key("RF"))?
+        (source:StringPython | source:String);
 
   // boolean literals for python
   BooleanLiteralPython implements Literal, SignedLiteral =
@@ -224,6 +227,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassStatementBlock = BLOCK_START ClassStatementBlockBody BLOCK_END;
   ClassStatementBlockBody = ClassStatement+;
 
+  // TODO: Why is there 2 function declarations?
   ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
   ClassFunctionParameters = (FunctionParameter || ",")*;

@@ -1,10 +1,6 @@
 package de.monticore.python;
 
-import de.monticore.sipython.AbstractSIPythonTest;
 import de.se_rwth.commons.logging.Log;
-
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,6 +19,11 @@ public class PythonTest extends AbstractPythonTest {
 
 
 	/*===========================Statements======================================*/
+
+  @Test
+  public void parseTemplateString(){
+    parseModelFromStringAndExpectSuccess("f\"test {}\"\n");
+  }
 
 	@Test
 	public void parseContinuedLine(){
