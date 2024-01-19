@@ -91,9 +91,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration STATEMENT_END;
 
-  VariableDeclaration implements Variable = Name "=" VariableInit ;
+  VariableDeclaration implements Variable = Name (":" TypeAnnotation)? "=" VariableInit ;
 
-  GlobalVariableDeclaration implements Statement = "global" Name STATEMENT_END;
+  GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
 
   MultiVariableDeclaration implements Statement = (Name || ",")+ "=" Expression STATEMENT_END;
 
@@ -135,8 +135,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   interface FunctionParameter extends Variable;
 
-  TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeParam || ",")* "]")?;
-  TypeParam = PyQualifiedName;
+  TypeAnnotation = (
+                    type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?
+                    | StringLiteralPython
+                    );
 
   SimpleFunctionParameter   implements FunctionParameter = Name (":" TypeAnnotation)?;
   OptionalFunctionParameter implements FunctionParameter = Name (":" TypeAnnotation)? "=" Expression ;
