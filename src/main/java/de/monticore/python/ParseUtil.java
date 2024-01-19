@@ -59,7 +59,7 @@ public class ParseUtil {
     System.out.println((overallErrors.intValue() / (double) fileCounter.intValue()) + " errors per file");
   }
 
-  private static String visPreprocessedContent(PythonParser parser) {
+  public static String visPreprocessedContent(PythonParser parser) {
     IndentPrinter ip = new IndentPrinter();
 
     BufferedTokenStream ts = parser.currentTokenStream;
