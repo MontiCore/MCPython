@@ -1,5 +1,6 @@
 package de.monticore.python;
 
+import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Finding;
 import de.se_rwth.commons.logging.Log;
@@ -15,10 +16,11 @@ import java.util.stream.Collectors;
 public class ParseUtil {
   public static void main(String[] args) throws IOException {
 
-    boolean failAfterFirstErrorFile = true;
+    boolean failAfterFirstErrorFile = false;
     Log.enableFailQuick(false);
     AtomicInteger overallErrors = new AtomicInteger(0);
     AtomicInteger fileCounter = new AtomicInteger(0);
+    AtomicInteger errorLessFileCounter = new AtomicInteger(0);
     Files
         .walk(Paths.get(args[0]))
         .filter(p -> p.toFile().isFile())
@@ -31,19 +33,7 @@ public class ParseUtil {
             PythonParser parser = PythonMill.parser();
             parser.parse(p.toString());
 
-            StringBuilder b = new StringBuilder();
-
-            BufferedTokenStream ts = parser.currentTokenStream;
-            List<String> linebreaks = List.of("⦃", "⁏", "⦄");
-            for (int i = 0; i < ts.size(); i++) {
-              String text = ts.get(i).getText();
-              b.append(text);
-              if (linebreaks.contains(text)) {
-                b.append("\n");
-              } else {
-                b.append(" ");
-              }
-            }
+            String c = visPreprocessedContent(parser);
 
             List<Finding> errors = Log.getFindings().stream().filter(Finding::isError).collect(Collectors.toList());
             for (Finding error : errors) {
@@ -54,12 +44,43 @@ public class ParseUtil {
             if (failAfterFirstErrorFile && !errors.isEmpty()) {
               throw new RuntimeException("Found errors and failAfterFirstErrorFile is enabled");
             }
+            if(errors.isEmpty()){
+              errorLessFileCounter.incrementAndGet();
+            }
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
         });
 
     System.out.println("Parsed " + fileCounter.intValue() + " file(s) with " + overallErrors.intValue() + " errors");
+    double successQuote = 100 * errorLessFileCounter.intValue() / fileCounter.doubleValue();
+    String x = String.format("Without errors: %d of %d(%.2f%%)", errorLessFileCounter.intValue(), fileCounter.intValue(), successQuote);
+    System.out.println(x);
     System.out.println((overallErrors.intValue() / (double) fileCounter.intValue()) + " errors per file");
+  }
+
+  private static String visPreprocessedContent(PythonParser parser) {
+    IndentPrinter ip = new IndentPrinter();
+
+    BufferedTokenStream ts = parser.currentTokenStream;
+    List<String> linebreaks = List.of("⦃", "⁏", "⦄");
+    List<String> incIndent = List.of("⦃");
+    List<String> decIndent = List.of("⦄");
+    for (int i = 0; i < ts.size(); i++) {
+      String text = ts.get(i).getText();
+      ip.print(text);
+      if(decIndent.contains(text)){
+        ip.unindent();
+      }
+      if (linebreaks.contains(text)) {
+        ip.println();
+      } else {
+        ip.print(" ");
+      }
+      if(incIndent.contains(text)){
+        ip.indent();
+      }
+    }
+    return ip.getContent();
   }
 }
