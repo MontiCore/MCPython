@@ -1,17 +1,9 @@
 package de.monticore.python._parser;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenFactory;
-import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 public class WhitespacePreprocessingTokenSource implements TokenSource {
   protected final Lexer delegate;
@@ -91,6 +83,20 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
         if (needsEol(token)) {
           alreadyProcessedEol.add(token);
           queue.add(0, createToken(eolTokenProto));
+        }
+        // EOF -> all blocks are automatically closed
+        if(token.getType() == -1){
+          int insertPos = 0;
+          for(int i = 0; i < queue.size(); i++){
+            if(queue.get(i).getType() == -1){
+              insertPos = i;
+              break;
+            }
+          }
+
+          for(int i = 0; i < indentDepth; i++){
+            queue.add(insertPos, createToken(decIndentTokenProto));
+          }
         }
       }
     }
