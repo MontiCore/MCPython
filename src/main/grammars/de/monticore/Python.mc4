@@ -20,6 +20,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   token BLOCK_END = '\u2984';
   token STATEMENT_END = '\u204f';
 
+  token ByteOrderMark = '\uFEFF' : -> skip;
+
   // Will be filtered out by the WhitespacePreprocessingTokenSource
   // Used break a line without finishing the statement
   token CONTINUE_LINE_TOKEN = '\\' '\r'? '\n';
@@ -190,6 +192,12 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // boolean literals for python
   BooleanLiteralPython implements Literal, SignedLiteral =
       source:["True" | "False"];
+
+  token FloatWithExponent = Digit+ 'e' ('+' | '-')? Digit+;
+  FloatWithExponentLiteral implements NumericLiteral <100> = FloatWithExponent;
+
+  token PyFloat = Digit* '.' Digit+;
+  PyFloatLiteral implements NumericLiteral <200> = PyFloat;
 
   /*======================Expressions===========================================*/
 
