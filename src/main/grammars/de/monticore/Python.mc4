@@ -121,10 +121,12 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   PyAssignmentExpression implements Expression = variable:Name operator:":=" right:Expression;
 
   // List/Set/Dict comprehension
-  ListComprehensionExpression implements Expression = "[" Expression "for" ForControl "]";
-  SetComprehensionExpression implements Expression = "{" Expression "for" ForControl "}";
-  DictComprehensionExpression implements Expression = "{" Name ":" Expression "for" ForControl "}";
-  GeneratorExpression implements Expression = Expression "for" ForControl;
+  ListComprehensionExpression implements Expression = "[" Expression "for" ForControl GeneratorFilter? "]";
+  SetComprehensionExpression implements Expression = "{" Expression "for" ForControl GeneratorFilter? "}";
+  DictComprehensionExpression implements Expression = "{" Name ":" Expression "for" ForControl GeneratorFilter?  "}";
+  GeneratorExpression implements Expression = Expression "for" ForControl GeneratorFilter? ;
+
+  GeneratorFilter = "if" condition:Expression;
 
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
@@ -167,6 +169,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   scope MatchBlock = BLOCK_START CaseStatement* BLOCK_END;
   CaseStatement = "case" (Expression || "|")+ ":" StatementBlock;
+
+  ConditionalExecutionStatement implements Statement = "if" condition: Expression ":" Expression;
 
   /*===========================Literals======================================*/
 
@@ -223,6 +227,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;
   AppliedLambdaExpression implements Expression = "(" LambdaExpression ")" "(" Expression ")" ;
 
+  // TODO: Weird errors from antlr subsystem
+  // IfExpression implements Expression = positive:Expression "if" condition:Expression "else" negative:Expression;
 
   /*===========================Classes======================================*/
 
