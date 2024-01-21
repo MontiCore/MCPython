@@ -54,7 +54,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
                                    ElseStatementPart?;
 
   // assert statement
-  AssertStatement implements Statement = "assert" condition:Expression "," errorMessage:String STATEMENT_END;
+  AssertStatement implements Statement = "assert" condition:Expression ("," errorMessage:Expression)? STATEMENT_END;
 
   // for statement
   scope ForStatement implements Statement = "for" ForControl ":" StatementBlock
@@ -179,26 +179,44 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   /*===========================Literals======================================*/
 
+  token RawStringDoubleQuote = 'r' '"' .*? '"';
+  token RawStringSingleQuote = 'r' '\'' .*? '\'';
+
   // string literals for python
    token StringPython
       = '\'' (StringCharactersPython)? '\''
       : {setText(getText().substring(1, getText().length() - 1));};
 
-      fragment token StringCharactersPython
-        = (StringCharacterPython)+;
+  fragment token StringCharactersPython
+    = (StringCharacterPython)+;
 
-      fragment token StringCharacterPython
-        = ~ ('\''| '\\') | PythonEscapeSequence;
+  fragment token StringCharacterPython
+    = ~ ('\''| '\\') | PythonEscapeSequence;
 
-      fragment token PythonEscapeSequence
-           = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
-             | OctalEscape | UnicodeEscape;
+  fragment token PythonEscapeSequence
+       = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
+         | OctalEscape | UnicodeEscape;
+
+    // TODO: type:key("R")
+    // TODO: type:key("fr")
+    // TODO: type:key("Fr")
+    // TODO: type:key("fR")
+    // TODO: type:key("rf")
+    // TODO: type:key("rF")
+    // TODO: type:key("Rf")
+    // TODO: type:key("RF")
 
    StringLiteralPython implements Literal, SignedLiteral =
-        (type:key("u") | type:key("f") | type:key("r") | type:key("b") | type:key("R") | type:key("U")
-        | type:key("F") | type:key("fr") | type:key("Fr") | type:key("fR") | type:key("FR") | type:key("rf")
-        | type:key("rF") | type:key("Rf") | type:key("RF"))?
-        (source:StringPython | source:String);
+        (
+            ( // Normal strings
+                (type:key("u") | type:key("f") | type:key("b") |  | type:key("U") | type:key("F"))?
+                (source:StringPython | source:String)
+            )
+            | RawStringDoubleQuote
+            | RawStringSingleQuote
+        )
+        StringLiteralPython? // Python string concat: "abc" "def" => "abcdef"
+        ;
 
   // boolean literals for python
   BooleanLiteralPython implements Literal, SignedLiteral =
