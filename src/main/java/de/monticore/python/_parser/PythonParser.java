@@ -40,7 +40,24 @@ public class PythonParser extends PythonParserTOP {
 
   @Override
   protected PythonAntlrParser create(String fileName) throws IOException {
-    return this.create(new FileReader(fileName, StandardCharsets.UTF_8));
-  }
+    PythonAntlrLexer lexer = new PythonAntlrLexer(org.antlr.v4.runtime.CharStreams.fromReader(
+        new FileReader(fileName, StandardCharsets.UTF_8)));
 
+    WhitespacePreprocessingTokenSource tokensWithPreprocessing = new WhitespacePreprocessingTokenSource(
+        lexer,
+        new CommonToken(PythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
+        new CommonToken(PythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
+        new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
+        PythonAntlrLexer.CONTINUE_LINE_TOKEN
+    );
+    BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
+    currentTokenStream = stream;
+    PythonAntlrParser parser = new PythonAntlrParser(stream);
+    lexer.setMCParser(parser);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(new de.monticore.antlr4.MCErrorListener(parser));
+    parser.setFilename(fileName);
+    setError(false);
+    return parser;
+  }
 }
