@@ -2,6 +2,7 @@ package de.monticore.python._cocos;
 
 import de.monticore.python._ast.ASTFunctionParameter;
 import de.monticore.python._ast.ASTLambdaExpression;
+import de.monticore.python._util.PythonTypeDispatcher;
 import de.se_rwth.commons.logging.Log;
 
 import java.util.HashSet;
@@ -13,11 +14,16 @@ public class PythonLambdaDuplicateParameterNameCoco implements PythonASTLambdaEx
 	public void check(ASTLambdaExpression node) {
 		Set<String> names = new HashSet<>();
 
+		PythonTypeDispatcher td = new PythonTypeDispatcher();
+
 		for (ASTFunctionParameter parameter : node.getFunctionParameters().getFunctionParameterList()) {
-			if (names.contains(parameter.getName())) {
-				Log.error("Duplicate parameter name '" + parameter.getName() + "' in lambda function " + node.get_SourcePositionStart());
-			} else {
-				names.add(parameter.getName());
+			if(td.isASTVariable(parameter)) {
+				String name = td.asASTVariable(parameter).getName();
+				if (names.contains(name)) {
+					Log.error("Duplicate parameter name '" + name + "' in lambda function " + node.get_SourcePositionStart());
+				} else {
+					names.add(name);
+				}
 			}
 		}
 

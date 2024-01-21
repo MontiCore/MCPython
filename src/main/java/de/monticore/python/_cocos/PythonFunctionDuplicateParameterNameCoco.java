@@ -4,6 +4,7 @@ import de.monticore.python._ast.ASTClassFunctionDeclaration;
 import de.monticore.python._ast.ASTFunctionDeclaration;
 import de.monticore.python._ast.ASTFunctionParameter;
 import de.monticore.python._ast.ASTSimpleFunctionDeclaration;
+import de.monticore.python._util.PythonTypeDispatcher;
 import de.se_rwth.commons.logging.Log;
 
 import java.util.ArrayList;
@@ -25,12 +26,17 @@ public class PythonFunctionDuplicateParameterNameCoco implements PythonASTFuncti
 			parameters.addAll(((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getFunctionParameterList());
 		}
 
+		PythonTypeDispatcher td = new PythonTypeDispatcher();
+
 		for (ASTFunctionParameter parameter : parameters) {
-			if (names.contains(parameter.getName())) {
-				Log.error("Duplicate parameter name '" + parameter.getName() + "' in function '" + node.getName() +
-						"' " + node.get_SourcePositionStart());
-			} else {
-				names.add(parameter.getName());
+			if(td.isASTVariable(parameter)) {
+				String name = td.asASTVariable(parameter).getName();
+				if (names.contains(name)) {
+					Log.error("Duplicate parameter name '" + name + "' in function '" + node.getName() +
+							"' " + node.get_SourcePositionStart());
+				} else {
+					names.add(name);
+				}
 			}
 		}
 	}

@@ -133,25 +133,30 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator? "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
                                                         StatementBlock ;
-  FunctionParameters = (FunctionParameter  || ",")*;
+  FunctionParameters = (FunctionParameter  || ",")* ","?;
 
-  interface FunctionParameter extends Variable;
+  interface FunctionParameter;
 
-  TypeAnnotation = (
-                    type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?
-                    | StringLiteralPython
-                    );
+  interface TypeAnnotation;
+  StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
+  TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
+  QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
 
-  SimpleFunctionParameter   implements FunctionParameter = Name (":" TypeAnnotation)?;
-  OptionalFunctionParameter implements FunctionParameter = Name (":" TypeAnnotation)? "=" Expression ;
-  VarArgFunctionParameter   implements FunctionParameter = "*" Name (":" TypeAnnotation)?;
+  SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
+  OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
+  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name (":" TypeAnnotation)?;
+  StarFunctionParameter     implements FunctionParameter = "*";
 
   @Override
   Arguments = "("
-     ((paramName:Name "=")? Expression)?
-     ( "," ((paramName:Name "=")? Expression) )*
+    (Argument || ",")*
      ","?
   ")";
+
+  interface Argument;
+  NormalArgument implements Argument = (paramName:Name "=")? Expression;
+  SpreadListArgument implements Argument = "*" Expression;
+  SpreadMappingArgument implements Argument = "**" Expression;
 
   PyDecorator = "@" Name ("(" PyQualifiedName ")")? STATEMENT_END;
 
@@ -246,7 +251,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // TODO: Why is there 2 function declarations?
   ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
-  ClassFunctionParameters = (FunctionParameter || ",")*;
+  ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
   ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
 }
