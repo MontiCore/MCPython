@@ -18,7 +18,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   token SL_COMMENT = "#" (~('\n' | '\r' ))* : ->skip {storeComment();};
   token BLOCK_START = '\u2983';
   token BLOCK_END = '\u2984';
-  token STATEMENT_END = '\u204f';
+  token STATEMENT_END = ';'? '\u204f' | ';' '\u204f'?;
 
   token ByteOrderMark = '\uFEFF' : -> skip;
 
@@ -26,9 +26,15 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // Used break a line without finishing the statement
   token CONTINUE_LINE_TOKEN = '\\' '\r'? '\n';
 
-  // Often (mis)used as a multiline comment but can also be used as a string literal, this we can not skip it
-  token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
+  // Often (mis)used as a multiline comment but can also be used as a string literal, thus we can not skip it
+  token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)))  : -> channel(HIDDEN);
   MultiLineStringLiteral implements Literal = MultiLineStringToken;
+
+  // PEP 515: Underscores in Numeric Literals
+  // TODO: Move this into its own token?
+  @Override
+  token Digits
+    = Digit ('_'?  Digit)*; // technically the first digit must be nonzero except for 0(_0)*
 
   interface Statement;
 
@@ -83,10 +89,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ExceptStatement = ( "except" (Name? | "(" (Name || ",")+ ")") ("as" alias:Name)? ":" StatementBlock ) ;
 
   // with open file statement
-  scope WithOpenFileStatement implements Statement = "with" (OpenFileExpression || ",")+ ":"
+  scope WithStatement implements Statement = "with" (WithStatementContents || ",")+ ":"
                                             StatementBlock ;
 
-  OpenFileExpression = Expression "as" fileName:Name ;
+  WithStatementContents = Expression ("as" target:Name)? ; // target has slicing/etc
 
   // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration STATEMENT_END;
@@ -107,15 +113,22 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   DictEntry = key:VariableInit ":" value:VariableInit ;
 
-  IndexExpression implements Expression = Expression "[" (IndexExpressionInner || ",")+ "]";
+//  StarredExpression implements Expression = (Expression ",")+;
 
+
+  // 6.3.3 - Slicing
+  IndexExpression implements Expression = Expression "[" (IndexExpressionInner || ",")+ tuple:","? "]";
+
+  // slice_item
   interface IndexExpressionInner;
 
   SimpleIndex implements IndexExpressionInner = Expression;
-  AllIndex implements IndexExpressionInner = ":";
-  FromIndex implements IndexExpressionInner = from:Expression ":";
-  UntilIndex implements IndexExpressionInner = ":" until:Expression;
-  RangeIndex implements IndexExpressionInner = from:Expression (":"  step:Expression )? ":" until:Expression;
+  // missing expressions are substituted by their default
+  ProperSlice implements IndexExpressionInner = lower:Expression? ":" upper:Expression? (":" stride:Expression?)?;
+ // AllIndex implements IndexExpressionInner = ":";
+ // FromIndex implements IndexExpressionInner = from:Expression ":";
+ // UntilIndex implements IndexExpressionInner = ":" until:Expression;
+ // RangeIndex implements IndexExpressionInner = from:Expression (":"  step:Expression )? ":" until:Expression;
 
   // Walrus operator
   PyAssignmentExpression implements Expression = variable:Name operator:":=" right:Expression;
@@ -131,7 +144,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
 
-  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator? "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
+  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator* "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
                                                         StatementBlock ;
   FunctionParameters = (FunctionParameter  || ",")* ","?;
 
@@ -145,6 +158,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
   OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
   VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name (":" TypeAnnotation)?;
+  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name (":" TypeAnnotation)?;
   StarFunctionParameter     implements FunctionParameter = "*";
 
   @Override
@@ -157,8 +171,11 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   NormalArgument implements Argument = (paramName:Name "=")? Expression;
   SpreadListArgument implements Argument = "*" Expression;
   SpreadMappingArgument implements Argument = "**" Expression;
+  splittoken "**";
 
-  PyDecorator = "@" Name ("(" PyQualifiedName ")")? STATEMENT_END;
+  // "@" assignment_expression NEWLINE
+  //PyDecorator = "@" PyQualifiedName ("(" PyQualifiedName ")")? STATEMENT_END;
+  PyDecorator = "@" Expression STATEMENT_END;
 
   // return statement
   ReturnStatement implements Statement = "return" (Expression || ",")* STATEMENT_END;
@@ -222,11 +239,15 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   BooleanLiteralPython implements Literal, SignedLiteral =
       source:["True" | "False"];
 
-  token FloatWithExponent = Digit+ 'e' ('+' | '-')? Digit+;
+  token FloatWithExponent = (DigitsPart | PyFloat) ('e'|'E') ('+' | '-')? DigitsPart;
   FloatWithExponentLiteral implements NumericLiteral <100> = FloatWithExponent;
 
-  token PyFloat = Digit* '.' Digit+;
+  token PyFloat = DigitsPart? '.' DigitsPart | DigitsPart '.';
   PyFloatLiteral implements NumericLiteral <200> = PyFloat;
+
+  // PEP 515
+  token DigitsPart = Digit ('_'? Digit)*;
+
 
   /*======================Expressions===========================================*/
 
@@ -259,7 +280,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   interface scope symbol PythonClass = Name ;
 
   // class declaration statement
-  ClassDeclaration implements PythonClass, Statement, ClassStatement = "class" Name ( "(" superClass:Name@PythonClass? ")" )? ":" ClassStatementBlock ;
+  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" superClass:PyQualifiedName? ")" )? ":" ClassStatementBlock ;
 
   interface ClassStatement;
 
@@ -267,7 +288,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassStatementBlockBody = ClassStatement+;
 
   // TODO: Why is there 2 function declarations?
-  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
+  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
   ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
