@@ -8,6 +8,7 @@ package de.monticore;
 
 grammar Python extends  de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
                         de.monticore.expressions.CommonExpressions,
+    //                    de.monticore.expressions.BitExpressions, // For union
                         de.monticore.expressions.AssignmentExpressions,
                         de.monticore.literals.MCCommonLiterals,
                         de.monticore.symbols.OOSymbols {
@@ -27,8 +28,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   token CONTINUE_LINE_TOKEN = '\\' '\r'? '\n';
 
   // Often (mis)used as a multiline comment but can also be used as a string literal, thus we can not skip it
-  token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)))  : -> channel(HIDDEN);
-  MultiLineStringLiteral implements Literal = MultiLineStringToken;
+  token MultiLineStringToken = "f"? ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter))) ; // TODO: WORK ON ME : -> channel(HIDDEN);
+  // TODO: Access the hidden channel
+  MultiLineStringLiteral implements Literal = (type:key("u") | type:key("f") | type:key("b") |  | type:key("U") | type:key("F"))? MultiLineStringToken;
 
   // PEP 515: Underscores in Numeric Literals
   // TODO: Move this into its own token?
@@ -97,7 +99,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration STATEMENT_END;
 
-  VariableDeclaration implements Variable = Name (":" TypeAnnotation)? "=" VariableInit ;
+  VariableDeclaration implements Variable = Name (((":" TypeAnnotation)? "=" VariableInit) |  (":" TypeAnnotation ("=" VariableInit)?) );
 
   GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
 
@@ -154,6 +156,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
   TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
   QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
+  //ComplexTypeAnnotation     implements TypeAnnotation = Expression;
 
   SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
   OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
@@ -183,7 +186,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   RaiseStatement implements Statement = "raise" Expression? STATEMENT_END;
 
   // expression statement
-  ExpressionStatement implements Statement = Expression STATEMENT_END;
+  ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
 
   EmptyStatement implements Statement = STATEMENT_END;
 
@@ -239,6 +242,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   BooleanLiteralPython implements Literal, SignedLiteral =
       source:["True" | "False"];
 
+  // https://docs.python.org/dev/library/constants.html#Ellipsis
+  EllipsisLiteral implements Literal = "...";
+  splittoken "...";
+
   token FloatWithExponent = (DigitsPart | PyFloat) ('e'|'E') ('+' | '-')? DigitsPart;
   FloatWithExponentLiteral implements NumericLiteral <100> = FloatWithExponent;
 
@@ -293,4 +300,17 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
   ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
+
+  @Override
+  AssignmentExpression implements Expression <60> = <rightassoc>
+    left:Expression ("," left:Expression)* ","?
+
+    (":" annotated: Expression)? // borrowed from annotated_assignment_stmt
+
+    operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
+              | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
+    right:Expression ("," right:Expression)* ","?;
+
+
+
 }

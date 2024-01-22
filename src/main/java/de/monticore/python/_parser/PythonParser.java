@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import de.monticore.python.PythonPreprocessor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 public class PythonParser extends PythonParserTOP {
   // TMP: Used to inspect preprocessing
@@ -27,6 +28,7 @@ public class PythonParser extends PythonParserTOP {
         new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
         PythonAntlrLexer.CONTINUE_LINE_TOKEN
     );
+    // Use CommonTokenStream to hide the hidden channel again
     BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
     currentTokenStream = stream;
     PythonAntlrParser parser = new PythonAntlrParser(stream);
@@ -50,6 +52,7 @@ public class PythonParser extends PythonParserTOP {
         new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
         PythonAntlrLexer.CONTINUE_LINE_TOKEN
     );
+    // Use CommonTokenStream
     BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
     currentTokenStream = stream;
     PythonAntlrParser parser = new PythonAntlrParser(stream);

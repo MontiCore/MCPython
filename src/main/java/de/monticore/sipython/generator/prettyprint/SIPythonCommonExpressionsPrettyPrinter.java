@@ -20,19 +20,8 @@ public class SIPythonCommonExpressionsPrettyPrinter extends CommonExpressionsPre
 
 		node.getExpression().accept(getTraverser());
 
-		printer.print("(");
-
-		boolean first = true;
-		for (ASTExpression expression : node.getArguments().getExpressionList()) {
-			if (!first) {
-				printer.print(", ");
-			} else {
-				first = false;
-			}
-			expression.accept(getTraverser());
-		}
-
-		printer.print(")");
+		// Note: Python overrides the arguments production
+		node.getArguments().accept(getTraverser());
 
 		CommentPrettyPrinter.printPostComments(node, this.getPrinter());
 	}

@@ -47,6 +47,7 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
       Token token;
       if (res == null) {
         token = delegate.nextToken();
+//        System.err.println(token + "=>" + token.getChannel());
         if(token.getType() == continueLineTokenType){
           lastLine++;
           token = delegate.nextToken();
@@ -64,15 +65,16 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
         parenDepth--;
       } else {
         if (isWhitespaceSensitive()) {
-          if (indentIncreased(token)) {
+          if (indentIncreased(token) && token.getType() != Token.EOF) { // not for EOF=-1
             indentDepth++;
             indentStops.push(getIndent(token));
             alreadyProcessedBlockStart.add(token);
-            queue.add(0, createToken(incIndentTokenProto));
+            queue.add(0, createTokenWithLastChannel(incIndentTokenProto)); // make sure the previous channel is used here
           } else if (indentDecreased(token)) {
             int curIndent = getIndent(token);
             while ((curIndent == 0 && !indentStops.isEmpty()) || (!indentStops.isEmpty() && indentStops.peek() > curIndent)){
               indentDepth--;
+//              System.err.println("ADDING DEC");
               queue.add(0, createToken(decIndentTokenProto));
               indentStops.pop();
             }
@@ -82,7 +84,8 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
         }
         if (needsEol(token)) {
           alreadyProcessedEol.add(token);
-          queue.add(0, createToken(eolTokenProto));
+            queue.add(0, createToken(eolTokenProto));
+
         }
         // EOF -> all blocks are automatically closed
         if(token.getType() == -1){
@@ -122,6 +125,20 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
     int stopIndex = lastToken != null ? lastToken.getStopIndex() : 0;
     int charPositionInLine = lastToken != null ? lastToken.getCharPositionInLine() + lastToken.getText().length() : 0;
     return getTokenFactory().create(source, proto.getType(), proto.getText(), delegate.getChannel(), stopIndex, stopIndex + 1, lastLine, charPositionInLine);
+  }
+
+  private Token createTokenOnDefault(Token proto) {
+    int stopIndex = lastToken != null ? lastToken.getStopIndex() : 0;
+    int charPositionInLine = lastToken != null ? lastToken.getCharPositionInLine() + lastToken.getText().length() : 0;
+    return getTokenFactory().create(source, proto.getType(), proto.getText(), Token.DEFAULT_CHANNEL, stopIndex, stopIndex + 1, lastLine, charPositionInLine);
+  }
+
+  private Token createTokenWithLastChannel(Token proto) {
+    int stopIndex = lastToken != null ? lastToken.getStopIndex() : 0;
+    int charPositionInLine = lastToken != null ? lastToken.getCharPositionInLine() + lastToken.getText().length() : 0;
+    return getTokenFactory().create(source, proto.getType(), proto.getText(),
+            lastToken == null ? delegate.getChannel() : lastToken.getChannel(),
+            stopIndex, stopIndex + 1, lastLine, charPositionInLine);
   }
 
   protected boolean needsEol(Token token) {

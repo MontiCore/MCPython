@@ -249,17 +249,17 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 					for (ASTStatement functionStatement : functionDeclaration.getStatementBlock().getStatementBlockBody().getStatementList()) {
 						if (functionStatement instanceof ASTExpressionStatement) {
 							ASTExpressionStatement expressionStatement = ((ASTExpressionStatement) functionStatement);
-							if (expressionStatement.getExpression() instanceof ASTAssignmentExpression) {
-								ASTAssignmentExpression assignmentExpression = (ASTAssignmentExpression) expressionStatement.getExpression();
-
-								if (assignmentExpression.getLeft() instanceof ASTFieldAccessExpression) {
-									String name = ((ASTFieldAccessExpression) assignmentExpression.getLeft()).getName();
-									FieldSymbol symbol = new FieldSymbol(name);
-									this.checkNameIsKeyword(symbol, assignmentExpression.get_SourcePositionStart());
-									node.getSpannedScope().add(symbol);
-								}
-
-							}
+//							if (expressionStatement.getExpression() instanceof ASTAssignmentExpression) {
+//								ASTAssignmentExpression assignmentExpression = (ASTAssignmentExpression) expressionStatement.getExpression();
+//
+//								if (assignmentExpression.getLeft() instanceof ASTFieldAccessExpression) {
+//									String name = ((ASTFieldAccessExpression) assignmentExpression.getLeft()).getName();
+//									FieldSymbol symbol = new FieldSymbol(name);
+//									this.checkNameIsKeyword(symbol, assignmentExpression.get_SourcePositionStart());
+//									node.getSpannedScope().add(symbol);
+//								}
+//
+//							}
 						}
 					}
 				}

@@ -129,7 +129,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print("assert ");
 		node.getCondition().accept(getTraverser());
 		printer.print(", ");
-		printer.print("\"" + node.getErrorMessage() + "\"");
+		node.getErrorMessage().accept(getTraverser());
 		printer.println();
 
 		CommentPrettyPrinter.printPostComments(node, printer);
@@ -245,11 +245,11 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// with open file statement
 	@Override
-	public void traverse(ASTWithOpenFileStatement node) {
+	public void traverse(ASTWithStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 		printer.print(" with ");
 		boolean first = true;
-		for (ASTOpenFileExpression openFileExpression : node.getOpenFileExpressionList()) {
+		for (ASTWithStatementContents openFileExpression : node.getWithStatementContentsList()) {
 			if (first) {
 				first = false;
 			} else {
@@ -262,10 +262,12 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 	// open file expression
 	@Override
-	public void traverse(ASTOpenFileExpression node) {
+	public void traverse(ASTWithStatementContents node) {
 		node.getExpression().accept(getTraverser());
-		printer.print(" as ");
-		printer.print(node.getFileName());
+		if (node.isPresentTarget()) {
+			printer.print(" as ");
+			printer.print(node.getTarget());
+		}
 	}
 
 	// variable declaration statement
@@ -289,6 +291,21 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	@Override
 	public void traverse(ASTSimpleInit node) {
 		node.getExpression().accept(getTraverser());
+	}
+
+	@Override
+	public void handle(ASTArguments node) {
+		printer.print("(");
+		boolean first = true;
+		for (ASTArgument argument : node.getArgumentList()) {
+			if (!first) {
+				printer.print(", ");
+			} else {
+				first = false;
+			}
+			argument.accept(getTraverser());
+		}
+		printer.print(")");
 	}
 
 	@Override
@@ -411,7 +428,8 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 	public void traverse(ASTExpressionStatement node) {
 		CommentPrettyPrinter.printPreComments(node, printer);
 
-		node.getExpression().accept(getTraverser());
+//		node.get().accept(getTraverser());
+		// TODO
 		printer.println();
 
 		CommentPrettyPrinter.printPostComments(node, printer);
