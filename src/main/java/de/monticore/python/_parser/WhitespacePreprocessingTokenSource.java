@@ -11,6 +11,8 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
   protected final Token incIndentTokenProto;
   protected final Token decIndentTokenProto;
   protected final int continueLineTokenType;
+  private final List<String> closingParens = List.of(")", "}", "]");
+  private final List<String> openingParens = List.of("(", "{", "[");
   protected int lastLine = 1;
   protected int lastIndent = 0;
   protected Token lastToken;
@@ -190,11 +192,11 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
   }
 
   protected boolean isClosingParen(Token token) {
-    return List.of(")", "}", "]").contains(token.getText());
+    return closingParens.contains(token.getText());
   }
 
   protected boolean isOpeningParen(Token token) {
-    return List.of("(", "{", "[").contains(token.getText());
+    return openingParens.contains(token.getText());
   }
 
   @Override
