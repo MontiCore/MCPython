@@ -100,7 +100,11 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // variable declaration statement
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration STATEMENT_END;
 
-  VariableDeclaration implements Variable = Name (((":" TypeAnnotation)? "=" VariableInit) |  (":" TypeAnnotation ("=" VariableInit)?) );
+  VariableDeclaration implements Variable = Name (
+    ((":" TypeAnnotation)? "=" VariableInit)
+    |
+    (":" TypeAnnotation)
+  );
 
   GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
 

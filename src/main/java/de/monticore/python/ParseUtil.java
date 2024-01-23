@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class ParseUtil {
   public static void main(String[] args) throws IOException {
-    boolean debugPerformance = true;
+    boolean debugPerformance = false;
     boolean failAfterFirstErrorFile = false;
     Log.enableFailQuick(false);
     AtomicInteger overallErrors = new AtomicInteger(0);
