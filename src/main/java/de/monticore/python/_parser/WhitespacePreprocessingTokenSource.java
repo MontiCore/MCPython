@@ -18,6 +18,7 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
   protected Token lastToken;
   protected Pair<TokenSource, CharStream> source;
   protected Set<Token> alreadyProcessedEol = new HashSet<>();
+  protected Set<Token> alreadyProcessedParen = new HashSet<>();
   protected Set<Token> alreadyProcessedBlockStart = new HashSet<>();
   protected Set<Token> alreadyProcessedBlockEnd = new HashSet<>();
   protected LinkedList<Token> queue = new LinkedList<>();
@@ -61,11 +62,10 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
         token = res;
       }
 
-      if (isOpeningParen(token)) {
-        parenDepth++;
-      } else if (isClosingParen(token)) {
+      if (isClosingParen(token)) {
         parenDepth--;
-      } else {
+      }
+      {
         if (isWhitespaceSensitive()) {
           if (indentIncreased(token) && token.getType() != Token.EOF) { // not for EOF=-1
             indentDepth++;
@@ -104,13 +104,21 @@ public class WhitespacePreprocessingTokenSource implements TokenSource {
           }
         }
       }
+
+      if (isOpeningParen(token) && !alreadyProcessedParen.contains(token)) {
+        parenDepth++;
+        alreadyProcessedParen.add(token);
+      }
     }
 
     if (!queue.isEmpty()) {
       res = queue.poll();
     }
 
-    if (isNewLine(res) && parenDepth == 0 && !isClosingParen(res)) {
+    if (
+        isNewLine(res) && parenDepth == 0 && !isClosingParen(res)
+        || isNewLine(res) && parenDepth == 1 && isOpeningParen(res)
+    ) {
       lastIndent = getIndent(res);
     }
     lastLine = res.getLine();
