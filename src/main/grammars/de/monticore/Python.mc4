@@ -180,9 +180,6 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   interface Argument;
   NormalArgument implements Argument = Expression;
   NamedArgument implements Argument = paramName:Name "=" Expression;
-  SpreadListArgument implements Argument = "*" Expression;
-  SpreadMappingArgument implements Argument = "**" Expression;
-  splittoken "**";
 
   // "@" assignment_expression NEWLINE
   //PyDecorator = "@" PyQualifiedName ("(" PyQualifiedName ")")? STATEMENT_END;
@@ -266,6 +263,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
 
   /*======================Expressions===========================================*/
+
+  SpreadListExpression implements Expression = "*" Expression;
+  SpreadMappingExpression implements Expression = "**" Expression;
+  splittoken "**";
 
   // ternary-operator expression
   TernaryOperatorExpression implements Expression <200> = thenExpression:Expression ( "if" condition:Expression
