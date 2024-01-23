@@ -1,26 +1,34 @@
 package de.monticore.python;
 
 import de.monticore.prettyprint.IndentPrinter;
+import de.monticore.python._parser.PythonAntlrParser;
 import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Finding;
 import de.se_rwth.commons.logging.Log;
 import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.atn.DecisionInfo;
+import org.antlr.v4.runtime.atn.DecisionState;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class ParseUtil {
   public static void main(String[] args) throws IOException {
-
+    boolean debugPerformance = true;
     boolean failAfterFirstErrorFile = false;
     Log.enableFailQuick(false);
     AtomicInteger overallErrors = new AtomicInteger(0);
     AtomicInteger fileCounter = new AtomicInteger(0);
     AtomicInteger errorLessFileCounter = new AtomicInteger(0);
+    AtomicBoolean atnPrinted = new AtomicBoolean(false);
+
     Files
         .walk(Paths.get(args[0]))
         .filter(p -> p.toFile().isFile())
@@ -31,6 +39,10 @@ public class ParseUtil {
             Log.getFindings().clear();
             System.out.println("Parsing file:///" + p.toFile().toString().replace("\\", "/"));
             PythonParser parser = PythonMill.parser();
+            parser.debugPerformance = debugPerformance;
+            if(!atnPrinted.get()){
+              atnPrinted.set(true);
+            }
             parser.parse(p.toString());
 
             String c = visPreprocessedContent(parser);
@@ -41,6 +53,11 @@ public class ParseUtil {
             }
             System.out.println(errors.size() + " errors while parsing");
             overallErrors.addAndGet(errors.size());
+
+            if(debugPerformance){
+              printParserProfiling(parser.currentParser);
+            }
+
             if (failAfterFirstErrorFile && !errors.isEmpty()) {
               throw new RuntimeException("Found errors and failAfterFirstErrorFile is enabled");
             }
@@ -83,4 +100,33 @@ public class ParseUtil {
     }
     return ip.getContent();
   }
+
+  public static void printParserProfiling(PythonAntlrParser parser) {
+    System.out.print(String.format("%-" + 35 + "s", "rule"));
+    System.out.print(String.format("%-" + 15 + "s", "time"));
+    System.out.print(String.format("%-" + 15 + "s", "invocations"));
+    System.out.print(String.format("%-" + 15 + "s", "lookahead"));
+    System.out.print(String.format("%-" + 15 + "s", "lookahead(max)"));
+    System.out.print(String.format("%-" + 15 + "s", "ambiguities"));
+    System.out.println(String.format("%-" + 15 + "s", "errors"));
+
+    var infos = Arrays.stream(parser.getParseInfo().getDecisionInfo())
+        .sorted(Comparator.comparing(di -> di.timeInPrediction)).collect(Collectors.toList());
+    for (DecisionInfo decisionInfo : infos) {
+      DecisionState ds = parser.getATN().getDecisionState(decisionInfo.decision);
+      String rule = parser.getRuleNames()[ds.ruleIndex];
+
+      if (decisionInfo.timeInPrediction > 0) {
+        System.out.print(String.format("%-" + 35 + "s", rule));
+        System.out.print(String.format("%-" + 15 + "s", decisionInfo.timeInPrediction));
+        System.out.print(String.format("%-" + 15 + "s", decisionInfo.invocations));
+        System.out.print(String.format("%-" + 15 + "s", decisionInfo.SLL_TotalLook));
+        System.out.print(String.format("%-" + 15 + "s", decisionInfo.SLL_MaxLook));
+        System.out.print(String.format("%-" + 15 + "s", decisionInfo.ambiguities));
+        System.out.println(String.format("%-" + 15 + "s", decisionInfo.errors));
+      }
+    }
+  }
+
+
 }

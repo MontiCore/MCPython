@@ -1,21 +1,21 @@
 package de.monticore.python._parser;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
-
 import de.monticore.python.PythonPreprocessor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
+import org.antlr.v4.runtime.atn.PredictionMode;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 public class PythonParser extends PythonParserTOP {
   // TMP: Used to inspect preprocessing
   public BufferedTokenStream currentTokenStream;
+  public PythonAntlrParser currentParser;
+  public boolean debugPerformance = false;
 
   @Override
   protected PythonAntlrParser create(Reader reader) throws IOException {
@@ -56,10 +56,19 @@ public class PythonParser extends PythonParserTOP {
     BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
     currentTokenStream = stream;
     PythonAntlrParser parser = new PythonAntlrParser(stream);
+    currentParser = parser;
     lexer.setMCParser(parser);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new de.monticore.antlr4.MCErrorListener(parser));
     parser.setFilename(fileName);
+
+    if(debugPerformance) {
+      // TODO: Tmp for performance analysis
+      parser.addErrorListener(new DiagnosticErrorListener());
+      parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+      parser.setProfile(true);
+    }
+
     setError(false);
     return parser;
   }
