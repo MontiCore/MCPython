@@ -71,6 +71,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   interface ForControl ;
   CommonForControl   implements ForControl =  ForVariable          "in" ForIterable ;
   UnpackedForControl implements ForControl = (ForVariable || ",")+ "in" ForIterable ;
+  ParenUnpackedForControl implements ForControl = "(" (ForVariable || ",")+ ")" "in" ForIterable ;
 
   ForIterable = Expression;
   ForVariable implements Variable = Name;
@@ -104,6 +105,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
 
   MultiVariableDeclaration implements Statement = (Name || ",")+ "=" Expression STATEMENT_END;
+  ParenMultiVariableDeclaration implements Statement = "(" (Name || ",")+ ")" "=" Expression STATEMENT_END;
 
   interface VariableInit ;
 
@@ -171,7 +173,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ")";
 
   interface Argument;
-  NormalArgument implements Argument = (paramName:Name "=")? Expression;
+  NormalArgument implements Argument = Expression;
+  NamedArgument implements Argument = paramName:Name "=" Expression;
   SpreadListArgument implements Argument = "*" Expression;
   SpreadMappingArgument implements Argument = "**" Expression;
   splittoken "**";
@@ -215,7 +218,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   fragment token PythonEscapeSequence
        = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
-         | OctalEscape | UnicodeEscape;
+         | OctalEscape | UnicodeEscape | '\\' 'x' HexDigit HexDigit;
+
 
     // TODO: type:key("R")
     // TODO: type:key("fr")
@@ -300,6 +304,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
   ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
+
+  ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
 
   @Override
   AssignmentExpression implements Expression <60> = <rightassoc>
