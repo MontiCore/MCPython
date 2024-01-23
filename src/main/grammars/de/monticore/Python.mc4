@@ -46,6 +46,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   StatementBlockBody = Statement+;
 
   /*===========================Statements======================================*/
+  PassStatement implements Statement, ClassStatement = "pass" STATEMENT_END;
+
   ElseStatementPart = "else" ":" StatementBlock;
 
   PyQualifiedName = (Name || ".")+;
@@ -68,13 +70,12 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   scope ForStatement implements Statement = "for" ForControl ":" StatementBlock
                                             ElseStatementPart? ;
 
-  interface ForControl ;
-  CommonForControl   implements ForControl =  ForVariable          "in" ForIterable ;
-  UnpackedForControl implements ForControl = (ForVariable || ",")+ "in" ForIterable ;
-  ParenUnpackedForControl implements ForControl = "(" (ForVariable || ",")+ ")" "in" ForIterable ;
+  ForControl = ForDecomposition "in" ForIterable;
+  interface ForDecomposition;
+  ForVariable implements Variable, ForDecomposition = Name ("," ForDecomposition)?;
+  ForDecompositionParenthesis implements ForDecomposition = "(" ForDecomposition ")";
 
   ForIterable = Expression;
-  ForVariable implements Variable = Name;
 
   // while statement
   WhileStatement implements Statement = "while" condition:Expression ":" StatementBlock
@@ -197,10 +198,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   EmptyStatement implements Statement = STATEMENT_END;
 
-  MatchStatement implements Statement = "match" Expression ":" MatchBlock;
+  MatchStatement implements Statement = key("match") Expression ":" MatchBlock;
 
   scope MatchBlock = BLOCK_START CaseStatement* BLOCK_END;
-  CaseStatement = "case" (Expression || "|")+ ":" StatementBlock;
+  CaseStatement = key("case") (Expression || "|")+ ("if" condition:Expression)? ":" StatementBlock;
 
   ConditionalExecutionStatement implements Statement = "if" condition: Expression ":" Expression;
 
@@ -311,7 +312,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
 
-  @Override
+  // Has a lot of ambiguity and slows the parser down
+  /*@Override
   AssignmentExpression implements Expression <60> = <rightassoc>
     left:Expression ("," left:Expression)* ","?
 
@@ -319,8 +321,5 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
     operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
               | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
-    right:Expression ("," right:Expression)* ","?;
-
-
-
+    right:Expression ("," right:Expression)* ","?; */
 }

@@ -149,7 +149,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		CommentPrettyPrinter.printPostComments(node, printer);
 	}
 
-	@Override
+	/*@Override
 	public void traverse(ASTCommonForControl node) {
 		node.getForVariable().accept(getTraverser());
 		printer.print(" in ");
@@ -169,7 +169,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		}
 		printer.print(" in ");
 		node.getForIterable().accept(getTraverser());
-	}
+	}*/
 
 	@Override
 	public void traverse(ASTForVariable node) {
