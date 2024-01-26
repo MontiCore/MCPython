@@ -6,9 +6,9 @@ public class PythonArtifactScope extends PythonArtifactScopeTOP {
           && getAstNode().isPresent_SourcePositionStart()
           && getAstNode().get_SourcePositionStart().getFileName().isPresent()
       ){
-        return getAstNode().get_SourcePositionStart().getFileName().get();
+        return getAstNode().get_SourcePositionStart().getFileName().get().replaceAll("[.]py$","");
       }else{
-        return super.getName().replaceAll("[.]py$","");
+        return super.getName();
       }
     }
 }
