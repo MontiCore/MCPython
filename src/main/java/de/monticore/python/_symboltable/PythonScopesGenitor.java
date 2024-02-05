@@ -130,9 +130,12 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 			for (ASTStatement statement : ast.getStatementList()) {
 				if (statement instanceof ASTImportStatement) {
 					String moduleName = ((ASTImportStatement) statement).isPresentModule() ? ((ASTImportStatement) statement).getModule().joined() : null;
+					/*
 					for (ASTPyQualifiedName name : ((ASTImportStatement) statement).getNameList()) {
 						this.createImportScope(functionsResolverScript, moduleName, name.joined());
 					}
+
+					 */
 				}
 			}
 

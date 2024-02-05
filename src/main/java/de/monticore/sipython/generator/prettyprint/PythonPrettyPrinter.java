@@ -80,6 +80,7 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		printer.print("import ");
 
 		boolean first = true;
+		/*
 		for (ASTPyQualifiedName name : node.getNameList()) {
 			if (first) {
 				first = false;
@@ -89,8 +90,12 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 			printer.print(name.joined());
 
 		}
+
+		 */
 		printer.println();
 	}
+
+
 
 	// if-else statement
 	@Override
