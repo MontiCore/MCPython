@@ -20,6 +20,21 @@ class RemoveTypeHints(ast.NodeTransformer):
         node.annotation = None
         return node
 
+    def visit_ClassDef(self, node):
+        new_decorators = []
+        for decorator in node.decorator_list:
+            print(ast.dump(decorator))
+            if "dataclass" in  ast.dump(decorator):
+                continue
+            new_decorators.append(decorator)
+
+        if(len(node.decorator_list) != 0):
+            print("Replacing decorators", node.decorator_list, "by", new_decorators)
+
+        node.decorator_list = new_decorators
+        self.generic_visit(node)
+        return node
+
 
 def remove_type_hints_in_directory(input_directory, output_directory):
     for root, dirs, files in os.walk(input_directory):
@@ -53,7 +68,7 @@ def remove_type_hints_in_directory(input_directory, output_directory):
                     print(f"Error parsing the file '{input_file_path}': {e}")
 
 
-if len(sys.argv) == 1:
+if len(sys.argv) != 3:
     print("Removes type annotations from python code and writes the result to a new dir")
     print("Usage:", "python", sys.argv[0], "<src dir> <target dir>")
     exit(1)
