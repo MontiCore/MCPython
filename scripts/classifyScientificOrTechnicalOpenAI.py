@@ -54,18 +54,21 @@ def buildMessages(fileContent):
 
 
 snippet_files = [os.path.join(root, file) for root, dirs, files in os.walk(args[0]) for file in files]
+snippet_fqn = []
+
 
 allMessages = []
 
 for sfPath in snippet_files:
     with open(sfPath, encoding="utf8") as f:
         content = f.read()
+        snippet_fqn.append(content.splitlines()[0][len("FQN: "):])
         allMessages.append(buildMessages(content))
 
 
 # TODO: tmp: only a few
-allMessages = allMessages[:3]
-print("TMP: Only classifying 3 snippets for experimentation")
+# allMessages = allMessages[:3]
+# print("TMP: Only classifying 3 snippets for experimentation")
 print("Will classify ", len(allMessages), "snippets")
 
 #for msgs in allMessages:
@@ -92,8 +95,13 @@ while True:
         exit(1)
 
 with open("target/results.txt", "a") as resFile:
-    for msgs, sf in tqdm(zip(allMessages, snippet_files)):
+    for msgs, sf in tqdm(zip(allMessages, snippet_fqn)):
         print("Processing ", sf)
         c = getClassification(msgs)
+        # c = "SCIENTIFIC"
         print(c)
-        resFile.write(sf + ":" + c + "\n")
+        scientific = 1.0 if c == "SCIENTIFIC" else 0.0
+        technical = 1.0 if c == "TECHNICAL" else 0.0
+        nullcode = 1 - scientific - technical
+
+        resFile.write( '{"fqn": "' + sf + '", "type": "method", "scientific": ' + str(scientific) + ', "technical": ' + str(technical) + ', "nullcode": ' + str(nullcode) + "}," + "\n")
