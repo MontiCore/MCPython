@@ -46,6 +46,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   StatementBlockBody = Statement+;
 
   /*===========================Statements======================================*/
+  LiteralStatement implements ClassStatement = Literal STATEMENT_END;
+
   PassStatement implements Statement, ClassStatement = "pass" STATEMENT_END;
 
   ElseStatementPart = "else" ":" StatementBlock;
@@ -92,7 +94,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
                                                         ElseStatementPart ?
                                           ("finally"           ":" finallyStatement:StatementBlock )? ;
 
-  ExceptStatement = ( "except" (Name? | "(" (Name || ",")+ ")") ("as" alias:Name)? ":" StatementBlock ) ;
+  ExceptStatement = ( "except" (PyQualifiedName? | "(" (PyQualifiedName || ",")+ ")") ("as" alias:Name)? ":" StatementBlock ) ;
 
   // with open file statement
   scope WithStatement implements Statement = "with" (WithStatementContents || ",")+ ":"
@@ -121,6 +123,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ArrayLiteralExpression  implements Expression = "[" (VariableInit || ",")* ","? "]" ;
   TupleLiteralExpression  implements Expression = "(" (VariableInit || ",")* ","? ")" ;
   DictLiteralExpression   implements Expression = "{" (DictEntry || ",")* ","? "}" ;
+  SetLiteralExpression    implements Expression = "{" (Expression || ",")* ","? "}" ;
 
   DictEntry = key:VariableInit ":" value:VariableInit ;
 
@@ -285,6 +288,14 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   IsExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
   InExpression implements Expression <195>, InfixExpression = left:Expression operator:"in" right:Expression ;
   NotInExpression implements Expression <195>, InfixExpression = left:Expression operator:"not in" right:Expression ;
+
+  //Bitwise expressions
+  BitwiseAndExpression implements Expression <120>, InfixExpression = left:Expression operator:"&" right:Expression;
+  BitwiseXOrExpression implements Expression <120>, InfixExpression = left:Expression operator:"^" right:Expression;
+  BitwiseLeftShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:"<<" right:Expression;
+  BitwiseRightShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:">>" right:Expression;
+
+  BitwiseOnesComplimentExpression implements Expression <120> = "~" Expression;
 
   // lambda expression
   scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;

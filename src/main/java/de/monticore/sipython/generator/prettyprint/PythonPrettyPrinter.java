@@ -10,6 +10,7 @@ import de.monticore.python._visitor.PythonTraverser;
 import de.monticore.python._visitor.PythonVisitor2;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
@@ -225,13 +226,13 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		for (ASTExceptStatement statement : node.getExceptStatementList()) {
 			printer.print("except ");
-			if(statement.isEmptyNames()){
+			if(statement.isEmptyPyQualifiedNames()){
 				// Ignore
-			}else if(statement.sizeNames() == 1) {
-				printer.print(statement.getName(0));
+			}else if(statement.sizePyQualifiedNames() == 1) {
+				printer.print(statement.getPyQualifiedName(0).joined());
 			}else{
 				printer.print("(");
-				printer.print(String.join(", ", statement.getNameList()));
+				printer.print(statement.getPyQualifiedNameList().stream().map(ASTPyQualifiedName::joined).collect(Collectors.joining(", ")));
 				printer.print(")");
 			}
 			printer.println(":");
