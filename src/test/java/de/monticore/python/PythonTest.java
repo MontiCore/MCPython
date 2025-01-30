@@ -406,6 +406,7 @@ public class PythonTest extends AbstractPythonTest {
 		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]\n");
 		parseModelFromStringAndExpectSuccess("var = (1,4)\n");
 		parseModelFromStringAndExpectSuccess("v = 'sdsdf'\n");
+    parseModelFromStringAndExpectSuccess("var = 1,4\n");
 	}
 
 	//invalid local variable declaration
@@ -421,9 +422,6 @@ public class PythonTest extends AbstractPythonTest {
 		parseModelFromStringAndExpectFail("var = 5,5]\n");
 		// We parse valid python only => don't care
     //parseModelFromStringAndExpectFail("var = [,]\n");
-
-		//tuples should be allowed as variable declaration: must be fixed in the grammar
-		parseModelFromStringAndExpectFail("var = 1,4\n");
 	}
 
 	// valid function declaration

@@ -3,10 +3,10 @@ package de.monticore.sipython;
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTBooleanNotExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.*;
-import de.monticore.sipython._cocos.*;
-import de.monticore.siunits.SIUnitsMill;
+import de.monticore.sipython._cocos.SIPythonCoCoChecker;
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -231,6 +231,7 @@ public class SIPythonCocoCheckerTest extends AbstractSIPythonTest {
 		);
 	}
 
+  @Ignore("Can only be checked by CoCo")
 	@Test
 	public void checkInvalidBooleanPython() {
 		parseCodeStringAndCheckCoCosAndExpectError("True = True\n");
@@ -291,7 +292,6 @@ public class SIPythonCocoCheckerTest extends AbstractSIPythonTest {
 	private void checkCoCos(Optional<ASTPythonScript> astPythonScriptOptional) {
 		SIPythonMill.reset();
 		SIPythonMill.init();
-		SIUnitsMill.initializeSIUnits();
 
 		Log.getFindings().clear();
 		if (astPythonScriptOptional.isEmpty()) {

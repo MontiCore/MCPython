@@ -1,6 +1,6 @@
 package de.monticore.sipython.generator;
 
-import de.monticore.literals.prettyprint.MCCommonLiteralsPrettyPrinter;
+import de.monticore.literals.mccommonliterals._prettyprint.MCCommonLiteralsPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.SIPythonMill;
@@ -41,7 +41,7 @@ public class PrintAsSIPythonScript {
         SIPythonSIUnitLiteralsPrettyPrinter siUnitLiteralsPrettyPrinter = new SIPythonSIUnitLiteralsPrettyPrinter(indentPrinter);
         traverser.setSIUnitLiteralsHandler(siUnitLiteralsPrettyPrinter);
 
-        MCCommonLiteralsPrettyPrinter mcCommonLiteralsPrettyPrinter = new MCCommonLiteralsPrettyPrinter(indentPrinter);
+        MCCommonLiteralsPrettyPrinter mcCommonLiteralsPrettyPrinter = new MCCommonLiteralsPrettyPrinter(indentPrinter, true);
         traverser.add4MCCommonLiterals(mcCommonLiteralsPrettyPrinter);
         traverser.setMCCommonLiteralsHandler(mcCommonLiteralsPrettyPrinter);
 

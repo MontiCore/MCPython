@@ -5,6 +5,8 @@ import de.monticore.expressions.commonexpressions._ast.ASTFieldAccessExpression;
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTCallExpressionCoCo;
 import de.monticore.expressions.expressionsbasis._ast.ASTExpression;
 import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
+import de.monticore.python._ast.ASTArgument;
+import de.monticore.python._ast.ASTArguments;
 import de.monticore.python._ast.ASTOptionalFunctionParameter;
 import de.monticore.python._symboltable.IPythonScope;
 import de.monticore.symbols.basicsymbols._symboltable.FunctionSymbol;
@@ -17,7 +19,7 @@ public class PythonFunctionArgumentSizeCoco implements CommonExpressionsASTCallE
 
 	@Override
 	public void check(ASTCallExpression node) {
-		List<ASTExpression> args = node.getArguments().getExpressionList();
+		List<ASTArgument> args = ((ASTArguments)node.getArguments()).getArgumentList();
 		Optional<FunctionSymbol> optionalFunctionSymbol = getFunctionSymbol(node.getExpression());
 		if (optionalFunctionSymbol.isPresent()) {
 			FunctionSymbol symbol = optionalFunctionSymbol.get();

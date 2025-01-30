@@ -1,19 +1,14 @@
 package de.monticore.sipython._parser;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
-
 import de.monticore.python.PythonPreprocessor;
 import de.monticore.python._parser.WhitespacePreprocessingTokenSource;
-import org.antlr.v4.runtime.BufferedTokenStream;
-import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 public class SIPythonParser extends SIPythonParserTOP {
 
@@ -53,6 +48,6 @@ public class SIPythonParser extends SIPythonParserTOP {
             new CommonToken(SIPythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
             SIPythonAntlrLexer.CONTINUE_LINE_TOKEN
         );
-        return new BufferedTokenStream(ws);
+        return new CommonTokenStream(ws);
     }
 }

@@ -1,7 +1,7 @@
 package de.monticore.sipython.generator.prettyprint;
 
 import de.monticore.expressions.assignmentexpressions._ast.ASTAssignmentExpression;
-import de.monticore.expressions.prettyprint.AssignmentExpressionsPrettyPrinter;
+import de.monticore.expressions.assignmentexpressions._prettyprint.AssignmentExpressionsPrettyPrinter;
 import de.monticore.prettyprint.CommentPrettyPrinter;
 import de.monticore.prettyprint.IndentPrinter;
 import de.se_rwth.commons.logging.Log;
@@ -9,7 +9,7 @@ import de.se_rwth.commons.logging.Log;
 public class SIPythonAssignmentExpressionsPrettyPrinter extends AssignmentExpressionsPrettyPrinter {
 
 	public SIPythonAssignmentExpressionsPrettyPrinter(IndentPrinter printer) {
-		super(printer);
+		super(printer, true);
 	}
 
 	@Override

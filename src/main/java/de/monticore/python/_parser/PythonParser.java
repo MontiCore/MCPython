@@ -1,8 +1,8 @@
 package de.monticore.python._parser;
 
 import de.monticore.python.PythonPreprocessor;
-import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.atn.PredictionMode;
 
@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 
 public class PythonParser extends PythonParserTOP {
   // TMP: Used to inspect preprocessing
-  public BufferedTokenStream currentTokenStream;
+  public CommonTokenStream currentTokenStream;
   public PythonAntlrParser currentParser;
   public boolean debugPerformance = false;
 
@@ -29,7 +29,7 @@ public class PythonParser extends PythonParserTOP {
         PythonAntlrLexer.CONTINUE_LINE_TOKEN
     );
     // Use CommonTokenStream to hide the hidden channel again
-    BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
+    CommonTokenStream stream = new CommonTokenStream(tokensWithPreprocessing);
     currentTokenStream = stream;
     PythonAntlrParser parser = new PythonAntlrParser(stream);
     lexer.setMCParser(parser);
@@ -53,7 +53,7 @@ public class PythonParser extends PythonParserTOP {
         PythonAntlrLexer.CONTINUE_LINE_TOKEN
     );
     // Use CommonTokenStream
-    BufferedTokenStream stream = new BufferedTokenStream(tokensWithPreprocessing);
+    CommonTokenStream stream = new CommonTokenStream(tokensWithPreprocessing);
     currentTokenStream = stream;
     PythonAntlrParser parser = new PythonAntlrParser(stream);
     currentParser = parser;

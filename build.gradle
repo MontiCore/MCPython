@@ -4,20 +4,21 @@ plugins {
     id "monticore" version "$mc_version" // MontiCore Plugin
     id "maven-publish"
     id "com.github.johnrengelman.shadow" version "6.0.0"
-//    id 'cz.malohlava.visteg' version '1.0.5'
     id 'org.ec4j.editorconfig' version "0.0.3"
 }
 
-def commons_version = "1.7.9"
-def grammar_classifier = "grammars"
 def grammarDir = "src/main/grammars"
 def testGrammarDir = "src/test/grammars"
 def jscience_version = "4.3.1"
 
 group = "de.monticore"
 description = "SIPython"
-sourceCompatibility = "11"
 
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(11))
+  }
+}
 
 // configure non-standard source sets
 sourceSets {
@@ -57,12 +58,6 @@ buildDir = file("$projectDir/target")
 configurations { grammar }
 
 dependencies {
-    implementation "de.monticore:siunits:$mc_version"
-    grammar "de.monticore:siunits:$mc_version:grammars"
-
-    implementation "de.se_rwth.commons:se-commons-logging:$commons_version"
-    implementation "de.se_rwth.commons:se-commons-utilities:$commons_version"
-    implementation "com.google.guava:guava:25.1-jre"
     implementation "de.monticore:monticore-runtime:${project.properties['mc_version']}"
     implementation "de.monticore:monticore-grammar:${project.properties['mc_version']}"
     implementation ("de.monticore:monticore-grammar:$mc_version") {capabilities {
@@ -72,14 +67,10 @@ dependencies {
     grammar implementation ("de.monticore:monticore-grammar:$mc_version") {capabilities {
         requireCapability("de.monticore:monticore-grammar-grammars") }
     }
-    implementation "ch.qos.logback:logback-classic:1.1.7"
 
     testImplementation ("de.monticore:monticore-grammar:${project.properties['mc_version']}") {capabilities {
         requireCapability("de.monticore:monticore-grammar-tests") }
     }
-//    testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.2"
-//    testImplementation "org.junit.jupiter:junit-jupiter-engine:5.6.2"
-//    testImplementation "org.junit.jupiter:junit-jupiter-params:5.6.2"
     testImplementation "org.junit.vintage:junit-vintage-engine:5.6.2"
     testImplementation "junit:junit:$junit_version"
     testImplementation "com.github.javaparser:javaparser-symbol-solver-core:3.14.11"

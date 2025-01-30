@@ -5,18 +5,18 @@ import de.monticore.literals.mccommonliterals._ast.ASTBasicDoubleLiteral;
 import de.monticore.literals.mccommonliterals._ast.ASTNatLiteral;
 import de.monticore.literals.mccommonliterals._ast.ASTNumericLiteral;
 import de.monticore.prettyprint.IndentPrinter;
-import de.monticore.siunitliterals._ast.ASTSIUnitLiteral;
-import de.monticore.siunitliterals._ast.ASTSignedSIUnitLiteral;
-import de.monticore.siunitliterals.prettyprint.SIUnitLiteralsPrettyPrinter;
-import de.monticore.siunitliterals.utility.SIUnitLiteralDecoder;
-import de.monticore.siunits._ast.ASTSIUnitKindGroupWithExponent;
-import de.monticore.siunits._ast.ASTSIUnitPrimitive;
-import de.monticore.siunits._ast.ASTSIUnitWithPrefix;
+import de.monticore.siunit.siunitliterals._ast.ASTSIUnitLiteral;
+import de.monticore.siunit.siunitliterals._ast.ASTSignedSIUnitLiteral;
+import de.monticore.siunit.siunitliterals._prettyprint.SIUnitLiteralsPrettyPrinter;
+import de.monticore.siunit.siunits._ast.ASTSIUnitKindGroupWithExponent;
+import de.monticore.siunit.siunits._ast.ASTSIUnitPrimitive;
+import de.monticore.siunit.siunits._ast.ASTSIUnitWithPrefix;
+
 
 public class SIPythonSIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPrinter {
 
     public SIPythonSIUnitLiteralsPrettyPrinter(IndentPrinter printer) {
-        super(printer);
+        super(printer, true);
     }
 
     @Override
@@ -81,7 +81,7 @@ public class SIPythonSIUnitLiteralsPrettyPrinter extends SIUnitLiteralsPrettyPri
 
     @Override
     public void traverse(ASTSignedSIUnitLiteral node) {
-        printer.print(SIUnitLiteralDecoder.doubleOf(node));
+        printer.print(node.getSignedNumericLiteral());
     }
 
 }
