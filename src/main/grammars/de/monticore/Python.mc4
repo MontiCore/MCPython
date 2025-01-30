@@ -16,7 +16,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   PythonScript = Statement*;
 
   @Override
-  token SL_COMMENT = "#" (~('\n' | '\r' ))* : ->skip {storeComment();};
+  token SL_COMMENT = "#" (~('\n' | '\r' ))* : -> channel(HIDDEN);
   token BLOCK_START = '\u2983';
   token BLOCK_END = '\u2984';
   token STATEMENT_END = ';'? '\u204f' | ';' '\u204f'?;
@@ -58,7 +58,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   };
 
   // import statement
-  ImportStatement implements Statement = ( "from" (leadingDots:"."+)? (module:PyQualifiedName)? )? "import" (star:"*" | (ModuleWithOptionalAlias || ",")+ )  STATEMENT_END;
+  ImportStatement implements Statement = ( "from" ((leadingDots:"."+) | (leadingDots:"."+)? (module:PyQualifiedName)) )? "import" (star:"*" | (ModuleWithOptionalAlias || ",")+ )  STATEMENT_END;
   ModuleWithOptionalAlias = name:PyQualifiedName ("as" alias:Name)?;
 
 

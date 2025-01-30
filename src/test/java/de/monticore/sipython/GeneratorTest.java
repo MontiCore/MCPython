@@ -1,7 +1,6 @@
 package de.monticore.sipython;
 
 import de.monticore.sipython.generator.Generator;
-import de.monticore.siunits.SIUnitsMill;
 import de.se_rwth.commons.logging.Log;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -24,7 +23,6 @@ public class GeneratorTest {
         Log.enableFailQuick(false);
         SIPythonMill.reset();
         SIPythonMill.init();
-        SIUnitsMill.initializeSIUnits();
     }
 
     @Test

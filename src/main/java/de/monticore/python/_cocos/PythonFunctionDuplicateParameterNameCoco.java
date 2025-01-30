@@ -29,15 +29,20 @@ public class PythonFunctionDuplicateParameterNameCoco implements PythonASTFuncti
 		PythonTypeDispatcher td = new PythonTypeDispatcher();
 
 		for (ASTFunctionParameter parameter : parameters) {
-			if(td.isASTVariable(parameter)) {
-				String name = td.asASTVariable(parameter).getName();
-				if (names.contains(name)) {
-					Log.error("Duplicate parameter name '" + name + "' in function '" + node.getName() +
-							"' " + node.get_SourcePositionStart());
-				} else {
-					names.add(name);
-				}
-			}
+      String name = null;
+			if(td.isBasicSymbolsASTTypeVar(parameter)) {
+				name = td.asBasicSymbolsASTTypeVar(parameter).getName();
+			}else if(td.isPythonASTSimpleFunctionParameter(parameter)){
+        name = td.asPythonASTSimpleFunctionParameter(parameter).getName();
+      }
+      if (name != null) {
+        if (names.contains(name)) {
+          Log.error("Duplicate parameter name '" + name + "' in function '" + node.getName() +
+              "' " + node.get_SourcePositionStart());
+        } else {
+          names.add(name);
+        }
+      }
 		}
 	}
 }

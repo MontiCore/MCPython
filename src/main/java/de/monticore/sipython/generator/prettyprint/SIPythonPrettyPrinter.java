@@ -7,7 +7,7 @@ import de.monticore.sipython._ast.ASTSIUnitConversion;
 import de.monticore.sipython._visitor.SIPythonHandler;
 import de.monticore.sipython._visitor.SIPythonTraverser;
 import de.monticore.sipython._visitor.SIPythonVisitor2;
-import de.monticore.siunitliterals._ast.ASTSIUnitLiteral;
+import de.monticore.siunit.siunitliterals._ast.ASTSIUnitLiteral;
 
 public class SIPythonPrettyPrinter implements SIPythonHandler, SIPythonVisitor2 {
 

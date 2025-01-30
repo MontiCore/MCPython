@@ -1,11 +1,13 @@
 package de.monticore.sipython;
 
 import de.monticore.sipython.generator.Generator;
-import de.monticore.siunits.SIUnitsMill;
+import de.monticore.siunit.siunits.SIUnitsMill;
 import de.se_rwth.commons.logging.Log;
-import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 
 public class Main {
@@ -111,6 +113,6 @@ public class Main {
 		Log.enableFailQuick(false);
 		SIPythonMill.reset();
 		SIPythonMill.init();
-		SIUnitsMill.initializeSIUnits();
+		SIUnitsMill.init();
 	}
 }

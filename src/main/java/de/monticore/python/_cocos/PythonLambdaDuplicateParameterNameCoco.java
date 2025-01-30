@@ -17,8 +17,8 @@ public class PythonLambdaDuplicateParameterNameCoco implements PythonASTLambdaEx
 		PythonTypeDispatcher td = new PythonTypeDispatcher();
 
 		for (ASTFunctionParameter parameter : node.getFunctionParameters().getFunctionParameterList()) {
-			if(td.isASTVariable(parameter)) {
-				String name = td.asASTVariable(parameter).getName();
+			if(td.isBasicSymbolsASTVariable(parameter)) {
+				String name = td.asBasicSymbolsASTVariable(parameter).getName();
 				if (names.contains(name)) {
 					Log.error("Duplicate parameter name '" + name + "' in lambda function " + node.get_SourcePositionStart());
 				} else {

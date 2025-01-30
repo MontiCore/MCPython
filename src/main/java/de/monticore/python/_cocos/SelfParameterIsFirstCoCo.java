@@ -11,7 +11,7 @@ public class SelfParameterIsFirstCoCo implements PythonASTClassFunctionParameter
 
     for (int i = 0; i < node.getFunctionParameterList().size(); i++) {
       var c = node.getFunctionParameter(i);
-      if (td.isASTVariable(c) && td.asASTVariable(c).getName().equals("self") && i != 0) {
+      if (td.isBasicSymbolsASTVariable(c) && td.asBasicSymbolsASTVariable(c).getName().equals("self") && i != 0) {
         Log.error("Parameter 'self' must be the first parameter", c.get_SourcePositionStart(), c.get_SourcePositionEnd());
       }
     }

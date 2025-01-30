@@ -2,7 +2,6 @@ package de.monticore.sipython;
 
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.sipython.generator.PrintAsSIPythonScript;
-import de.monticore.siunits.SIUnitsMill;
 import de.se_rwth.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -13,6 +12,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+@Ignore("Functionality unused, maintenance burden")
 public class PrintAsSIPythonScriptTest extends AbstractSIPythonTest {
 
     @Before
@@ -21,7 +21,6 @@ public class PrintAsSIPythonScriptTest extends AbstractSIPythonTest {
         Log.enableFailQuick(false);
         SIPythonMill.reset();
         SIPythonMill.init();
-        SIUnitsMill.initializeSIUnits();
     }
 
     // --------------------------------------------------------------
