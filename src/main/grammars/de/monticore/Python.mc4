@@ -168,7 +168,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
   TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
   QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
-  //ComplexTypeAnnotation     implements TypeAnnotation = Expression;
+  ComplexTypeAnnotation     implements TypeAnnotation = Expression;
 
   SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
   OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
@@ -327,7 +327,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
 
   // Has a lot of ambiguity and slows the parser down
-  /*@Override
+  // TODO: if annotation is used only one expression can be on the lhs!
+  @Override
   AssignmentExpression implements Expression <60> = <rightassoc>
     left:Expression ("," left:Expression)* ","?
 
@@ -335,5 +336,5 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
     operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
               | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
-    right:Expression ("," right:Expression)* ","?; */
+    right:Expression ("," right:Expression)* ","?;
 }
