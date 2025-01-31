@@ -326,15 +326,17 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
 
-  // Has a lot of ambiguity and slows the parser down
-  // TODO: if annotation is used only one expression can be on the lhs!
   @Override
   AssignmentExpression implements Expression <60> = <rightassoc>
     left:Expression ("," left:Expression)* ","?
-
-    (":" annotated: Expression)? // borrowed from annotated_assignment_stmt
-
     operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
               | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
     right:Expression ("," right:Expression)* ","?;
+
+  AnnotatedAssignmentExpression implements Expression <60> = <rightassoc>
+      left:Expression
+      (":" annotated: Expression)? // borrowed from annotated_assignment_stmt
+      operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
+                | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
+      right:Expression ("," right:Expression)* ","?;
 }
