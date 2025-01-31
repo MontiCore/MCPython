@@ -3,7 +3,7 @@ package de.monticore;
 
 /*
  * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
- * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏  
+ * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
  */
 
 grammar Python extends  de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
@@ -168,7 +168,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
   TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
   QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
-  ComplexTypeAnnotation     implements TypeAnnotation = Expression;
+  // ComplexTypeAnnotation     implements TypeAnnotation = Expression;
 
   SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
   OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
@@ -326,7 +326,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
 
-  @Override
+  /*@Override
   AssignmentExpression implements Expression <60> = <rightassoc>
     left:Expression ("," left:Expression)* ","?
     operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
@@ -335,8 +335,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   AnnotatedAssignmentExpression implements Expression <60> = <rightassoc>
       left:Expression
-      (":" annotated: Expression)? // borrowed from annotated_assignment_stmt
+      ":" annotated: TypeAnnotation // borrowed from annotated_assignment_stmt
       operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
                 | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
-      right:Expression ("," right:Expression)* ","?;
+      right:Expression; */
 }
