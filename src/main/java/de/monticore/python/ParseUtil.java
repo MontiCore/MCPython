@@ -8,8 +8,12 @@ import de.se_rwth.commons.logging.Log;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.DecisionState;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -46,6 +50,9 @@ public class ParseUtil {
             parser.parse(p.toString());
 
             String c = visPreprocessedContent(parser);
+            File f = new File("build/preprocessing/" + p.toFile().getName() + ".pre");
+            f.getParentFile().mkdirs();
+            FileUtils.write(f, c, StandardCharsets.UTF_8);
 
             List<Finding> errors = Log.getFindings().stream().filter(Finding::isError).collect(Collectors.toList());
             for (Finding error : errors) {

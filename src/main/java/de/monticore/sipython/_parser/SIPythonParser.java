@@ -1,7 +1,8 @@
 package de.monticore.sipython._parser;
 
 import de.monticore.python.PythonPreprocessor;
-import de.monticore.python._parser.WhitespacePreprocessingTokenSource;
+import de.monticore.python._parser.PreprocessingTokenSource;
+import de.monticore.python._parser.SIPythonPreprocessingTokens;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
@@ -11,11 +12,13 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
 public class SIPythonParser extends SIPythonParserTOP {
+    public CommonTokenStream currentTokenStream;
 
     @Override
     protected SIPythonAntlrParser create(Reader reader) throws IOException {
         SIPythonAntlrLexer lexer = new SIPythonAntlrLexer(org.antlr.v4.runtime.CharStreams.fromReader(reader));
-        TokenStream stream = getTokensWithPreprocessing(lexer);
+        CommonTokenStream stream = getTokensWithPreprocessing(lexer);
+        currentTokenStream = stream;
 
         SIPythonAntlrParser parser = new SIPythonAntlrParser(stream);
         lexer.setMCParser(parser);
@@ -29,7 +32,8 @@ public class SIPythonParser extends SIPythonParserTOP {
     @Override
     protected SIPythonAntlrParser create(String fileName) throws IOException {
         SIPythonAntlrLexer lexer = new SIPythonAntlrLexer(org.antlr.v4.runtime.CharStreams.fromFileName(fileName, StandardCharsets.UTF_8));
-        TokenStream stream = getTokensWithPreprocessing(lexer);
+        CommonTokenStream stream = getTokensWithPreprocessing(lexer);
+        currentTokenStream = stream;
 
         SIPythonAntlrParser parser = new SIPythonAntlrParser(stream);
         lexer.setMCParser(parser);
@@ -40,13 +44,13 @@ public class SIPythonParser extends SIPythonParserTOP {
         return parser;
     }
 
-    public static TokenStream getTokensWithPreprocessing(SIPythonAntlrLexer lexer){
-        WhitespacePreprocessingTokenSource ws = new WhitespacePreprocessingTokenSource(
-            lexer,
-            new CommonToken(SIPythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
-            new CommonToken(SIPythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
-            new CommonToken(SIPythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
-            SIPythonAntlrLexer.CONTINUE_LINE_TOKEN
+    public static CommonTokenStream getTokensWithPreprocessing(SIPythonAntlrLexer lexer){
+        PreprocessingTokenSource ws = new PreprocessingTokenSource(
+                lexer,
+                new CommonToken(SIPythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
+                new CommonToken(SIPythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
+                new CommonToken(SIPythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
+                new SIPythonPreprocessingTokens()
         );
         return new CommonTokenStream(ws);
     }

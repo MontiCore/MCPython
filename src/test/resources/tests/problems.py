@@ -73,3 +73,6 @@ def a(b : Union[Type1 |  Type2]):
 def map_stack_to_surfaces(gempy_model: GeoModel, mapping_object: Union[dict[str, list[str]] | dict[str, tuple]],
                           set_series: bool = True, remove_unused_series=True) -> StructuralFrame:
     pass
+
+if True:
+    foo = foo.bar('[')

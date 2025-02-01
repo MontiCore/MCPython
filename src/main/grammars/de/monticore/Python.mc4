@@ -5,7 +5,6 @@ package de.monticore;
  * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
  * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
  */
-
 grammar Python extends  de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
                         de.monticore.expressions.CommonExpressions,
     //                    de.monticore.expressions.BitExpressions, // For union
@@ -14,6 +13,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
                         de.monticore.symbols.OOSymbols {
 
   PythonScript = Statement*;
+
+  @Override
+  token WS = (' ' | '\t' | '\r' | '\n' ) : -> channel(HIDDEN);
 
   @Override
   token SL_COMMENT = "#" (~('\n' | '\r' ))* : -> channel(HIDDEN);
@@ -58,7 +60,17 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   };
 
   // import statement
-  ImportStatement implements Statement = ( "from" (leadingDots:"."+)? (module:PyQualifiedName)? )? "import" (star:"*" | (ModuleWithOptionalAlias || ",")+ )  STATEMENT_END;
+  ImportStatement implements Statement =
+      ("from" {!next("import")}? (leadingDots:"."*) (module:PyQualifiedName)?)?
+      "import"
+          (
+              ModuleList
+              | paren:"(" ModuleList ")"
+          )
+      STATEMENT_END;
+
+  ModuleList = star:"*" | (ModuleWithOptionalAlias || ",")+;
+
   ModuleWithOptionalAlias = name:PyQualifiedName ("as" alias:Name)?;
 
 
@@ -76,7 +88,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   ForControl = ForDecomposition "in" ForIterable;
   interface ForDecomposition;
-  ForVariable implements Variable, ForDecomposition = Name ("," ForDecomposition)?;
+  ForVariable implements Variable, ForDecomposition = Name;
+  ForDecompositionComma implements ForDecomposition = ForDecomposition "," ForDecomposition;
   ForDecompositionParenthesis implements ForDecomposition = "(" ForDecomposition ")";
 
   ForIterable = Expression;
@@ -89,12 +102,19 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ContinueStatement implements Statement = "continue" STATEMENT_END;
 
   // try-except-finally statement
-  TryExceptStatement implements Statement = "try"                           ":" tryStatement:StatementBlock
-                                          ExceptStatement+
-                                                        ElseStatementPart ?
-                                          ("finally"           ":" finallyStatement:StatementBlock )? ;
+  TryExceptStatement implements Statement = "try" ":" tryStatement:StatementBlock
+                                              (
+                                                  (
+                                                        ExceptStatement+
+                                                        ElseStatementPart?
+                                                        FinallyStatement?
+                                                  )
+                                                  | FinallyStatement
+                                              )
+                                          ;
 
-  ExceptStatement = ( "except" (PyQualifiedName? | "(" (PyQualifiedName || ",")+ ")") ("as" alias:Name)? ":" StatementBlock ) ;
+  ExceptStatement = "except" (PyQualifiedName? | "(" (PyQualifiedName || ",")+ ")") ("as" alias:Name)? ":" StatementBlock;
+  FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
   // with open file statement
   scope WithStatement implements Statement = "with" (WithStatementContents || ",")+ ":"
@@ -168,7 +188,9 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
   TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
   QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
-  // ComplexTypeAnnotation     implements TypeAnnotation = Expression;
+  AlternativeTypeAnnotation implements TypeAnnotation = <rightassoc> lhs:TypeAnnotation "|" rhs:TypeAnnotation;
+  EllipsisTypeAnnotation    implements TypeAnnotation = "...";
+  // ComplexTypeAnnotation  implements TypeAnnotation = Expression;
 
   SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
   OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
@@ -198,7 +220,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // expression statement
   ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
 
-  EmptyStatement implements Statement = STATEMENT_END;
+  EmptyStatement implements Statement, ClassStatement = STATEMENT_END;
 
   MatchStatement implements Statement = key("match") Expression ":" MatchBlock;
 
@@ -221,7 +243,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
     = (StringCharacterPython)+;
 
   fragment token StringCharacterPython
-    = ~ ('\''| '\\') | PythonEscapeSequence;
+    = ~ ('\''| '\\' | '\n') | PythonEscapeSequence;
 
   fragment token PythonEscapeSequence
        = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
@@ -291,6 +313,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   //Bitwise expressions
   BitwiseAndExpression implements Expression <120>, InfixExpression = left:Expression operator:"&" right:Expression;
+  BitwiseOrExpression implements Expression <120>, InfixExpression = left:Expression operator:"|" right:Expression;
   BitwiseXOrExpression implements Expression <120>, InfixExpression = left:Expression operator:"^" right:Expression;
   BitwiseLeftShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:"<<" right:Expression;
   BitwiseRightShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:">>" right:Expression;
@@ -310,7 +333,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   interface scope symbol PythonClass = Name ;
 
   // class declaration statement
-  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" superClass:PyQualifiedName? ")" )? ":" ClassStatementBlock ;
+  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" superClasses:(PyQualifiedName || ",")* ")" )? ":" ClassStatementBlock ;
 
   interface ClassStatement;
 
@@ -331,12 +354,16 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
     left:Expression ("," left:Expression)* ","?
     operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
               | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
-    right:Expression ("," right:Expression)* ","?;
+    right:Expression ("," right:Expression)* ","?; */
 
   AnnotatedAssignmentExpression implements Expression <60> = <rightassoc>
       left:Expression
-      ":" annotated: TypeAnnotation // borrowed from annotated_assignment_stmt
+      ":" annotated: TypeAnnotation
       operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
                 | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
-      right:Expression; */
+      right:Expression;
+
+  UnpackingAssignmentExpression implements Expression <60> = <rightassoc>
+    "(" left:Expression ("," left:Expression)* ","? ")" "="
+    right: Expression;
 }

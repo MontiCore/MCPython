@@ -28,7 +28,47 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 		this.initPythonKeywords();
 	}
 
-	private void initPythonKeywords() {
+	private void initPythonKeywords(){
+		pythonKeywords.addAll(List.of(
+				"False",
+				"None",
+				"True",
+				"and",
+				"as",
+				"assert",
+				"async",
+				"await",
+				"break",
+				"class",
+				"continue",
+				"def",
+				"del",
+				"elif",
+				"else",
+				"except",
+				"finally",
+				"for",
+				"from",
+				"global",
+				"if",
+				"import",
+				"in",
+				"is",
+				"lambda",
+				"nonlocal",
+				"not",
+				"or",
+				"pass",
+				"raise",
+				"return",
+				"try",
+				"while",
+				"with",
+				"yield"
+		));
+	}
+
+	private void initPythonKeywordsFromRuntime() {
 		try {
 			File keywordsScript = new File("keywords.py");
 

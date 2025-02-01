@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-@Ignore("Needed for Artifact Analysis")
 public class TestJuelichRepos {
 
   @Before
@@ -28,17 +27,18 @@ public class TestJuelichRepos {
 
     File file = new File("src/test/resources/preprocessd_juelich_examples/bletl");
     for (File testFile : file.listFiles()) {
+      System.out.println("Parsing " + testFile);
       Assert.assertTrue(testFile.getAbsolutePath(),testFile.exists());
       PythonParser p = PythonMill.parser();
       Optional<ASTPythonScript> opt = p.parse(testFile.getAbsolutePath());
 
       Log.getFindings().forEach(System.err::println);
+      System.out.println(opt);
 
       System.err.print("");
-      System.err.print(p.currentTokenStream.getTokens());
+      //System.err.print(p.currentTokenStream.getTokens());
+      Assert.assertEquals(0, Log.getErrorCount());
     }
-
-    Assert.assertEquals(0, Log.getErrorCount());
   }
 
   @Test
@@ -53,7 +53,7 @@ public class TestJuelichRepos {
       Log.getFindings().forEach(System.err::println);
 
       System.err.print("");
-      System.err.print(p.currentTokenStream.getTokens());
+      //System.err.print(p.currentTokenStream.getTokens());
     }
 
     Assert.assertEquals(0, Log.getErrorCount());
@@ -71,7 +71,7 @@ public class TestJuelichRepos {
       Log.getFindings().forEach(System.err::println);
 
       System.err.print("");
-      System.err.print(p.currentTokenStream.getTokens());
+      //System.err.print(p.currentTokenStream.getTokens());
     }
 
     Assert.assertEquals(0, Log.getErrorCount());
@@ -89,7 +89,7 @@ public class TestJuelichRepos {
       Log.getFindings().forEach(System.err::println);
 
       System.err.print("");
-      System.err.print(p.currentTokenStream.getTokens());
+      //System.err.print(p.currentTokenStream.getTokens());
     }
 
     Assert.assertEquals(0, Log.getErrorCount());

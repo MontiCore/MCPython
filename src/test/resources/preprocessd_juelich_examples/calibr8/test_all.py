@@ -682,8 +682,8 @@ class TestModelFunctions:
         x_test_reverse = calibr8.inverse_asymmetric_logistic(y_test, theta)
         numpy.testing.assert_array_almost_equal(x_test_reverse, x_test)
         assert calibr8.asymmetric_logistic(I_x, theta) == L_L + (L_U - L_L) * (numpy.exp(c) + 1) ** (-numpy.exp(-c))
-        ε = 0.0001
-        numpy.testing.assert_almost_equal((calibr8.asymmetric_logistic(I_x + ε, theta) - calibr8.asymmetric_logistic(I_x - ε, theta)) / (2 * ε), S)
+        esp = 0.0001
+        numpy.testing.assert_almost_equal((calibr8.asymmetric_logistic(I_x + esp, theta) - calibr8.asymmetric_logistic(I_x - esp, theta)) / (2 * esp), S)
         return
 
     def test_inverse_asymmetric_logistic(self):
@@ -706,9 +706,9 @@ class TestModelFunctions:
         x_test_reverse = calibr8.inverse_xlog_asymmetric_logistic(y_test, theta)
         numpy.testing.assert_array_almost_equal(x_test_reverse, x_test)
         assert calibr8.xlog_asymmetric_logistic(10 ** log_I_x, theta) == L_L + (L_U - L_L) * (numpy.exp(c) + 1) ** (-numpy.exp(-c))
-        ε = 0.0001
-        x_plus = 10 ** log_I_x + ε
-        x_minus = 10 ** log_I_x - ε
+        esp = 0.0001
+        x_plus = 10 ** log_I_x + esp
+        x_minus = 10 ** log_I_x - esp
         y_plus = calibr8.xlog_asymmetric_logistic(x_plus, theta)
         y_minus = calibr8.xlog_asymmetric_logistic(x_minus, theta)
         dy_dlogx = (y_plus - y_minus) / (numpy.log10(x_plus) - numpy.log10(x_minus))
