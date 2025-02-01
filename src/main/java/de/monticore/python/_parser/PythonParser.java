@@ -20,24 +20,29 @@ public class PythonParser extends PythonParserTOP {
   @Override
   protected PythonAntlrParser create(Reader reader) throws IOException {
     PythonAntlrLexer lexer = new PythonAntlrLexer(org.antlr.v4.runtime.CharStreams.fromReader(reader));
-
-    WhitespacePreprocessingTokenSource tokensWithPreprocessing = new WhitespacePreprocessingTokenSource(
-        lexer,
-        new CommonToken(PythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
-        new CommonToken(PythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
-        new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
-        PythonAntlrLexer.CONTINUE_LINE_TOKEN
-    );
-    // Use CommonTokenStream to hide the hidden channel again
-    CommonTokenStream stream = new CommonTokenStream(tokensWithPreprocessing);
-    currentTokenStream = stream;
+    CommonTokenStream stream = getPreprocessedTokenStream(lexer);
     PythonAntlrParser parser = new PythonAntlrParser(stream);
     lexer.setMCParser(parser);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new de.monticore.antlr4.MCErrorListener(parser));
+
+    currentTokenStream = stream;
+
     parser.setFilename("StringReader");
     setError(false);
     return parser;
+  }
+
+  public static CommonTokenStream getPreprocessedTokenStream(PythonAntlrLexer lexer) {
+    PreprocessingTokenSource tokensWithPreprocessing = new PreprocessingTokenSource(
+            lexer,
+        new CommonToken(PythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
+        new CommonToken(PythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
+        new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
+        new PythonPreprocessingTokens()
+    );
+    // Use CommonTokenStream to hide the hidden channel again
+    return new CommonTokenStream(tokensWithPreprocessing);
   }
 
   @Override
@@ -45,15 +50,7 @@ public class PythonParser extends PythonParserTOP {
     PythonAntlrLexer lexer = new PythonAntlrLexer(org.antlr.v4.runtime.CharStreams.fromReader(
         new FileReader(fileName, StandardCharsets.UTF_8)));
 
-    WhitespacePreprocessingTokenSource tokensWithPreprocessing = new WhitespacePreprocessingTokenSource(
-        lexer,
-        new CommonToken(PythonAntlrLexer.STATEMENT_END, PythonPreprocessor.STATEMENT_END),
-        new CommonToken(PythonAntlrLexer.BLOCK_START, PythonPreprocessor.BLOCK_START),
-        new CommonToken(PythonAntlrLexer.BLOCK_END, PythonPreprocessor.BLOCK_END),
-        PythonAntlrLexer.CONTINUE_LINE_TOKEN
-    );
-    // Use CommonTokenStream
-    CommonTokenStream stream = new CommonTokenStream(tokensWithPreprocessing);
+    CommonTokenStream stream = getPreprocessedTokenStream(lexer);
     currentTokenStream = stream;
     PythonAntlrParser parser = new PythonAntlrParser(stream);
     currentParser = parser;

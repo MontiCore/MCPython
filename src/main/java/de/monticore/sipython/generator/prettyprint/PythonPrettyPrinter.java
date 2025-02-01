@@ -244,7 +244,6 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 		}
 
 		if (node.isPresentFinallyStatement()) {
-			printer.println("finally:");
 			node.getFinallyStatement().accept(getTraverser());
 		}
 	}
@@ -567,9 +566,16 @@ public class PythonPrettyPrinter implements PythonHandler, PythonVisitor2 {
 
 		printer.print("class ");
 		printer.print(node.getName());
-		if (node.isPresentSuperClass()) {
+		if (!node.isEmptySuperClasses()) {
 			printer.print("(");
-			printer.print(node.getSuperClass());
+			boolean first = true;
+			for (ASTPyQualifiedName astPyQualifiedName : node.getSuperClassesList()) {
+				if(!first){
+					printer.print(", ");
+				}
+				printer.print(astPyQualifiedName.joined());
+				first = false;
+			}
 			printer.print(")");
 		}
 		printer.print(":");

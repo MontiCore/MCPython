@@ -13,9 +13,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Optional;
 
+import static org.junit.Assert.assertNotNull;
+
 public class ParseTest {
 
-  @Ignore("These are still unsolved parser problems")
   @Test
   public void doTest() throws Exception{
     PythonMill.init();
@@ -35,7 +36,18 @@ public class ParseTest {
     Assert.assertEquals(0, Log.getErrorCount());
   }
 
-  @Ignore("Error with whitespace processing, use branch preprocessing to solve")
+  @Test
+  public void testEmptyFileParses() throws IOException {
+    PythonMill.init();
+    Log.init();
+    Log.enableFailQuick(false);
+
+
+    PythonParser p = PythonMill.parser();
+    assertNotNull(p.parse_String("").get());
+    assertNotNull(p.parse_String("\n").get());
+  }
+
   @Test
   public void testTrailingCommaArguments() throws IOException {
     PythonMill.init();
@@ -47,15 +59,7 @@ public class ParseTest {
         "    1,\n" +
         ")"));
 
-    for (Token token : p.currentTokenStream.getTokens()) {
-      System.out.println(token.getText() + " ");
-    }
-
-
     Log.getFindings().forEach(System.err::println);
-
-    System.err.print("");
-    System.err.print(p.currentTokenStream.getTokens());
 
     Assert.assertEquals(0, Log.getErrorCount());
   }
