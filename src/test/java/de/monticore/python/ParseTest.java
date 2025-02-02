@@ -1,6 +1,8 @@
 package de.monticore.python;
 
+import de.monticore.expressions.expressionsbasis._ast.ASTLiteralExpression;
 import de.monticore.python._ast.ASTPythonScript;
+import de.monticore.python._ast.ASTStringLiteralPython;
 import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Log;
 import org.antlr.v4.runtime.Token;
@@ -62,5 +64,16 @@ public class ParseTest {
     Log.getFindings().forEach(System.err::println);
 
     Assert.assertEquals(0, Log.getErrorCount());
+  }
+
+  @Test
+  public void testStringModifiers() throws IOException {
+    PythonMill.init();
+    Log.init();
+    Log.enableFailQuick(false);
+
+    PythonParser p = new PythonParser();
+    ASTPythonScript ast = p.parse_String("rf'someString'").get();
+    assertNotNull(ast);
   }
 }

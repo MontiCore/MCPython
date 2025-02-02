@@ -69,7 +69,7 @@ public class PreprocessingTokenSource implements TokenSource {
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if(line.isBlank()){
+            if(line.isBlank() || line.matches("\\s*#.*")){
                 res.add(i + 1);
             }
         }

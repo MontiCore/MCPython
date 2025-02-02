@@ -7,7 +7,6 @@ package de.monticore;
  */
 grammar Python extends  de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
                         de.monticore.expressions.CommonExpressions,
-    //                    de.monticore.expressions.BitExpressions, // For union
                         de.monticore.expressions.AssignmentExpressions,
                         de.monticore.literals.MCCommonLiterals,
                         de.monticore.symbols.OOSymbols {
@@ -30,9 +29,13 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   token CONTINUE_LINE_TOKEN = '\\' '\r'? '\n';
 
   // Often (mis)used as a multiline comment but can also be used as a string literal, thus we can not skip it
-  token MultiLineStringToken = "f"? ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter))) ; // TODO: WORK ON ME : -> channel(HIDDEN);
-  // TODO: Access the hidden channel
-  MultiLineStringLiteral implements Literal = (type:key("u") | type:key("f") | type:key("b") |  | type:key("U") | type:key("F"))? MultiLineStringToken;
+  token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
+
+  StringModifier = /*{cmpTokenRegEx(1, "(f|r|b|u|F|R|B|U)+")}?*/ type:Name;
+  MultiLineStringLiteral implements Literal = StringModifier? MultiLineStringToken;
+
+  token HexNumberToken = '0' 'x' ('0'..'9' | 'a'..'f' | 'A'..'F')+;
+  HexNumberLiteral implements NumericLiteral <100> = HexNumberToken;
 
   // PEP 515: Underscores in Numeric Literals
   // TODO: Move this into its own token?
@@ -44,7 +47,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   // The StatementBlock represents a number of statements with the same indentation
   // Here, C-Style brackets are used instead of indentation
-  scope StatementBlock = BLOCK_START StatementBlockBody BLOCK_END;
+  scope StatementBlock = (BLOCK_START StatementBlockBody BLOCK_END) | Statement;
   StatementBlockBody = Statement+;
 
   /*===========================Statements======================================*/
@@ -69,7 +72,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
           )
       STATEMENT_END;
 
-  ModuleList = star:"*" | (ModuleWithOptionalAlias || ",")+;
+  ModuleList = star:"*" | ((ModuleWithOptionalAlias || ",")+ ","?);
 
   ModuleWithOptionalAlias = name:PyQualifiedName ("as" alias:Name)?;
 
@@ -83,13 +86,13 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   AssertStatement implements Statement = "assert" condition:Expression ("," errorMessage:Expression)? STATEMENT_END;
 
   // for statement
-  scope ForStatement implements Statement = "for" ForControl ":" StatementBlock
+  scope ForStatement implements Statement = async:"async"? "for" ForControl ":" StatementBlock
                                             ElseStatementPart? ;
 
   ForControl = ForDecomposition "in" ForIterable;
   interface ForDecomposition;
   ForVariable implements Variable, ForDecomposition = Name;
-  ForDecompositionComma implements ForDecomposition = ForDecomposition "," ForDecomposition;
+  ForDecompositionComma implements ForDecomposition = ForDecomposition "," (ForDecomposition ","?)?;
   ForDecompositionParenthesis implements ForDecomposition = "(" ForDecomposition ")";
 
   ForIterable = Expression;
@@ -117,7 +120,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
   // with open file statement
-  scope WithStatement implements Statement = "with" (WithStatementContents || ",")+ ":"
+  scope WithStatement implements Statement = async:"async"? "with" (WithStatementContents || ",")+ ":"
                                             StatementBlock ;
 
   WithStatementContents = Expression ("as" target:Name)? ; // target has slicing/etc
@@ -145,10 +148,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   DictLiteralExpression   implements Expression = "{" (DictEntry || ",")* ","? "}" ;
   SetLiteralExpression    implements Expression = "{" (Expression || ",")* ","? "}" ;
 
-  DictEntry = key:VariableInit ":" value:VariableInit ;
-
-//  StarredExpression implements Expression = (Expression ",")+;
-
+  DictEntry = key:VariableInit ":" value:VariableInit | SpreadMappingExpression;
 
   // 6.3.3 - Slicing
   IndexExpression implements Expression = Expression "[" (IndexExpressionInner || ",")+ tuple:","? "]";
@@ -178,7 +178,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
 
-  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator* "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
+  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator* async:"async"? "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
                                                         StatementBlock ;
   FunctionParameters = (FunctionParameter  || ",")* ","?;
 
@@ -189,8 +189,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
   QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
   AlternativeTypeAnnotation implements TypeAnnotation = <rightassoc> lhs:TypeAnnotation "|" rhs:TypeAnnotation;
+  CommaTypeAnnotation       implements TypeAnnotation = <rightassoc> lhs:TypeAnnotation "," rhs:TypeAnnotation ","?;
+  ListTypeAnnotation        implements TypeAnnotation = "[" TypeAnnotation "]";
   EllipsisTypeAnnotation    implements TypeAnnotation = "...";
-  // ComplexTypeAnnotation  implements TypeAnnotation = Expression;
+  ComplexTypeAnnotation     implements TypeAnnotation <200> = Expression;
 
   SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
   OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
@@ -212,11 +214,10 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   //PyDecorator = "@" PyQualifiedName ("(" PyQualifiedName ")")? STATEMENT_END;
   PyDecorator = "@" Expression STATEMENT_END;
 
-  ReturnStatement implements Statement = "return" (Expression || ",")* STATEMENT_END;
-  YieldStatement implements Statement = "yield" (Expression || ",")* STATEMENT_END;
-  RaiseStatement implements Statement = "raise" Expression? STATEMENT_END;
+  ReturnStatement implements Statement = "return" (Expression || ",")* ","? STATEMENT_END;
+  YieldStatement implements Statement = "yield" (Expression || ",")* ","? STATEMENT_END;
+  RaiseStatement implements Statement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
 
-  // expression statement
   ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
 
   EmptyStatement implements Statement, ClassStatement = STATEMENT_END;
@@ -228,47 +229,39 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   ConditionalExecutionStatement implements Statement = "if" condition: Expression ":" Expression;
 
+  DeleteStatement implements Statement = "del" (Expression || ",")+ ","? STATEMENT_END;
+
   /*===========================Literals======================================*/
 
-  token RawStringDoubleQuote = 'r' '"' .*? '"';
-  token RawStringSingleQuote = 'r' '\'' .*? '\'';
-
+   @Override
+   token String = '"' (StringDQCharactersPython)? '"' : {setText(getText().substring(1, getText().length() - 1));};
+  
   // string literals for python
    token StringPython
-      = '\'' (StringCharactersPython)? '\''
+      = '\'' (StringSQCharactersPython)? '\''
       : {setText(getText().substring(1, getText().length() - 1));};
 
-  fragment token StringCharactersPython
-    = (StringCharacterPython)+;
+  fragment token StringSQCharactersPython
+    = (StringSQCharacterPython)+;
+  fragment token StringDQCharactersPython
+    = (StringDQCharacterPython)+;
 
-  fragment token StringCharacterPython
+  fragment token StringSQCharacterPython
     = ~ ('\''| '\\' | '\n') | PythonEscapeSequence;
+  fragment token StringDQCharacterPython
+    = ~ ('"'| '\\' | '\n') | PythonEscapeSequence;
 
   fragment token PythonEscapeSequence
-       = '\\' ('b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\')
-         | OctalEscape | UnicodeEscape | '\\' 'x' HexDigit HexDigit;
+       = '\\' .;
 
-
-    // TODO: type:key("R")
-    // TODO: type:key("fr")
-    // TODO: type:key("Fr")
-    // TODO: type:key("fR")
-    // TODO: type:key("rf")
-    // TODO: type:key("rF")
-    // TODO: type:key("Rf")
-    // TODO: type:key("RF")
 
    StringLiteralPython implements Literal, SignedLiteral =
         (
-            ( // Normal strings
-                (type:key("u") | type:key("f") | type:key("b") |  | type:key("U") | type:key("F"))?
-                (source:StringPython | source:String)
-            )
-            | RawStringDoubleQuote
-            | RawStringSingleQuote
-        )
-        StringLiteralPython? // Python string concat: "abc" "def" => "abcdef"
-        ;
+            StringModifier?
+            (source:StringPython | source:String)
+        );
+
+   StringsLiteralPython implements Literal <200> = (StringLiteralPython | StringLiteral | MultiLineStringLiteral)+;
 
   // boolean literals for python
   BooleanLiteralPython implements Literal, SignedLiteral =
@@ -301,14 +294,15 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   //mathematical expression
   IntegerDivisionExpression implements Expression <165>, InfixExpression = left:Expression  operator:"//" right:Expression ;
   IntegerPowExpression implements Expression <195>, InfixExpression = left:Expression operator:"**" right:Expression ;
+  MatrixMultiplicationExpression implements Expression <200>, InfixExpression = left:Expression operator:"@" right:Expression;
 
   //logical expressions
   AndExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
   OrExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
-  NotExpression implements Expression <190> = "not" Expression ;
+  NotExpression implements Expression <10> = "not" Expression ;
   IsExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
   InExpression implements Expression <195>, InfixExpression = left:Expression operator:"in" right:Expression ;
-  NotInExpression implements Expression <195>, InfixExpression = left:Expression operator:"not in" right:Expression ;
+  NotInExpression implements Expression <195>, InfixExpression = left:Expression operator:"not" "in" right:Expression; // TODO: set operator to "not in" programmatically
 
   //Bitwise expressions
   BitwiseAndExpression implements Expression <120>, InfixExpression = left:Expression operator:"&" right:Expression;
@@ -323,6 +317,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;
   AppliedLambdaExpression implements Expression = "(" LambdaExpression ")" "(" Expression ")" ;
 
+  AwaitExpression implements Expression = "await" Expression;
+
   // TODO: Weird errors from antlr subsystem
   // IfExpression implements Expression = positive:Expression "if" condition:Expression "else" negative:Expression;
 
@@ -332,7 +328,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   interface scope symbol PythonClass = Name ;
 
   // class declaration statement
-  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" superClasses:(PyQualifiedName || ",")* ")" )? ":" ClassStatementBlock ;
+  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" ((superClasses:PyQualifiedName | arguments:NamedArgument) ","?)* ")" )? ":" ClassStatementBlock ;
 
   interface ClassStatement;
 
@@ -340,13 +336,15 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   ClassStatementBlockBody = ClassStatement+;
 
   // TODO: Why is there 2 function declarations?
-  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
+  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
   ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
   ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
 
   ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
+
+// TODO: //= operator
 
   /*@Override
   AssignmentExpression implements Expression <60> = <rightassoc>

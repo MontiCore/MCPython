@@ -77,6 +77,16 @@ def map_stack_to_surfaces(gempy_model: GeoModel, mapping_object: Union[dict[str,
 if True:
     foo = foo.bar('[')
 
+print("weird indent in next comment is a problem")
+  # Hello
+print("")
+
+config = {"a": "b", **{"foo":"bar"}}
+config = {**{"foo":"bar"}, "a": "b"}
+config = {**{"foo":"bar"}, **{"foo":"bar"}}
+
+rf'someString'
+
 
 if True:
     pass
