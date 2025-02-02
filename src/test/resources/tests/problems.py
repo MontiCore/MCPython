@@ -76,3 +76,10 @@ def map_stack_to_surfaces(gempy_model: GeoModel, mapping_object: Union[dict[str,
 
 if True:
     foo = foo.bar('[')
+
+
+if True:
+    pass
+# comment
+elif True:
+    pass

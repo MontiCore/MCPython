@@ -212,9 +212,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   //PyDecorator = "@" PyQualifiedName ("(" PyQualifiedName ")")? STATEMENT_END;
   PyDecorator = "@" Expression STATEMENT_END;
 
-  // return statement
   ReturnStatement implements Statement = "return" (Expression || ",")* STATEMENT_END;
-
+  YieldStatement implements Statement = "yield" (Expression || ",")* STATEMENT_END;
   RaiseStatement implements Statement = "raise" Expression? STATEMENT_END;
 
   // expression statement

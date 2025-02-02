@@ -1,9 +1,7 @@
 package de.monticore.python._parser;
 
 import de.monticore.python.PythonPreprocessor;
-import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.DiagnosticErrorListener;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.PredictionMode;
 
 import java.io.FileReader;

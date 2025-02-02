@@ -63,7 +63,12 @@ public class StateBasedWhitespacePreprocessingTokenSource {
         }
         lastToken = token;
         if(!res.isEmpty()){
-            lastEmittedToken = res.get(res.size() - 1);
+            for (int i = res.size() - 1; i >= 0; i--) {
+                if(res.get(i).getChannel() != Token.HIDDEN_CHANNEL){
+                    lastEmittedToken = res.get(i);
+                    break;
+                }
+            }
         }
         return res;
     }
