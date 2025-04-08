@@ -1,15 +1,11 @@
 /* (c) https://github.com/MontiCore/monticore */
 plugins {
     id "java"
-    id "monticore" version "$mc_version" // MontiCore Plugin
+    id "de.monticore.generator" version "$mc_version" // MontiCore Plugin
     id "maven-publish"
     id "com.github.johnrengelman.shadow" version "6.0.0"
     id 'org.ec4j.editorconfig' version "0.0.3"
 }
-
-def grammarDir = "src/main/grammars"
-def testGrammarDir = "src/test/grammars"
-def jscience_version = "4.3.1"
 
 group = "de.monticore"
 description = "SIPython"
@@ -18,31 +14,6 @@ java {
   toolchain {
     languageVersion.set(JavaLanguageVersion.of(11))
   }
-}
-
-// configure non-standard source sets
-sourceSets {
-    main {
-        java.srcDirs += ["$projectDir/target/generated-sources/monticore/sourcecode"]
-    }
-    grammars {
-        resources {
-            srcDirs([grammarDir])
-            include "**/*.mc4"
-        }
-    }
-
-    test {
-        java.srcDirs += ["$projectDir/target/generated-test-sources/monticore/sourcecode"]
-    }
-
-    sourceSets.main.resources { srcDirs = ["$projectDir/src/main/resources"] }
-}
-
-java {
-    registerFeature('grammars') {
-        usingSourceSet(sourceSets.grammars)
-    }
 }
 
 subprojects {
@@ -55,18 +26,10 @@ subprojects {
 }
 buildDir = file("$projectDir/target")
 
-configurations { grammar }
-
 dependencies {
     implementation "de.monticore:monticore-runtime:${project.properties['mc_version']}"
-    implementation "de.monticore:monticore-grammar:${project.properties['mc_version']}"
-    implementation ("de.monticore:monticore-grammar:$mc_version") {capabilities {
-        requireCapability("de.monticore:monticore-grammar-grammars") }
-    }
     implementation "org.jscience:jscience:$jscience_version"
-    grammar implementation ("de.monticore:monticore-grammar:$mc_version") {capabilities {
-        requireCapability("de.monticore:monticore-grammar-grammars") }
-    }
+    grammar "de.monticore:monticore-grammar:$mc_version"
 
     testImplementation ("de.monticore:monticore-grammar:${project.properties['mc_version']}") {capabilities {
         requireCapability("de.monticore:monticore-grammar-tests") }
@@ -87,63 +50,6 @@ repositories {
     }
 }
 
-def grammarDependencies = ext {
-    SIPython = ["Python"]
-    Python = []
-    TestSIUnitLiterals = []
-    MultilineString = []
-}
-
-createGrammarTasksForDir(grammarDir, "main")
-createGrammarTasksForDir(testGrammarDir, "test")
-def createGrammarTasksForDir(dir, mt) {
-// one task per grammar file
-    fileTree(dir).matching { include '**/*.mc4' }.each {
-        def g = it
-        def grammarName = it.getName().substring(0, it.getName().lastIndexOf('.'))
-
-        task "generate${mt}Grammar${grammarName}"(type: MCTask) {
-            grammar = file g
-            if(mt=="main")
-                outputDir = file "$buildDir/generated-sources/monticore/sourcecode"
-            else
-                outputDir = file "$buildDir/generated-test-sources/monticore/sourcecode"
-
-            handcodedPath "$projectDir/src/main/java", "$projectDir/src/test/java"
-            modelPath "$projectDir/src/main/grammars", "$projectDir/src/test/grammars"
-            def grammarIncludingPackage = file(dir).toURI().relativize(g.toURI()).toString()
-            def uptoDate = incCheck(grammarIncludingPackage)
-            outputs.upToDateWhen { uptoDate }
-        }
-    }
-}
-
-compileJava {
-    tasks.findAll { task -> task.name.startsWith("generatemainGrammar") }.each {
-        def grammarName = it.getName().substring('generatemainGrammar'.length())
-        def dependsOnGrammars = grammarDependencies[grammarName].collect { name -> tasks["generatemainGrammar${name}"] }
-        it.dependsOn dependsOnGrammars
-        /*it.outputs.upToDateWhen {
-            it.outputs.upToDateWhen && !dependsOnGrammars.any { !it.outputs.upToDateWhen }
-        }*/
-    }
-
-    dependsOn project.collect { it.tasks.findAll { task -> task.name.startsWith("generatemainGrammar") } }
-}
-
-compileTestJava {
-    tasks.findAll { task -> task.name.startsWith("generatetestGrammar") }.each {
-        def grammarName = it.getName().substring('generatetestGrammar'.length())
-        def dependsOnGrammars = grammarDependencies[grammarName].collect { name -> tasks["generatetestGrammar${name}"] }
-        it.dependsOn dependsOnGrammars
-        //it.outputs.upToDateWhen {
-        //    it.outputs.upToDateWhen && !dependsOnGrammars.any { !it.outputs.upToDateWhen }
-        //}
-    }
-    //dependsOn project.collect { it.tasks.withType(MCTask) }
-    dependsOn project.collect { it.tasks.findAll { task -> task.name.startsWith("generatetestGrammar") } }
-}
-
 test {
     useJUnit()
     testLogging {
@@ -152,7 +58,6 @@ test {
         showStandardStreams = true
     }
 
-    // listen to standard out and standard error of the test JVM(s)
     onOutput { descriptor, event ->
         logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message)
     }
@@ -162,15 +67,13 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-// build sources jar in addition
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
     archiveClassifier = "sources"
 }
 
-sourcesJar.dependsOn project.collect { it.tasks.withType(MCTask)}
+sourcesJar.dependsOn(tasks.named("generateMCGrammars"))
 
-// build javadoc jar in addition
 task javadocJar(type: Jar) {
     from javadoc
     archiveClassifier = "javadoc"
@@ -188,22 +91,13 @@ jar.dependsOn(shadowJar)
 // generated java doc contains errors, disable for now
 javadoc.failOnError(false)
 
-// build grammar jar as well
-task grammarJar(type: Jar) {
-    from("$projectDir/src/main/grammars/") { include "**/*.mc4" }
-    from("$projectDir/src/test/grammars/") { include "**/*.mc4" }
-    archiveClassifier = "grammars"
-}
 
 task testReport(type: TestReport) {
     destinationDir = file("$buildDir/reports/allTests")
-    // Include the results from the 'test' task
     reportOn tasks.withType(Test)
 }
 
-// configure deployment
 publishing {
-    // configure what artifacts to publish
     publications {
         mavenJava(MavenPublication) {
             artifactId = "$project.name"
@@ -211,7 +105,6 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
             // artifact shadowJar
-            // artifact grammarJar
         }
     }
     repositories.maven {
