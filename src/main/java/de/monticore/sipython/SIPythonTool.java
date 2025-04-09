@@ -1,9 +1,10 @@
 package de.monticore.sipython;
 
+import de.monticore.expressions.assignmentexpressions._cocos.AssignmentExpressionsASTDecPrefixExpressionCoCo;
 import de.monticore.expressions.commonexpressions._cocos.CommonExpressionsASTBooleanNotExpressionCoCo;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.*;
-import de.monticore.sipython._cocos.*;
+import de.monticore.sipython._cocos.SIPythonCoCoChecker;
 
 public class SIPythonTool extends SIPythonToolTOP {
 
@@ -21,6 +22,8 @@ public class SIPythonTool extends SIPythonToolTOP {
 		checker.addCoCo(new CallExpressionAfterFunctionDeclarationCoco());
 		checker.addCoCo(((CommonExpressionsASTBooleanNotExpressionCoCo) new JavaBooleanExpressionCoco()));
 		checker.addCoCo(new SelfParameterIsFirstCoCo());
+
+		checker.addCoCo((AssignmentExpressionsASTDecPrefixExpressionCoCo) new NoInvalidExpressionUsedCoCo());
 
 		checker.checkAll(ast);
 	}
