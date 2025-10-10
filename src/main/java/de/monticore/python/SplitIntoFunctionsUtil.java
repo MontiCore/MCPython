@@ -43,7 +43,7 @@ public class SplitIntoFunctionsUtil {
 
             Map<String, ASTFunctionDeclaration> res = FqnMethodVisitor.getFqnToFunctionDecl(relativePath.toString().replaceAll(".py$", ""), ast);
             res.forEach((name, func) -> {
-              String fqn = name.replace("\\", ".");
+              String fqn = name.replace("\\", ".").replace("/", ".");
               SourcePosition startPos = func.get_SourcePositionStart();
               SourcePosition endPos = func.get_SourcePositionEnd();
 
