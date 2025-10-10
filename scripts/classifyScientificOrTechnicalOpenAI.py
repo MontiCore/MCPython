@@ -1,107 +1,126 @@
-import openai
+systemPrompt = """I will give you a fully qualified name and a snippet of python source code. Classify the snippet and decide whether it is \"scientific code\" i.e. code fulfilling a science research goal (like calculating a formula etc), or whether it is \"technical code\" i.e. code fulfilling a task not directly related to a research objective. You only answer with the phrase \"SCIENTIFIC\" or the phrase \"TECHNICAL\""""
+
 import os
 import sys
 import tiktoken
 from tqdm import tqdm
+from litellm import completion
+from openai.error import OpenAIError
 
-args = sys.argv
-args.pop(0)
+def get_classification(messages, model, **kwargs):
+  """
+  Call the model (via LiteLLM) to classify into:
+  SCIENTIFIC / TECHNICAL / MIXED / NULLCODE / RCODE.
+  Returns the classification string.
+  """
+  try:
+    resp = completion(
+      model=model,
+      messages=messages,
+      **kwargs
+    )
+  except OpenAIError as e:
+    print("Error in LLM call:", e)
+    raise
 
-if len(args) == 0:
+  text = resp.choices[0].message.content.strip().upper()
+
+  # Robust category matching
+  if "SCIENTIFIC" in text:
+    return "SCIENTIFIC"
+  elif "TECHNICAL" in text:
+    return "TECHNICAL"
+  elif "MIXED" in text:
+    return "MIXED"
+  elif "NULLCODE" in text:
+    return "NULLCODE"
+  elif "RCODE" in text:
+    return "RCODE"
+  else:
+    print("Unexpected classification:", text)
+    return "UNKOWN"  # Fallback category
+
+def build_messages(file_content, system_prompt):
+  return [
+    {"role": "system", "content": system_prompt},
+    {"role": "user",   "content": file_content}
+  ]
+
+def main():
+  args = sys.argv[1:]
+  if len(args) == 0:
     print("Usage: python <script.py> <dir containing 1 file per snippet>")
-    exit(1)
+    sys.exit(1)
 
-client = openai.AzureOpenAI(
-    azure_endpoint = os.getenv("AZURE_GPT35_ENDPOINT"),
-    api_version = "2023-10-01-preview",
-    api_key = os.getenv("OAI_API_KEY")
-)
+  snippets_dir = args[0]
 
-def getClassification(messages):
-    answer = client.chat.completions.create(
-        model="Gpt35Turbo",
-        messages=messages,
+  snippet_paths = [
+    os.path.join(root, fname)
+    for root, dirs, files in os.walk(snippets_dir)
+    for fname in files
+  ]
+
+  snippet_fqns = []
+  all_messages = []
+
+  for path in snippet_paths:
+    with open(path, encoding="utf8") as f:
+      content = f.read()
+    first_line = content.splitlines()[0] if content.splitlines() else ""
+    if first_line.startswith("FQN: "):
+      fqn = first_line[len("FQN: "):]
+    else:
+      fqn = path
+    snippet_fqns.append(fqn)
+
+    msgs = build_messages(content, system_prompt)
+    all_messages.append(msgs)
+
+  print("Will classify", len(all_messages), "snippets")
+
+  # Estimate token usage
+  tokenizer = tiktoken.get_encoding("cl100k_base")
+  flattened = [m["content"] for msgs in all_messages for m in msgs]
+  token_seqs = [tokenizer.encode(s) for s in flattened]
+  total_tokens = sum(len(seq) for seq in token_seqs)
+  print("Overall sending around", total_tokens, "tokens")
+
+  resp = input("Do you want to continue? (y/n): ")
+  if resp.lower() != "y":
+    sys.exit(0)
+
+  os.makedirs("target", exist_ok=True)
+  with open("target/results.txt", "a", encoding="utf8") as res_file:
+    for msgs, fqn in tqdm(zip(all_messages, snippet_fqns), total=len(all_messages)):
+      print("Processing", fqn)
+      c = get_classification(
+        msgs,
+        model="gpt-3.5-turbo",
         temperature=0,
         max_tokens=1600,
-        top_p=0.95,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop=None,
-        stream=False
-    )
+        top_p=0.95
+      )
+      print(" ->", c)
 
-    res = answer.choices[0].message.content
-    if("SCIENTIFIC" in res):
-        return "SCIENTIFIC"
-    elif "TECHNICAL" in res:
-        return "TECHNICAL"
-    elif "UNKOWN" in res:
-        return "UNKOWN"
-    else:
-        print("Error while classifying. Got answer " + res)
+      # one-hot encoding for all categories
+      scientific = 1.0 if c == "SCIENTIFIC" else 0.0
+      technical  = 1.0 if c == "TECHNICAL" else 0.0
+      mixed      = 1.0 if c == "MIXED" else 0.0
+      nullcode   = 1.0 if c == "NULLCODE" else 0.0
+      rcode      = 1.0 if c == "RCODE" else 0.0
 
-def buildMessages(fileContent):
-    return [
-        {
-            "role": "system",
-            "content": """I will give you a fully qualified name and a snippet of python source code. Classify the snippet and decide whether it is \"scientific code\" i.e. code fulfilling a science research goal (like calculating a formula etc), or whether it is \"technical code\" i.e. code fulfilling a task not directly related to a research objective. You only answer with the phrase \"SCIENTIFIC\" or the phrase \"TECHNICAL\""""
-        },
-        {
-            "role": "user",
-            "content": fileContent
-        }
-    ]
+      res_line = (
+          '{"fqn": "' + fqn + '", '
+          + '"type": "method", '
+          + f'"scientific": {scientific}, '
+          + f'"technical": {technical}, '
+          + f'"mixed": {mixed}, '
+          + f'"nullcode": {nullcode}, '
+          + f'"rcode": {rcode}'
+          + "},\n"
+      )
+      res_file.write(res_line)
 
 
-snippet_files = [os.path.join(root, file) for root, dirs, files in os.walk(args[0]) for file in files]
-snippet_fqn = []
-
-
-allMessages = []
-
-for sfPath in snippet_files:
-    with open(sfPath, encoding="utf8") as f:
-        content = f.read()
-        snippet_fqn.append(content.splitlines()[0][len("FQN: "):])
-        allMessages.append(buildMessages(content))
-
-
-# TODO: tmp: only a few
-# allMessages = allMessages[:3]
-# print("TMP: Only classifying 3 snippets for experimentation")
-print("Will classify ", len(allMessages), "snippets")
-
-#for msgs in allMessages:
-#    print("#"* 20)
-#    for msg in msgs:
-#        print(msg["role"])
-#        print(msg["content"])
-#        print()
-        
-# estimate costs
-tokenizer = tiktoken.get_encoding("cl100k_base")
-
-flattenedMsgContents = [msg["content"] for msgs in allMessages for msg in msgs]
-tokens = [tokenizer.encode(it) for it in flattenedMsgContents]
-numberOfTokens = sum(len(it) for it in tokens)
-
-print("Overall sending", numberOfTokens, "tokens")
-print("This will cost around", numberOfTokens / 1_000_000, "$") # rough estimate 1M token = 1$
-while True:
-    user_input = input("Do you want to continue? (y/n): ")
-    if user_input.lower() == "y":
-        break
-    else:
-        exit(1)
-
-with open("target/results.txt", "a") as resFile:
-    for msgs, sf in tqdm(zip(allMessages, snippet_fqn)):
-        print("Processing ", sf)
-        c = getClassification(msgs)
-        # c = "SCIENTIFIC"
-        print(c)
-        scientific = 1.0 if c == "SCIENTIFIC" else 0.0
-        technical = 1.0 if c == "TECHNICAL" else 0.0
-        nullcode = 1 - scientific - technical
-
-        resFile.write( '{"fqn": "' + sf + '", "type": "method", "scientific": ' + str(scientific) + ', "technical": ' + str(technical) + ', "nullcode": ' + str(nullcode) + "}," + "\n")
+if __name__ == "__main__":
+  main()
