@@ -67,7 +67,7 @@ public class SplitIntoSnippetsUtil {
             if(res.isEmpty()){
               SourcePosition startPos = ast.get_SourcePositionStart();
               SourcePosition endPos = ast.get_SourcePositionEnd();
-              String fqn = moduleName.replace("\\", ".");
+              String fqn = moduleName.replace("\\", ".").replace("/", ".");
 
               StringBuilder funcContent = new StringBuilder();
               for (int i = startPos.getLine(); i <= endPos.getLine(); i++) {
