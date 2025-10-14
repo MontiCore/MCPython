@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-public class SplitIntoFunctionsUtil {
+public class SplitIntoSnippetsUtil {
 
   public static void main(String[] args) throws IOException {
     Path base = Paths.get(args[0]);
@@ -41,7 +41,9 @@ public class SplitIntoFunctionsUtil {
             var ast = parser.parse_String(content).get();
             var relativePath = base.relativize(p);
 
-            Map<String, ASTFunctionDeclaration> res = FqnMethodVisitor.getFqnToFunctionDecl(relativePath.toString().replaceAll(".py$", ""), ast);
+            // Functions
+            String moduleName = relativePath.toString().replaceAll(".py$", "");
+            Map<String, ASTFunctionDeclaration> res = FqnMethodVisitor.getFqnToFunctionDecl(moduleName, ast);
             res.forEach((name, func) -> {
               String fqn = name.replace("\\", ".");
               SourcePosition startPos = func.get_SourcePositionStart();
@@ -53,8 +55,6 @@ public class SplitIntoFunctionsUtil {
               }
 
               String snippetContent = "FQN: " + fqn + "\n" + funcContent;
-              //System.out.println(snippetContent);
-
               File snippetFile = target.toPath().resolve(name + ".snippet").toFile();
               try {
                 FileUtils.write(snippetFile, snippetContent, StandardCharsets.UTF_8);
@@ -62,6 +62,28 @@ public class SplitIntoFunctionsUtil {
                 throw new RuntimeException(e);
               }
             });
+
+            // Scripts(only top level statements. No classes, functions, ...)
+            if(res.isEmpty()){
+              SourcePosition startPos = ast.get_SourcePositionStart();
+              SourcePosition endPos = ast.get_SourcePositionEnd();
+              String fqn = moduleName.replace("\\", ".");
+
+              StringBuilder funcContent = new StringBuilder();
+              for (int i = startPos.getLine(); i <= endPos.getLine(); i++) {
+                if(i < lines.size()) {
+                  funcContent.append(lines.get(i - 1)).append("\n");
+                }
+              }
+
+              String snippetContent = "FQN: " + fqn + "\n" + funcContent;
+              File snippetFile = target.toPath().resolve(moduleName + ".snippet").toFile();
+              try {
+                FileUtils.write(snippetFile, snippetContent, StandardCharsets.UTF_8);
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              }
+            }
           } catch (IOException e) {
             throw new RuntimeException(e);
           }

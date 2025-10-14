@@ -70,25 +70,25 @@ public class WhitespaceSensitiveProcessor {
       } else {
         // Handle meaningful newline (indentation check)
         int indentChange = updateIndent(token);
-        int lastLine = getLastLine(lastToken);
+        int lastLineAtEndOfToken = getLineAtEndOfToken(lastToken);
         int charPos = getCharPositionInLine(lastToken);
 
         if (indentChange > 0) {
           // Indent
-          return List.of(createToken(incIndentTokenProto, lastToken, lastLine, charPos), token);
+          return List.of(createToken(incIndentTokenProto, lastToken, lastLineAtEndOfToken, charPos), token);
         } else if (indentChange < 0) {
           // Dedent
           List<Token> res = new ArrayList<>();
           // Emit EOL only if the last emitted token wasn't already a DEDENT (which implies EOL)
           if (lastEmittedToken == null || lastEmittedToken.getType() != decIndentTokenProto.getType()) {
-            res.add(createToken(eolTokenProto, lastToken, lastLine, charPos));
+            res.add(createToken(eolTokenProto, lastToken, lastLineAtEndOfToken, charPos));
           }
           // Keep original newline token
           res.add(token);
           // Add DEDENT tokens
           for (int i = 0; i < -indentChange; i++) {
             // Position DEDENTs logically after the newline's effects
-            res.add(createToken(decIndentTokenProto, lastToken, lastLine, charPos));
+            res.add(createToken(decIndentTokenProto, lastToken, lastLineAtEndOfToken, charPos));
           }
           return res;
         } else {
@@ -96,7 +96,7 @@ public class WhitespaceSensitiveProcessor {
           List<Token> res = new ArrayList<>();
           // Emit EOL only if the last emitted token wasn't already a DEDENT
           if (lastEmittedToken == null || lastEmittedToken.getType() != decIndentTokenProto.getType()) {
-            res.add(createToken(eolTokenProto, lastToken, lastLine, charPos));
+            res.add(createToken(eolTokenProto, lastToken, lastLineAtEndOfToken, charPos));
           }
           // Keep original newline token
           res.add(token);
@@ -106,18 +106,18 @@ public class WhitespaceSensitiveProcessor {
     } else if (token.getType() == -1) {
       Token eof = token;
       List<Token> res = new ArrayList<>();
-      int lastLine = getLastLine(lastToken);
+      int lastLineAtEndOfToken = getLineAtEndOfToken(lastToken);
       int charPos = getCharPositionInLine(lastToken);
 
       // Ensure final statement ends if not already ended by DEDENT
       if (lastEmittedToken == null || lastEmittedToken.getType() != decIndentTokenProto.getType()) {
-        res.add(createToken(eolTokenProto, lastToken, lastLine, charPos));
+        res.add(createToken(eolTokenProto, lastToken, lastLineAtEndOfToken, charPos));
       }
 
       // Close all open indentation levels
       while (!indentStack.isEmpty()) {
         indentStack.pop();
-        res.add(createToken(decIndentTokenProto, lastToken, lastLine, charPos));
+        res.add(createToken(decIndentTokenProto, lastToken, lastLineAtEndOfToken, charPos));
       }
 
       res.add(eof);
@@ -173,8 +173,9 @@ public class WhitespaceSensitiveProcessor {
     return tokenFactory.create(source, proto.getType(), proto.getText(), Token.DEFAULT_CHANNEL, startIndex, stopIndex, line, charPos);
   }
 
-  private int getLastLine(Token lastToken) {
-    return lastToken != null ? lastToken.getLine() : 1;
+  private int getLineAtEndOfToken(Token lastToken) {
+    long newlinesInToken = lastToken != null ? lastToken.getText().chars().filter(ch -> ch == '\n').count() : 0;
+    return lastToken != null ? lastToken.getLine() + (int) newlinesInToken : 1;
   }
 
   private int getCharPositionInLine(Token lastToken) {
