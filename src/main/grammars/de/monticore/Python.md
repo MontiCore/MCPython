@@ -8,6 +8,7 @@ and tuples (only with brackets, more information found in the Problems section),
 classes are also supported. We also needed to define String Literals and Boolean Literals since they were inconsistent 
 to the implementation defined on MCBasics. Lastly we also define Expressions, it supports the ternary-operator
 expression, mathematical and logical expressions and finally also lambda expressions.
+
 ### Syntax/Grammar
 We tried to stay as true as possible to the original Python Syntax, the syntax is the same and can be used the same
 as in the Python language. Some examples are below.

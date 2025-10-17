@@ -2,10 +2,9 @@ package de.monticore.python._symboltable;
 
 import de.monticore.expressions.assignmentexpressions._ast.ASTAssignmentExpression;
 import de.monticore.expressions.commonexpressions._ast.ASTFieldAccessExpression;
+import de.monticore.expressions.expressionsbasis._ast.ASTExpression;
+import de.monticore.python.PythonMill;
 import de.monticore.python._ast.*;
-import de.monticore.sipython.SIPythonMill;
-import de.monticore.sipython._parser.SIPythonParser;
-import de.monticore.symbols.basicsymbols._symboltable.FunctionSymbol;
 import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
 import de.monticore.symbols.oosymbols._symboltable.FieldSymbol;
 import de.monticore.symboltable.ISymbol;
@@ -137,7 +136,7 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 			builtinFunctionsReolverScript.delete();
 
 			// parse generated script with builtin function declarations
-			Optional<ASTPythonScript> ast = new SIPythonParser().parse_String(result.toString());
+			Optional<ASTPythonScript> ast = PythonMill.parser().parse(result.toString());
 
 			if (ast.isEmpty()) {
 				Log.error("Unable to parse builtin python functions");
@@ -145,12 +144,12 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 			}
 
 			// create symbol table
-			IPythonArtifactScope scope = SIPythonMill.scopesGenitorDelegator().createFromAST(ast.get());
+			IPythonArtifactScope scope = PythonMill.scopesGenitorDelegator().createFromAST(ast.get());
 
 			// set scope name to exclude from parameter size check coco
 			scope.setName("__builtin__");
 
-			SIPythonMill.globalScope().addSubScope(scope);
+      PythonMill.globalScope().addSubScope(scope);
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -221,7 +220,7 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 		}
 
 		// parse generated file
-		Optional<ASTPythonScript> importAst = new SIPythonParser().parse_String(result.toString());
+		Optional<ASTPythonScript> importAst = PythonMill.parser().parse_String(result.toString());
 
 		if (importAst.isEmpty()) {
 			Log.error("Unable to create ast for import " + name);
@@ -229,10 +228,10 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 		}
 
 		// build symbol table of the imported file
-		IPythonArtifactScope scope = SIPythonMill.scopesGenitorDelegator().createFromAST(importAst.get());
+		IPythonArtifactScope scope = PythonMill.scopesGenitorDelegator().createFromAST(importAst.get());
 
 		// add to global scope
-		SIPythonMill.globalScope().addSubScope(scope);
+    PythonMill.globalScope().addSubScope(scope);
 	}
 
 	private void checkNameIsKeyword(ISymbol symbol) {
@@ -292,17 +291,18 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 					for (ASTStatement functionStatement : functionDeclaration.getStatementBlock().getStatementBlockBody().getStatementList()) {
 						if (functionStatement instanceof ASTExpressionStatement) {
 							ASTExpressionStatement expressionStatement = ((ASTExpressionStatement) functionStatement);
-//							if (expressionStatement.getExpression() instanceof ASTAssignmentExpression) {
-//								ASTAssignmentExpression assignmentExpression = (ASTAssignmentExpression) expressionStatement.getExpression();
-//
-//								if (assignmentExpression.getLeft() instanceof ASTFieldAccessExpression) {
-//									String name = ((ASTFieldAccessExpression) assignmentExpression.getLeft()).getName();
-//									FieldSymbol symbol = new FieldSymbol(name);
-//									this.checkNameIsKeyword(symbol, assignmentExpression.get_SourcePositionStart());
-//									node.getSpannedScope().add(symbol);
-//								}
-//
-//							}
+              for (ASTExpression expr : expressionStatement.getExpressionList()) {
+                if (expr instanceof ASTAssignmentExpression) {
+                  ASTAssignmentExpression assignmentExpression = (ASTAssignmentExpression) expr;
+
+                  if (assignmentExpression.getLeft() instanceof ASTFieldAccessExpression) {
+                    String name = ((ASTFieldAccessExpression) assignmentExpression.getLeft()).getName();
+                    FieldSymbol symbol = new FieldSymbol(name);
+                    this.checkNameIsKeyword(symbol, assignmentExpression.get_SourcePositionStart());
+                    node.getSpannedScope().add(symbol);
+                  }
+                }
+              }
 						}
 					}
 				}
