@@ -136,8 +136,8 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
 
   GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
 
-  MultiVariableDeclaration implements Statement = (Name || ",")+ "=" Expression STATEMENT_END;
-  ParenMultiVariableDeclaration implements Statement = "(" (Name || ",")+ ")" "=" Expression STATEMENT_END;
+  MultiVariableDeclaration implements Statement = (Name || ",")+ ","? "=" Expression STATEMENT_END;
+  ParenMultiVariableDeclaration implements Statement = "(" (Name || ",")+ ","? ")" "=" Expression STATEMENT_END;
 
   interface VariableInit ;
 
@@ -328,7 +328,7 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   interface scope symbol PythonClass = Name ;
 
   // class declaration statement
-  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" ((superClasses:PyQualifiedName | arguments:NamedArgument) ","?)* ")" )? ":" ClassStatementBlock ;
+  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" ((superClasses:PyQualifiedName TypeAnnotation? | arguments:NamedArgument) ","?)* ")" )? ":" ClassStatementBlock ;
 
   interface ClassStatement;
 

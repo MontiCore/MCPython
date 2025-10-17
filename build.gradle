@@ -97,6 +97,24 @@ task testReport(type: TestReport) {
     reportOn tasks.withType(Test)
 }
 
+
+def testProjects = [
+    "bletl": "https://github.com/JuBiotech/bletl.git",
+    "calibr8": "https://github.com/sandialabs/calibr8.git",
+    "murefi":"https://github.com/JuBiotech/murefi.git",
+    "robotools":"https://github.com/JuBiotech/robotools.git"
+]
+
+testProjects.forEach {pn, pUrl ->
+  def tn = "cloneExternalTestRepos_$pn"
+  tasks.register(tn, Exec){
+    def cloneDir = "$buildDir/testRepos/$pn"
+    commandLine "git", "clone", pUrl, cloneDir
+    outputs.dir(cloneDir)
+  }
+  tasks.test.dependsOn(tasks.named(tn))
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
