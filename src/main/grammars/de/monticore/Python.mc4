@@ -1,29 +1,42 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore;
 
-/*
- * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
- * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
+/* This is a MontiCore alpha grammar. Adaptions are possible */
+
+import de.monticore.MultilineString;
+import de.monticore.expressions.*;
+import de.monticore.literals.MCCommonLiterals;
+import de.monticore.symbols.OOSymbols;
+
+/**
+ * The Python language defines an almost complete subset of the Python programming language.
+ * The goal is to analyze existing Python (research) software; therefore, the grammar and CoCos are somewhat simplified.
+ * Because the parsed code is assumed to be valid Python, as verified by other tools, certain restrictions can be omitted,
+ * e.g., accepting code that is not strictly valid Python.
+ * The focus is instead on building an abstract syntax that is easy to analyze within the MontiCore toolchain.
  */
-grammar Python extends  de.monticore.MultilineString, // Must be first to avoid conflicts with String token!
-                        de.monticore.expressions.CommonExpressions,
-                        de.monticore.expressions.AssignmentExpressions,
-                        de.monticore.literals.MCCommonLiterals,
-                        de.monticore.symbols.OOSymbols {
+grammar Python extends  MultilineString, // Must be first to avoid conflicts with String token!
+                        CommonExpressions,
+                        AssignmentExpressions,
+                        MCCommonLiterals,
+                        OOSymbols {
 
   PythonScript = Statement*;
 
   /*====================================== Tokens ======================================*/
   @Override
   token WS = (' ' | '\t' | '\r' | '\n' ) : -> channel(HIDDEN);
-
   @Override
   token SL_COMMENT = "#" (~('\n' | '\r' ))* : -> channel(HIDDEN);
+  token ByteOrderMark = '\uFEFF' : -> skip;
+
+  /**
+   * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
+   * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
+   */
   token BLOCK_START = '\u2983';
   token BLOCK_END = '\u2984';
   token STATEMENT_END = ';'? '\u204f' | ';' '\u204f'?;
-
-  token ByteOrderMark = '\uFEFF' : -> skip;
 
   // Will be filtered out by the WhitespacePreprocessingTokenSource
   // Used break a line without finishing the statement
@@ -64,13 +77,11 @@ grammar Python extends  de.monticore.MultilineString, // Must be first to avoid 
   // PEP 515
   token DigitsPart = Digit ('_'? Digit)*;
 
-
   token HexNumberToken = '0' 'x' ('0'..'9' | 'a'..'f' | 'A'..'F')+;
   // PEP 515: Underscores in Numeric Literals
   @Override
   token Digits
     = Digit ('_'?  Digit)*; // technically the first digit must be nonzero except for 0(_0)*
-
 
   /*====================================== Literals ======================================*/
 

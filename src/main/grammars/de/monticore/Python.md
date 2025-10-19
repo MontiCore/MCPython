@@ -1,17 +1,20 @@
-# Python
-The Python grammar is a limited Python-like grammar. 
-Python grammar allows us to parse python scripts. This grammar supports Statements, Literals and Expressions.
-The statements we define and consequently are supported by the grammar,
-are the import statements, the if-else statements, the assert statements, the for while statements, the break statements, 
-the try-except-finally statements, the with open statements, variable declarations and assignments including arrays
-and tuples (only with brackets, more information found in the Problems section), the return statement. Functions and 
-classes are also supported. We also needed to define String Literals and Boolean Literals since they were inconsistent 
-to the implementation defined on MCBasics. Lastly we also define Expressions, it supports the ternary-operator
-expression, mathematical and logical expressions and finally also lambda expressions.
+<!-- (c) https://github.com/MontiCore/monticore -->
+<!-- This is a MontiCore alpha explanation, with plans to become MontiCore stable. -->
 
-### Syntax/Grammar
-We tried to stay as true as possible to the original Python Syntax, the syntax is the same and can be used the same
-as in the Python language. Some examples are below.
+# Python
+The Python language defines an almost complete subset of the Python programming language.  
+The goal is to analyze existing Python (research) software; therefore, the grammar and CoCos are somewhat simplified.  
+Because the parsed code is assumed to be valid Python, as verified by other tools, certain restrictions can be omitted, e.g., accepting code that is not strictly valid Python.  
+The focus is instead on building an abstract syntax that is easy to analyze within the MontiCore toolchain.
+
+## Whitespace sensitive parsing
+Since python is a whitespace sensitive language, some special adaptions to the language frontend have to be made.
+The lexer emits special tokens to control the increase and decrease of indent, as well as the end of statements.
+Thus, the parser can be written identically to a c-style language, using these newly introduced tokens instead of curly brackets and semicolons.
+The whole process is described in detail in "Building Whitespace-Sensitive Languages Using Whitespace-Insensitive Components".
+
+## Example
+Two simple method definitions and a method call in Python:
 
 ```python
 def func1():
@@ -25,75 +28,51 @@ def func2(x):
 func1()
 ```
 
-Here we see how functions are declared, they are declared the same as in the Python languages.
-
-```python
-var = 2700
-print(var + 30)
-print (var)
-```
-
-Here we can see how we could use the print function in python. The same as would we write it normally
-while programming Python.
-
-We could reuse a lot from the Monticore MCBasics, however some things like the Boolean and String literals needed to be
-redefined since the original MCBasics definition was not correct for Python. Furthermore, the Monticore Syntax
-was not made for Python which lead us to redefining a lot of things like for example indentation and multiline
-comments.
-
 ### Functionality (Cocos)
-In order for everything to work correctly we needed to implement some requirements in the form of Cocos.
+To ensure correct functionality, several requirements were implemented in the form of CoCos.
+
 #### 1. CallExpressionAfterFunctionDeclarationCoco
-This Coco checks if the function is called after being declared. To see that we see at what position the
-call is written and at what position the declaration is written and compare it to one another. Note that 
-this is not checked in the cases the functions used are being imported, because in that case the position
-is not relevant anymore.
+This Coco checks whether a function is called after being declared. It compares the positions of the call and the declaration.  
+Functions imported from other files are excluded from this check, as their position is no longer relevant.
 
 #### 2. JavaBooleanExpressionCoco
-This Coco blocks every type of Java booleans. For example symbols like for example && and || that mean the logical
-operators 'and' and 'or' in java, can not be used in python and work. This coco blocks it and returns
-the Error: InvalidBooleanExpression, the Symbol and where it was used. 
+This Coco blocks all Java-style boolean operators. Symbols such as `&&` and `||`, which represent the logical operators `and` and `or` in Java, cannot be used in Python.  
+This Coco blocks such expressions and returns the error `InvalidBooleanExpression`, along with the symbol and its location.
 
 #### 3. PythonDuplicateFunctionCoco
-This Coco sees if there are functions used two times in a Python file. If there are duplicate function it returns
-an Error. We just check the Names of the different functions and see if there are two equal Names to return
-this Error. As explained in the Evaluation Section, overloading of functions is not possible in our project.
+This Coco detects whether functions are defined more than once in a Python file.  
+If duplicate function names are found, it returns an error. Function overloading is not supported in this project, as explained in the Evaluation Section.
 
 #### 4. PythonExpressionCoco
-For all Expressions that stand alone in a line, this Coco checks if the Expression is a Call or Assignment 
-Expression. If it is not any of these two it returns a warning if the Statement has no effect, however it 
-returns an Error if it is an Assignment Expression and no Variable declaration. This coco prevents no effect 
-statements that stand there with no purpose.
+This Coco checks all expressions that stand alone on a line to determine whether they are call or assignment expressions.  
+If the expression is neither, it returns a warning for having no effect. If an invalid assignment is found (e.g., without a proper variable declaration), it returns an error.  
+This prevents unnecessary statements with no purpose.
 
 #### 5. PythonFunctionArgumentSizeCoco
-If we call the function we need to give the same argument size as it is defined in the function declaration.
-This Coco checks whether there are at least as many arguments as the minimum number of arguments and at most 
-as many as the maximum number of arguments, including the optional parameters.
+This Coco verifies that a function is called with the correct number of arguments.  
+It ensures that the number of arguments provided matches the minimum and maximum defined in the function declaration, including optional parameters.
 
 #### 6. PythonFunctionOrClassDeclarationInStatementBlockCoco
-It is forbidden to declare functions or classes inside an if, a for or a while. That is what this coco checks, 
-it returns an Error if this rule is broken.
+This Coco prohibits declaring functions or classes inside control structures such as `if`, `for`, or `while` blocks.  
+An error is returned if this rule is violated.
 
 #### 7. PythonFunctionDuplicateParameterNameCoco
-This Coco checks if in a function there are duplicate parameters as arguments. To check this we just test if there are
-two parameters with the same name, in that case a Duplicate parameter name error is returned, with the position where
-it happened.
+This Coco checks for duplicate parameter names in a function definition.  
+If two parameters share the same name, an error is returned, indicating a duplicate parameter name and its position.
+
 #### 8. PythonLambdaDuplicateParameterNameCoco
-This Coco checks if in a lambda there are duplicate parameters as arguments. To check this we just test if there are
-two parameters with the same name, in that case a Duplicate parameter name error is returned, with the position where
-it happened.
+This Coco performs the same check as the previous one but for lambda expressions.  
+If duplicate parameter names are found, an error is returned along with the position of the issue.
+
 #### 9. PythonVariableOrFunctionOrClassExistsCoco
-This Coco controls if the variable or function or class that is being used exists. To check this it simply checks the 
-symbol table to see if the symbol that is being used already exits.
+This Coco verifies that any variable, function, or class being used actually exists.  
+It checks the symbol table to confirm whether the referenced symbol has already been defined.
 
 ### Symbol Table
-The Symbol Table is a table that saves all used symbols, like for example all variables, classes and functions. Whenever
-there is a symbol that is being used another time, we set the reference of the duplicated symbol to the already created
-symbol and continue using it like this. Furthermore, we also use this table to check whether a name of a symbol 
-corresponds to a keyword in Python, to block the usage of these. We also have build in function symbols in the table,
-that helps us check whether something is getting used incorrectly. Finally, for each import we search all functions
-and classes in the imported classes and create corresponding symbols from those classes/functions in our table, to help
-us again understand what is being used and if it is being used correctly.
+The Symbol Table stores all used symbols, such as variables, classes, and functions.  
+When a symbol is reused, its reference is linked to the already created symbol for consistent usage.  
+The table is also used to verify that symbol names do not match Python keywords, thereby preventing invalid identifiers.  
+Additionally, function symbols are stored to enable validation of correct symbol usage.
 
 ## Further Information
 
