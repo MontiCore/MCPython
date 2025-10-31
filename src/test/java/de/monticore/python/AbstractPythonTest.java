@@ -8,9 +8,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Optional;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AbstractPythonTest {
 
@@ -77,7 +75,7 @@ public class AbstractPythonTest {
 	public void parseModelFromFileAndExpectFail(String codeString) {
 		try {
 			var errorCount = parseModelFromFileAndReturnErrorCount(codeString);
-			assertTrue("Expected some errors here, but no occurred!", errorCount > 0);
+			assertTrue(errorCount > 0, "Expected some errors here, but no occurred!");
 		} catch(Exception e) {
 			assertNotNull(e);
 		}
@@ -86,7 +84,7 @@ public class AbstractPythonTest {
 	public void parseModelFromStringAndExpectFail(String codeString) {
 		try {
 			var errorCount = parseModelFromStringAndReturnErrorCount(codeString);
-			assertTrue("Expected some errors here, but no occurred!", errorCount > 0);
+			assertTrue(errorCount > 0, "Expected some errors here, but no occurred!");
 		} catch(Exception e) {
 			assertNotNull(e);
 		}

@@ -1,113 +1,86 @@
 /* (c) https://github.com/MontiCore/monticore */
 plugins {
-    id "java"
-    id "de.monticore.generator" version "$mc_version" // MontiCore Plugin
-    id "maven-publish"
-    id "com.github.johnrengelman.shadow" version "6.0.0"
-    id 'org.ec4j.editorconfig' version "0.0.3"
+  id "java"
+  id "de.monticore.generator" version "$mc_version"
+  id "maven-publish"
+  id "com.github.johnrengelman.shadow" version "6.0.0"
+  id 'org.ec4j.editorconfig' version "0.0.3"
 }
 
-group = "de.monticore"
-description = "SIPython"
+group = "de.monticore.lang"
+description = "MCPython"
 
 java {
+  withSourcesJar()
+  withJavadocJar()
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(11))
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
-subprojects {
-    apply plugin: 'idea'
-    idea {
-        module {
-            testSourceDirs += file("$projectDir/target/generated-test-sources/monticore/sourcecode")
-        }
-    }
-}
-buildDir = file("$projectDir/target")
-
 dependencies {
-    implementation "de.monticore:monticore-runtime:${project.properties['mc_version']}"
-    implementation "org.jscience:jscience:$jscience_version"
-    grammar "de.monticore:monticore-grammar:$mc_version"
+  grammar "de.monticore:monticore-grammar:$mc_version"
 
-    testImplementation ("de.monticore:monticore-grammar:${project.properties['mc_version']}") {capabilities {
-        requireCapability("de.monticore:monticore-grammar-tests") }
-    }
-    testImplementation "org.junit.vintage:junit-vintage-engine:5.6.2"
-    testImplementation "junit:junit:$junit_version"
-    testImplementation "com.github.javaparser:javaparser-symbol-solver-core:3.14.11"
+  implementation "de.monticore:monticore-runtime:$mc_version"
+  implementation "org.jscience:jscience:$jscience_version"
+
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.2"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine:5.6.2"
+  testImplementation "org.junit.jupiter:junit-jupiter-params:5.6.2"
+  testImplementation "com.github.javaparser:javaparser-symbol-solver-core:3.14.11"
 }
 
 repositories {
-    if(("true").equals(getProperty('useLocalRepo'))){
-        mavenLocal()
-    }
-    maven {
-        credentials.username mavenUser
-        credentials.password mavenPassword
-        url repo
-    }
+  if (("true").equals(getProperty('useLocalRepo'))) {
+    mavenLocal()
+  }
+  maven {
+    credentials.username mavenUser
+    credentials.password mavenPassword
+    url repo
+  }
 }
 
 test {
-    useJUnit()
-    testLogging {
-        exceptionFormat = 'full'
-        showStackTraces = true
-        showStandardStreams = true
-    }
+  useJUnitPlatform()
+  testLogging {
+    exceptionFormat = 'full'
+    showStackTraces = true
+    showStandardStreams = true
+  }
 
-    onOutput { descriptor, event ->
-        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message)
-    }
+  onOutput { descriptor, event ->
+    logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message)
+  }
 }
 
 tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
+  options.encoding = "UTF-8"
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    archiveClassifier = "sources"
+shadowJar {
+  manifest {
+    attributes "Main-Class": "de.monticore.umlcd4a.CD4ACLI"
+  }
+  archiveClassifier = "cli"
 }
-
-sourcesJar.dependsOn(tasks.named("generateMCGrammars"))
-
-task javadocJar(type: Jar) {
-    from javadoc
-    archiveClassifier = "javadoc"
-}
-
-shadowJar { // all in one jar
-    manifest {
-        attributes "Main-Class": "de.monticore.umlcd4a.CD4ACLI"
-    }
-    archiveClassifier = "cli"
-}
-
-jar.dependsOn(shadowJar)
-
-// generated java doc contains errors, disable for now
-javadoc.failOnError(false)
-
 
 task testReport(type: TestReport) {
-    destinationDir = file("$buildDir/reports/allTests")
-    reportOn tasks.withType(Test)
+  destinationDir = file("$buildDir/reports/allTests")
+  reportOn tasks.withType(Test)
 }
 
-
 def testProjects = [
-    "bletl": "https://github.com/JuBiotech/bletl.git",
-    "calibr8": "https://github.com/sandialabs/calibr8.git",
-    "murefi":"https://github.com/JuBiotech/murefi.git",
-    "robotools":"https://github.com/JuBiotech/robotools.git"
+    "bletl"    : "https://github.com/JuBiotech/bletl.git",
+    "calibr8"  : "https://github.com/sandialabs/calibr8.git",
+    "murefi"   : "https://github.com/JuBiotech/murefi.git",
+    "robotools": "https://github.com/JuBiotech/robotools.git"
 ]
 
-testProjects.forEach {pn, pUrl ->
+testProjects.forEach { pn, pUrl ->
   def tn = "cloneExternalTestRepos_$pn"
-  tasks.register(tn, Exec){
+  tasks.register(tn, Exec) {
     def cloneDir = "$buildDir/testRepos/$pn"
     commandLine "git", "clone", pUrl, cloneDir
     outputs.dir(cloneDir)
@@ -116,29 +89,16 @@ testProjects.forEach {pn, pUrl ->
 }
 
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = "$project.name"
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            // artifact shadowJar
-        }
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
     }
-    if(getProperty("localPublishing") == "true") {
-      println("Configuring local repo to publish")
-      repositories {
-        maven {
-          url = uri("$buildDir/local-maven")
-        }
-      }
-    } else {
-      repositories.maven {
-        credentials.username mavenUser
-        credentials.password mavenPassword
-        def releasesRepoUrl = "https://nexus.se.rwth-aachen.de/content/repositories/monticore-releases/"
-        def snapshotsRepoUrl = "https://nexus.se.rwth-aachen.de/content/repositories/monticore-snapshots/"
-        url = version.endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl
-      }
-    }
+  }
+  repositories.maven {
+    credentials.username mavenUser
+    credentials.password mavenPassword
+    def releasesRepoUrl = "https://nexus.se.rwth-aachen.de/content/repositories/monticore-releases/"
+    def snapshotsRepoUrl = "https://nexus.se.rwth-aachen.de/content/repositories/monticore-snapshots/"
+    url = version.endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl
+  }
 }

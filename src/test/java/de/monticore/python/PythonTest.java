@@ -1,13 +1,15 @@
 package de.monticore.python;
 
 import de.se_rwth.commons.logging.Log;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PythonTest extends AbstractPythonTest {
 
-	@Before
+	@BeforeEach
 	public void init() {
 		Log.init();
 		Log.enableFailQuick(false);
@@ -694,7 +696,7 @@ public class PythonTest extends AbstractPythonTest {
 	 * Thus, the test cases at least for indentation errors must include only one error.
 	 */
 	@Test
-	@Ignore("We assume that we parse valid python")
+	@Disabled("We assume that we parse valid python")
 	public void parsePythonWithIndentError() {
 		String model = "tests/python_IndentError.sipy";
 		parseModelFromFileAndExpectFail(model);

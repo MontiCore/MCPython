@@ -14,10 +14,10 @@ import de.monticore.python._parser.PythonParserTOP;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenSource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static de.monticore.python.PythonPreprocessor.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PythonPreprocessorTest {
 

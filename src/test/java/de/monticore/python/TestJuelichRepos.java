@@ -3,9 +3,8 @@ package de.monticore.python;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Log;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,9 +12,11 @@ import java.nio.file.Files;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class TestJuelichRepos {
 
-  @Before
+  @BeforeEach
   public void setUp() {
     PythonMill.init();
     Log.init();
@@ -25,7 +26,7 @@ public class TestJuelichRepos {
   @Test
   public void testParsingBletlProject() throws IOException {
 
-    File file = new File("target/testRepos/bletl");
+    File file = new File("build/testRepos/bletl");
     try (var s = Files.walk(file.toPath())) {
       for (var testPath : s.collect(Collectors.toList())) {
         File testFile = testPath.toFile();
@@ -35,7 +36,7 @@ public class TestJuelichRepos {
           System.out.println("Parsing " + testFile);
         }
 
-        Assert.assertTrue(testFile.getAbsolutePath(), testFile.exists());
+        assertTrue(testFile.exists(), "File does not exist: " + testFile.getAbsolutePath());
         PythonParser p = PythonMill.parser();
         Optional<ASTPythonScript> opt = p.parse(testFile.getAbsolutePath());
 
@@ -45,13 +46,13 @@ public class TestJuelichRepos {
       }
     }
 
-    Assert.assertEquals(0, Log.getErrorCount());
+    assertEquals(0, Log.getErrorCount());
   }
 
   @Test
   public void testParsingCalibr8Project() throws IOException {
 
-    File file = new File("target/testRepos/calibr8");
+    File file = new File("build/testRepos/calibr8");
     try (var s = Files.walk(file.toPath())) {
       for (var testPath : s.collect(Collectors.toList())) {
         File testFile = testPath.toFile();
@@ -61,7 +62,7 @@ public class TestJuelichRepos {
           System.out.println("Parsing " + testFile);
         }
 
-        Assert.assertTrue(testFile.getAbsolutePath(), testFile.exists());
+        assertTrue(testFile.exists(), "File does not exist: " + testFile.getAbsolutePath());
         PythonParser p = PythonMill.parser();
         Optional<ASTPythonScript> opt = p.parse(testFile.getAbsolutePath());
 
@@ -71,13 +72,13 @@ public class TestJuelichRepos {
       }
     }
 
-    Assert.assertEquals(0, Log.getErrorCount());
+    assertEquals(0, Log.getErrorCount());
   }
 
   @Test
   public void testParsingMurefiProject() throws IOException {
 
-    File file = new File("target/testRepos/murefi");
+    File file = new File("build/testRepos/murefi");
     try (var s = Files.walk(file.toPath())) {
       for (var testPath : s.collect(Collectors.toList())) {
         File testFile = testPath.toFile();
@@ -87,7 +88,7 @@ public class TestJuelichRepos {
           System.out.println("Parsing " + testFile);
         }
 
-        Assert.assertTrue(testFile.getAbsolutePath(), testFile.exists());
+        assertTrue(testFile.exists(), "File does not exist: " + testFile.getAbsolutePath());
         PythonParser p = PythonMill.parser();
         Optional<ASTPythonScript> opt = p.parse(testFile.getAbsolutePath());
 
@@ -97,13 +98,13 @@ public class TestJuelichRepos {
       }
     }
 
-    Assert.assertEquals(0, Log.getErrorCount());
+    assertEquals(0, Log.getErrorCount());
   }
 
   @Test
   public void testParsingRobotoolsProject() throws IOException {
 
-    File file = new File("target/testRepos/robotools");
+    File file = new File("build/testRepos/robotools");
     try (var s = Files.walk(file.toPath())) {
       for (var testPath : s.collect(Collectors.toList())) {
         File testFile = testPath.toFile();
@@ -113,7 +114,7 @@ public class TestJuelichRepos {
           System.out.println("Parsing " + testFile);
         }
 
-        Assert.assertTrue(testFile.getAbsolutePath(), testFile.exists());
+        assertTrue(testFile.exists(), "File does not exist: " + testFile.getAbsolutePath());
         PythonParser p = PythonMill.parser();
         Optional<ASTPythonScript> opt = p.parse(testFile.getAbsolutePath());
 
@@ -123,6 +124,6 @@ public class TestJuelichRepos {
       }
     }
 
-    Assert.assertEquals(0, Log.getErrorCount());
+    assertEquals(0, Log.getErrorCount());
   }
 }

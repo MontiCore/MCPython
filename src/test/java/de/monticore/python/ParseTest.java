@@ -6,16 +6,14 @@ import de.monticore.python._ast.ASTStringLiteralPython;
 import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Log;
 import org.antlr.v4.runtime.Token;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Optional;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ParseTest {
 
@@ -26,7 +24,7 @@ public class ParseTest {
     Log.enableFailQuick(false);
 
     File file = new File("src/test/resources/tests/problems.py");
-    Assert.assertTrue(file.getAbsolutePath(),file.exists());
+    assertTrue(file.exists(), "File does not exist: " + file.getAbsolutePath());
     PythonParser p = PythonMill.parser();
     Optional<ASTPythonScript> opt = p.parse(file.getAbsolutePath());
 
@@ -35,7 +33,7 @@ public class ParseTest {
     System.err.print("");
     System.err.print(p.currentTokenStream.getTokens());
 
-    Assert.assertEquals(0, Log.getErrorCount());
+    assertEquals(0, Log.getErrorCount());
   }
 
   @Test
@@ -63,7 +61,7 @@ public class ParseTest {
 
     Log.getFindings().forEach(System.err::println);
 
-    Assert.assertEquals(0, Log.getErrorCount());
+    assertEquals(0, Log.getErrorCount());
   }
 
   @Test

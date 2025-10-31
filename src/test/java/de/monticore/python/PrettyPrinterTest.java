@@ -1,12 +1,11 @@
 package de.monticore.python;
 
 import de.monticore.python._ast.ASTPythonScript;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PrettyPrinterTest {
 
