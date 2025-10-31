@@ -3,7 +3,7 @@ plugins {
   id "java"
   id "de.monticore.generator" version "$mc_version"
   id "maven-publish"
-  id "com.github.johnrengelman.shadow" version "6.0.0"
+  id "com.github.johnrengelman.shadow" version "$shadow_plugin_version"
   id 'org.ec4j.editorconfig' version "0.0.3"
 }
 
