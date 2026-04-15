@@ -74,6 +74,8 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   token PyFloat = DigitsPart? '.' DigitsPart | DigitsPart '.';
   PyFloatLiteral implements NumericLiteral <200> = PyFloat;
 
+  token PyImaginaryNumber = (DigitsPart | PyFloat)? ('+' | '-') DigitsPart "j";
+  PyImaginaryNumberLiteral implements NumericLiteral <95> = PyImaginaryNumber;
   // PEP 515
   token DigitsPart = Digit ('_'? Digit)*;
 
