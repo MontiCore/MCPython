@@ -304,6 +304,13 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
                 | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
       right:Expression;
 
+  @Override
+    AssignmentExpression implements Expression <60> = <rightassoc>
+        left:Expression
+        operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
+                  | "^=" | ">>=" | ">>>=" | "<<=" | "%=" | "**=" | "@=" | "//="]
+        right:Expression;
+
   UnpackingAssignmentExpression implements Expression <60> = <rightassoc>
     "(" left:Expression ("," left:Expression)* ","? ")" "="
     right: Expression;
