@@ -76,6 +76,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   token PyImaginaryNumber = (DigitsPart | PyFloat)? ('+' | '-') DigitsPart "j";
   PyImaginaryNumberLiteral implements NumericLiteral <95> = PyImaginaryNumber;
+
   // PEP 515
   token DigitsPart = Digit ('_'? Digit)*;
 
@@ -206,7 +207,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   );
 
   GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
-
+  NonLocalVariableDeclaration implements Statement = "nonlocal" (Name || ",")+ STATEMENT_END;
   MultiVariableDeclaration implements Statement = (Name || ",")+ ","? "=" Expression STATEMENT_END;
   ParenMultiVariableDeclaration implements Statement = "(" (Name || ",")+ ","? ")" "=" Expression STATEMENT_END;
 
@@ -242,6 +243,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   ReturnStatement implements Statement = "return" (Expression || ",")* ","? STATEMENT_END;
   YieldStatement implements Statement = "yield" (Expression || ",")* ","? STATEMENT_END;
+  YieldFromStatement implements Statement = "yield" "from" Expression;
   RaiseStatement implements Statement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
 
   ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
