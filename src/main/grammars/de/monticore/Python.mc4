@@ -206,7 +206,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
     (":" TypeAnnotation)
   );
 
-  GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
+  GlobalVariableDeclaration implements Statement = "global" (Name || ",")+ STATEMENT_END;
   NonLocalVariableDeclaration implements Statement = "nonlocal" (Name || ",")+ STATEMENT_END;
   MultiVariableDeclaration implements Statement = (Name || ",")+ ","? "=" Expression STATEMENT_END;
   ParenMultiVariableDeclaration implements Statement = "(" (Name || ",")+ ","? ")" "=" Expression STATEMENT_END;
@@ -300,8 +300,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   AnnotatedAssignmentExpression implements Expression <60> = <rightassoc>
       left:Expression
       ":" annotated: TypeAnnotation
-      operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
-                | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
+      "="
       right:Expression;
 
   @Override
