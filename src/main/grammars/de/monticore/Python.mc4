@@ -188,7 +188,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
                                               )
                                           ;
 
-  ExceptStatement = "except" (PyQualifiedName? | "(" (PyQualifiedName || ",")+ ")") ("as" alias:Name)? ":" StatementBlock;
+  ExceptStatement = "except" (PyQualifiedName | "(" (PyQualifiedName || ",")+ ")")? ("as" alias:Name)? ":" StatementBlock;
   FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
   // with open file statement
@@ -243,7 +243,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   ReturnStatement implements Statement = "return" (Expression || ",")* ","? STATEMENT_END;
   YieldStatement implements Statement = "yield" (Expression || ",")* ","? STATEMENT_END;
-  YieldFromStatement implements Statement = "yield" "from" Expression;
+  YieldFromStatement implements Statement = "yield" "from" Expression STATEMENT_END;
   RaiseStatement implements Statement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
 
   ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
