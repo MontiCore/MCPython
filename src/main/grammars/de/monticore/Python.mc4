@@ -188,7 +188,8 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
                                               )
                                           ;
 
-  ExceptStatement = "except" (PyQualifiedName | "(" (PyQualifiedName || ",")+ ")")? ("as" alias:Name)? ":" StatementBlock;
+  ExceptStatement = "except" (PyQualifiedName | "(" ExceptListing ")" | ExceptListing )? ("as" alias:Name)? ":" StatementBlock;
+  ExceptListing = (PyQualifiedName || ",")+ | (PyQualifiedName || "or")+;
   FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
   // with open file statement
@@ -344,7 +345,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   interface ClassStatement;
 
-  ClassStatementBlock = BLOCK_START ClassStatementBlockBody BLOCK_END;
+  ClassStatementBlock = (BLOCK_START ClassStatementBlockBody BLOCK_END) | ClassStatement ;
   ClassStatementBlockBody = ClassStatement+;
 
   ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
