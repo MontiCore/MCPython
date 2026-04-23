@@ -74,7 +74,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   token PyFloat = DigitsPart? '.' DigitsPart | DigitsPart '.';
   PyFloatLiteral implements NumericLiteral <200> = PyFloat;
 
-  token PyImaginaryNumber = (DigitsPart | PyFloat)? ('+' | '-') DigitsPart "j";
+  token PyImaginaryNumber = (DigitsPart | PyFloat)? ('+' | '-')? DigitsPart "j";
   PyImaginaryNumberLiteral implements NumericLiteral <95> = PyImaginaryNumber;
 
   // PEP 515
@@ -188,8 +188,8 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
                                               )
                                           ;
 
-  ExceptStatement = "except" (PyQualifiedName | "(" ExceptListing ")" | ExceptListing )? ("as" alias:Name)? ":" StatementBlock;
-  ExceptListing = (PyQualifiedName || ",")+ | (PyQualifiedName || "or")+;
+  ExceptStatement = "except" (PyQualifiedName | "(" Alternatives ")" | (PyQualifiedName || "or")+ )? ("as" alias:Name)? ":" StatementBlock;
+  Alternatives = (PyQualifiedName || ",")+ | (PyQualifiedName || "or")+ | (PyQualifiedName || "|")+  ;
   FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
   // with open file statement
