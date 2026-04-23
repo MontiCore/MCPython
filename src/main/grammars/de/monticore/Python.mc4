@@ -255,16 +255,21 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   EmptyStatement implements Statement, ClassStatement = STATEMENT_END;
 
-  MatchStatement implements Statement = key("match") Expression ":" MatchBlock;
+  MatchStatement implements Statement = key("match") (Expression || ",")+ ":" MatchBlock;
 
   scope MatchBlock = BLOCK_START CaseStatement* BLOCK_END;
-  CaseStatement = key("case") (Expression || "|")+ ("if" condition:Expression)? ":" StatementBlock;
+  CaseStatement = key("case") (Expression || ",")+ ("if" condition:Expression)? ":" StatementBlock;
 
   ConditionalExecutionStatement implements Statement = "if" condition: Expression ":" Expression;
 
   DeleteStatement implements Statement = "del" (Expression || ",")+ ","? STATEMENT_END;
 
   /*====================================== Expressions ======================================*/
+
+  // Aliased Expression only allowed in Case Statements (Checked with CoCo).
+  AliasedExpression implements Expression = Expression "as" alias:Name;
+
+  ParenthesisExpression implements Expression = "(" Expression ")";
 
   SpreadListExpression implements Expression = "*" Expression;
   SpreadMappingExpression implements Expression = "**" Expression;
@@ -306,14 +311,14 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
       left:Expression
       ":" annotated: TypeAnnotation
       "="
-      right:Expression;
+      right:Expression ","?;
 
   @Override
     AssignmentExpression implements Expression <60> = <rightassoc>
         left:Expression
         operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
                   | "^=" | ">>=" | ">>>=" | "<<=" | "%=" | "**=" | "@=" | "//="]
-        right:Expression;
+        right:Expression ","?;
 
   UnpackingAssignmentExpression implements Expression <60> = <rightassoc>
     "(" left:Expression ("," left:Expression)* ","? ")" "="
@@ -349,7 +354,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   interface ClassStatement;
 
-  ClassStatementBlock = (BLOCK_START ClassStatementBlockBody BLOCK_END) | ClassStatement ;
+  ClassStatementBlock = (BLOCK_START ClassStatementBlockBody BLOCK_END)|ClassStatement;
   ClassStatementBlockBody = ClassStatement+;
 
   ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
