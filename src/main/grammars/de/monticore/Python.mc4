@@ -357,9 +357,9 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   ClassStatementBlock = (BLOCK_START ClassStatementBlockBody BLOCK_END)|ClassStatement;
   ClassStatementBlockBody = ClassStatement+;
 
-  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
-
   ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name GenericsAnnotation? "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
+
+  ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
   ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
 
