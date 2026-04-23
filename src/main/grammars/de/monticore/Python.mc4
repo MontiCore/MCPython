@@ -219,15 +219,15 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   // function declaration statement
   interface FunctionDeclaration extends Function = Name ;
 
-  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator* async:"async"? "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
+  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator* async:"async"? "def" Name GenericsAnnotation? "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
                                                         StatementBlock ;
   FunctionParameters = (FunctionParameter  || ",")* ","?;
 
   interface FunctionParameter;
-  SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
-  OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
-  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name (":" TypeAnnotation)?;
-  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name (":" TypeAnnotation)?;
+  SimpleFunctionParameter   implements FunctionParameter, Variable = Name GenericsAnnotation? (":" TypeAnnotation)?;
+  OptionalFunctionParameter implements FunctionParameter, Variable = Name GenericsAnnotation? (":" TypeAnnotation)? "=" Expression ;
+  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name GenericsAnnotation? (":" TypeAnnotation)?;
+  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name  GenericsAnnotation? (":" TypeAnnotation)?;
   StarFunctionParameter     implements FunctionParameter = "*";
 
   @Override
@@ -246,6 +246,10 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   YieldStatement implements Statement = "yield" (Expression || ",")* ","? STATEMENT_END;
   YieldFromStatement implements Statement = "yield" "from" Expression STATEMENT_END;
   RaiseStatement implements Statement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
+
+  // Type related statemets
+  TypeAnnotationStatement  implements Statement = Expression ":" TypeAnnotation STATEMENT_END;
+  TypeAliasStatement implements Statement = key("type") Name  "=" Expression STATEMENT_END;
 
   ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
 
@@ -341,7 +345,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   interface scope symbol PythonClass = Name ;
 
   // class declaration statement
-  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" ((superClasses:PyQualifiedName TypeAnnotation? | arguments:NamedArgument) ","?)* ")" )? ":" ClassStatementBlock ;
+  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name GenericsAnnotation? ( "(" ((superClasses:PyQualifiedName TypeAnnotation? | arguments:NamedArgument) ","?)* ")" )? ":" ClassStatementBlock ;
 
   interface ClassStatement;
 
@@ -350,7 +354,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
-  ClassFunctionParameters = (FunctionParameter || ",")* ","?;
+  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name GenericsAnnotation? "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
   ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
 
@@ -359,6 +363,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   /*====================================== Type Annotations ======================================*/
 
   interface TypeAnnotation;
+  GenericTypeAnnotation     implements TypeAnnotation = TypeAnnotation GenericsAnnotation;
   StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
   TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
   QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
@@ -367,4 +372,11 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   ListTypeAnnotation        implements TypeAnnotation = "[" TypeAnnotation "]";
   EllipsisTypeAnnotation    implements TypeAnnotation = "...";
   ComplexTypeAnnotation     implements TypeAnnotation <200> = Expression;
+
+  /*====================================== Generics ======================================*/
+
+  GenericsAnnotation = "[" Generics? "]";
+  Generics = (Generic || ",")+ ;
+  Generic = PyQualifiedName (":" TypeAnnotation)?;
+
 }
