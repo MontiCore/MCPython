@@ -214,7 +214,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
       );
 
       GlobalVariableDeclaration implements Statement,ClassStatement = "global" names:(Name || ",")+ STATEMENT_END;
-      NonLocalVariableDeclaration implements Statement = "nonlocal" names:(Name || ",")+ STATEMENT_END;
+      NonLocalVariableDeclaration implements Statement,ClassStatement = "nonlocal" names:(Name || ",")+ STATEMENT_END;
       MultiVariableDeclaration implements Statement,ClassStatement = (Name || ",")+ ","? "=" (Expression || "," )+ ","? STATEMENT_END;
       ParenMultiVariableDeclaration implements Statement,ClassStatement = "(" (Name || ",")+ ","? ")" "=" (Expression || "," )+ ","? STATEMENT_END;
       interface VariableInit ;
