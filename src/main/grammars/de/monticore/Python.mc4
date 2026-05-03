@@ -197,7 +197,8 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
                                                       )
                                                       | FinallyStatement
                                                 );
-      scope ExceptStatement = "except" (PyQualifiedName | "(" Alternatives ")" | (PyQualifiedName || "or")+ )? ("as" alias:Alias)? ":" StatementBlock;
+      scope ExceptStatement = "except" (Expression | Expression ("as" alias:Alias)?)?  ":" ExceptStatementBlock;
+      ExceptStatementBlock =  BLOCK_START Statement* BLOCK_END | Statement;
       Alternatives = (PyQualifiedName || ",")+ | (PyQualifiedName || "or")+ | (PyQualifiedName || "or")+  ;
       FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
@@ -243,18 +244,19 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
     //Behaviour statements
       ReturnStatement implements Statement = "return" (Expression || ",")* ","? STATEMENT_END;
       YieldStatement implements Statement = "yield" (Expression || ",")* ","? STATEMENT_END;
-      YieldFromStatement implements Statement = "yield" "from" Expression STATEMENT_END;
+      YieldFromStatement implements Statement = "yield" "from" Expression STATEMENT_END; //PEP380
       RaiseStatement implements Statement,ClassStatement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
 
     //Typing related statements
       TypeDeclaration implements Statement = Expression ":" TypeAnnotation STATEMENT_END;
-      symbol TypeRuleStatement implements Statement,ClassStatement = key("type") Name  "=" Expression STATEMENT_END;
+      symbol TypeRuleStatement implements Statement,ClassStatement = key("type") Name GenericsAnnotation? "=" Expression STATEMENT_END;
       ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
 
     //Match statement
-      MatchStatement implements Statement,ClassStatement = key("match") (Expression || ",")+ ":" MatchBlock;
+      MatchStatement implements Statement,ClassStatement = key("match") Expression ":" MatchBlock;
       scope MatchBlock = BLOCK_START CaseStatement* BLOCK_END;
-      scope CaseStatement = key("case") (Expression || ",")+ ("if" condition:Expression)? ":" StatementBlock;
+      scope CaseStatement = key("case") (Expression || "|")+ ("as" Alias)? ("if" condition:Expression)? ":" CaseStatementBlock;
+      CaseStatementBlock = BLOCK_START Statement* BLOCK_END | Statement;
 
     //Another Statements
       DeleteStatement implements Statement,ClassStatement= "del" (Expression || ",")+ ","? STATEMENT_END;
@@ -373,5 +375,5 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
     GenericsAnnotation = "[" Generics? "]";
     Generics = (Generic || ",")+ ;
-    Generic = PyQualifiedName (":" TypeAnnotation)?;
+    Generic = TypeAnnotation (":" TypeAnnotation)?;
 }
