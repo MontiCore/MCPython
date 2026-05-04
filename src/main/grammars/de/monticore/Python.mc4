@@ -201,7 +201,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
       scope ExceptStatement = "except" ExceptPattern?  ":" ExceptStatementBlock;
       ExceptStatementBlock =  BLOCK_START Statement* BLOCK_END | Statement;
       FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
-      //PEP
+      //PEP758
       interface ExceptPattern;
       ExpressionListing implements ExceptPattern = (Expression || ",")+;
       ParenthesisedExpressionListing implements  ExceptPattern = "(" (Expression || ",")+ ")" ("as" Alias)?;
