@@ -169,13 +169,14 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
       //for statement
         scope ForStatement implements Statement,ClassStatement = async:"async"? "for" ForControl ":" StatementBlock
                                               ElseStatementPart? ;
-        ForControl = ForDecomposition "in" ForIterable;
+        ForControl = ForList "in" ForIterable;
         interface ForDecomposition;
+        ForList = (ForDecomposition || ",")+ ","?;
         ForVariable implements Variable, ForDecomposition = Name;
-        ForDecompositionComma implements ForDecomposition = ForDecomposition "," (ForDecomposition ","?)?;
-        ForDecompositionParenthesis implements ForDecomposition = "(" ForDecomposition ")";
-        ForDecompositionBrackets implements ForDecomposition = "[" ForDecomposition "]";
-        ForStarredVariable  implements ForDecomposition = "*" ForDecomposition;
+        ForDecompositionParenthesis implements ForDecomposition = "(" ForList? ")";
+        ForDecompositionBrackets implements ForDecomposition = "[" ForList? "]";
+        ForStarredVariable  implements ForDecomposition = "*" ForDecomposition ;
+        ForPyQualifiedName implements ForDecomposition = PyQualifiedName;
         ForIterable = Expression;
 
       //while statement
