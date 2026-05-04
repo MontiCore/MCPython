@@ -198,11 +198,15 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
                                                       )
                                                       | FinallyStatement
                                                 );
-      scope ExceptStatement = "except" (Expression | Expression ("as" alias:Alias)?)?  ":" ExceptStatementBlock;
+      scope ExceptStatement = "except" ExceptPattern?  ":" ExceptStatementBlock;
       ExceptStatementBlock =  BLOCK_START Statement* BLOCK_END | Statement;
-      Alternatives = (PyQualifiedName || ",")+ | (PyQualifiedName || "or")+ | (PyQualifiedName || "or")+  ;
       FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
-
+      //PEP
+      interface ExceptPattern;
+      ExpressionListing implements ExceptPattern = (Expression || ",")+;
+      ParenthesisedExpressionListing implements  ExceptPattern = "(" (Expression || ",")+ ")" ("as" Alias)?;
+      StarredExpressionListing implements ExceptPattern = "*"(Expression || ",")+;
+      StarredParenthesisedExpressionListing implements  ExceptPattern = "*""(" (Expression || ",")+ ")" ("as" Alias)?;
     //With open file statement
       scope WithStatement implements Statement,ClassStatement = async:"async"? "with" (WithStatementContents || ",")+ ":" StatementBlock ;
       WithStatementContents = Expression ("as" target:Name)? ; // target has slicing/etc

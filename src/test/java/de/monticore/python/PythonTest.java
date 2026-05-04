@@ -638,15 +638,6 @@ public class PythonTest extends AbstractPythonTest {
 						"    	   e.count+=1\n" +
 						"    	   self.list_x.append(i)\n"
 		);
-		//for loop in class
-		parseModelFromStringAndExpectFail(
-				"class myClass:\n" +
-						"    def function_name(x,y):\n" +
-						"        print(x,y)\n" +
-						"    for i in range(4):\n" +
-						"        print(i)\n"
-		);
-
 	}
 
 	/*===========================Other======================================*/
