@@ -1,11 +1,12 @@
-# Pullrequest to incorporate new Python functionality.
+# PullRequest to incorporate new Python functionality.
 In this Markdown all changes will be presented and reasoned.
+To see what is known to be unsupported see knownToBeUnsupported.md
 ## Grammar
 
 ### Rework of For Decomposition
 Python currently allows another targets inside the for constructs, thereby we change our ForControl non terminal to be closer to the python language.
 
-Old: 
+Old:
 ```
  ForControl = ForDecomposition "in" ForIterable;
  interface ForDecomposition;
@@ -37,7 +38,7 @@ target:          identifier
                  | "*" target
 
 ```
- Sources: https://docs.python.org/3/reference/simple_stmts.html#grammar-token-python-grammar-target_list and https://docs.python.org/3/reference/expressions.html (6.2.5)
+Sources: https://docs.python.org/3/reference/simple_stmts.html#grammar-token-python-grammar-target_list and https://docs.python.org/3/reference/expressions.html (6.2.5)
 
 ### Rework of Boolean
 Instead of Defining a new BooleanLiteralPython, we override the Monticore BooleanLiteral to allow 'true' and 'false' as names, tests have shown that they can be used as such.
@@ -67,12 +68,12 @@ With the following changes we aim combat these issues.
 
 ### Addition of complex numbers.
 Python supports the usage of complex numbers, they are formatted as:
-  (real number)? (+|-)? (imaginaryNumber)'j'
+(real number)? (+|-) (imaginaryNumber)'j'
 A token PyComplexNumber was added supporting these numbers, additional a matching literal for their usage within python code.
 ``` token PyComplexNumber = (DigitsPart | PyFloat)? ('+' | '-')? DigitsPart "j";
     PyComplexNumberLiteral implements NumericLiteral <95> = PyComplexNumber;
 ```
-Source for cmath: https://docs.python.org/3/library/cmath.html 
+Source for cmath: https://docs.python.org/3/library/cmath.html (Experiments have shown that
 ### Addition of generics.
 
 We added  support for generics as follows:
@@ -83,9 +84,9 @@ We added  support for generics as follows:
 ```
 This is done similarly to https://docs.python.org/3/reference/compound_stmts.html#type-params.
 But differently to use the existing TypeAnnotation non terminal. To support the functionality described in the source above we added "GenericsAnnotation?" to:
- - The the non terminals implementting the interface FunctionParameter.
- - ClassFunctionDeclaration,ClassDeclaration,SimpleFunctionDeclaration,TypeDeclarationStatement   
- and the TypeAnnotations  ``` GenericTypeAnnotation implements TypeAnnotation = TypeAnnotation GenericsAnnotation```
+- The the non terminals implementting the interface FunctionParameter.
+- ClassFunctionDeclaration,ClassDeclaration,SimpleFunctionDeclaration,TypeDeclarationStatement   
+  and the TypeAnnotations  ``` GenericTypeAnnotation implements TypeAnnotation = TypeAnnotation GenericsAnnotation```
 
 ### Statements
 
@@ -127,12 +128,12 @@ Ours: ```symbol TypeRuleStatement implements Statement,ClassStatement = key("typ
 ##### Global
 So far we only allowed a single variable to be declared as global in a global statement.
 But Python allows multiple variables to be declared global in the same statement separated by commata see: https://docs.python.org/3/reference/simple_stmts.html#global , also so far we allowed a type annotation within a global statement which is not allowed, thereby this support is removed.
-Additionally global can be used in classes as described in the source above. 
+Additionally global can be used in classes as described in the source above.
 
 Old: ```GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;```
 New:```GlobalVariableDeclaration  implements Statement,ClassStatement = "global" (Name || ",")+ STATEMENT_END;```
 
-##### Class Statement Block 
+##### Class Statement Block
 A ClassStatementBlock is now allowed to be a singular ClassStatement to allow classes such as:
 ```
 class name1: pass
@@ -162,13 +163,13 @@ CaseStatementBlock = BLOCK_START Statement* BLOCK_END | Statement;
 Aditionally we allowed match statements inside classes.
 
 #### Try-Except
-PEP758 Added support for leaving out parenthesis. Further so far the support for various Expressions and starred expressions were missing as specified in https://peps.python.org/pep-0758/ we added the support for this accordingly as specified. Also similarly to the new case statements, excepts now span a scope with the alias non terminal. 
+PEP758 Added support for leaving out parenthesis. Further so far the support for various Expressions and starred expressions were missing as specified in https://peps.python.org/pep-0758/ we added the support for this accordingly as specified. Also similarly to the new case statements, excepts now span a scope with the alias non terminal.
 Old:
 ```
  ExceptStatement = "except" (PyQualifiedName? | "(" (PyQualifiedName || ",")+ ")") ("as" alias:Name)? ":" StatementBlock;
 
 ```
-New: 
+New:
 ```
 scope ExceptStatement = "except" ExceptPattern?  ":" ExceptStatementBlock;
 ExceptStatementBlock =  BLOCK_START Statement* BLOCK_END | Statement;
@@ -217,12 +218,14 @@ New:
 ```
 #### Comprehensions
 We allowed multiple if inside a comprehension by changing ? to * at the Generator filters.
-This is allowed by python as specified here: https://docs.python.org/3/reference/expressions.html#grammar-token-python-grammar-comp_for 
+This is allowed by python as specified here: https://docs.python.org/3/reference/expressions.html#grammar-token-python-grammar-comp_for
 
 ### Another
-We added some trailing ","? to rules where they were noticed to be allowed while testing. We also formated the grammar and added some comments 
+We added some trailing ","? to rules where they were noticed to be allowed while testing. We also formated the grammar and added some comments
+
 ## Code
 In this section i will add the commits instead of the code snippets for readability reasons.
+
 ### Preprocessor
 Commit: https://github.com/MontiCore/MCPython/commit/8c519eff8bcdf027ae421726fc36929f0bde2dd1
 In line 75-77 i added that the continue line token is always ignored to allow statements like:
@@ -231,11 +234,14 @@ In line 75-77 i added that the continue line token is always ignored to allow st
               var3, var4)
 ```
 as these could cause issues.
+
 ### Visitor and CoCos related to aliased expressions.
-To avoid aliased expressions to be used anywhere we added a matching CoCo and Visitor.
+Marc suggested to add a Coco and Visitor to implement the prevention of aliased expressions to be used outside the match blocks, i implemented this in the following commit.
 Commit: https://github.com/MontiCore/MCPython/commit/ba9e8f18fb1c038a2cca33527a1e1bb8552778ab
 
 ### Adaptation of new tests
 We removed a test regarding invalid classes that are now valid (because for loops are now allowed as class statements).
-We added new test cases for Python
-...to do more specific...
+We added new test cases for Python, for that we looked what the python parser tests and we do not test.
+We then added some tests.
+
+See: https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py , and the commit https://github.com/MontiCore/MCPython/commit/78659912ca6455b515f1514dcaefbc887ffa0133
