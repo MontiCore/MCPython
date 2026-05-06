@@ -26,27 +26,27 @@ public class StateBasedWhitespacePreprocessingTokenSource {
   private PreprocessingTokens preprocessingTokens;
 
   public StateBasedWhitespacePreprocessingTokenSource(
-          Pair<TokenSource, CharStream> source,
-          List<Integer> indents,
-          List<Integer> emptyLines,
-          Lexer delegate,
-          Token eolTokenProto,
-          Token incIndentTokenProto,
-          Token decIndentTokenProto,
-          PreprocessingTokens preprocessingTokens
+        Pair<TokenSource, CharStream> source,
+        List<Integer> indents,
+        List<Integer> emptyLines,
+        Lexer delegate,
+        Token eolTokenProto,
+        Token incIndentTokenProto,
+        Token decIndentTokenProto,
+        PreprocessingTokens preprocessingTokens
   ) {
     this.openingParens = List.of(preprocessingTokens.lparenTokenType,
-            preprocessingTokens.lCurlyParenTokenType,
-            preprocessingTokens.lSquareParenTokenType);
+          preprocessingTokens.lCurlyParenTokenType,
+          preprocessingTokens.lSquareParenTokenType);
 
     this.closingParens = List.of(preprocessingTokens.rparenTokenType,
-            preprocessingTokens.rCurlyParenTokenType,
-            preprocessingTokens.rSquareParenTokenType);
+          preprocessingTokens.rCurlyParenTokenType,
+          preprocessingTokens.rSquareParenTokenType);
 
     this.sensitiveProcessor = new WhitespaceSensitiveProcessor(
-            source, indents, emptyLines, delegate.getTokenFactory(),
-            eolTokenProto, incIndentTokenProto, decIndentTokenProto,
-            preprocessingTokens
+          source, indents, emptyLines, delegate.getTokenFactory(),
+          eolTokenProto, incIndentTokenProto, decIndentTokenProto,
+          preprocessingTokens
     );
 
     this.lastToken = null;
