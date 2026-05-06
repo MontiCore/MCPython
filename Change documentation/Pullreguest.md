@@ -68,12 +68,12 @@ With the following changes we aim combat these issues.
 
 ### Addition of complex numbers.
 Python supports the usage of complex numbers, they are formatted as:
-(real number)? (+|-) (imaginaryNumber)'j'
+(real number) (+|-) (imaginaryNumber)'j'
 A token PyComplexNumber was added supporting these numbers, additional a matching literal for their usage within python code.
 ``` token PyComplexNumber = (DigitsPart | PyFloat)? ('+' | '-')? DigitsPart "j";
     PyComplexNumberLiteral implements NumericLiteral <95> = PyComplexNumber;
 ```
-Source for cmath: https://docs.python.org/3/library/cmath.html (Experiments have shown that
+Source for cmath: https://docs.python.org/3/library/cmath.html (Experiments have shown that that the real number and sign of the imaginary can be left out)
 ### Addition of generics.
 
 We added  support for generics as follows:
