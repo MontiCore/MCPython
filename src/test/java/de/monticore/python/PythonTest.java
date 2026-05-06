@@ -40,6 +40,8 @@ public class PythonTest extends AbstractPythonTest {
 	@Test
 	public void parseListComprehension(){
 		parseModelFromStringAndExpectSuccess("rgb = [i for i in range(0, hlen, hlen // 3)]\n");
+		parseModelFromStringAndExpectSuccess("rgb = [i for i, *b in range(0, hlen, hlen // 3) if cond1 if cond2]\n");
+
 	}
 
 	@Test
@@ -231,7 +233,31 @@ public class PythonTest extends AbstractPythonTest {
 						"    print(x)\n"
 		);
 	}
-
+	@Test
+	public void parseValidMatchStatement(){
+		parseModelFromStringAndExpectSuccess(
+				"match x:\n" +
+						"    case (a,b as var1) as var2: pass\n" +
+						"    case (a,b,c) as var3: pass\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"match x:\n" +
+						"    case a as var1: pass\n" +
+						"    case (b,c) as var2: pass\n"
+		);
+	}
+	@Test
+	public void parseInvalidMatchStatement(){
+		parseModelFromStringAndExpectFail(
+				"match x:\n" +
+						"    case (a,b as var1 ) as var2: pass\n" +
+						"    case  as var3: pass\n"
+		);
+		parseModelFromStringAndExpectFail(
+				"match x:\n" +
+						"    case: pass\n"
+		);
+	}
 	//valid while statements
 	@Test
 	public void parseValidWhileLoopStatement() {
@@ -326,7 +352,13 @@ public class PythonTest extends AbstractPythonTest {
 						"finally:\n" +
 						"    print(\"Done\")\n"
 		);
-
+		//Additional test inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+		parseModelFromStringAndExpectSuccess(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"except ZeroDivisionError or CustomZeroDivisionError as exp:\n" +
+						"    print(\"Can not divide by zero\")\n"
+		);
 	}
 
 	//invalid try-except-finally statements
@@ -349,7 +381,15 @@ public class PythonTest extends AbstractPythonTest {
 						"else:\n" +
 						"    print(\"Success\")\n"
 		);
-
+		// missing aliased expression
+		parseModelFromStringAndExpectFail(
+				"try:\n" +
+						"    i = 1//0\n" +
+						"except as exp:\n" +
+						"    print(\"Can not divide by zero\")\n" +
+						"else:\n" +
+						"    print(\"Success\")\n"
+		);
 		// duplicate finally
 		parseModelFromStringAndExpectFail(
 				"try:\n" +
@@ -489,6 +529,12 @@ public class PythonTest extends AbstractPythonTest {
 		parseModelFromStringAndExpectSuccess("lambda: 1\n");
 		parseModelFromStringAndExpectSuccess("lambda x: x\n");
 		parseModelFromStringAndExpectSuccess("lambda x, y: x + y\n");
+		//Additional tests inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+		parseModelFromStringAndExpectSuccess("lambda *a : 1\n");
+		parseModelFromStringAndExpectSuccess("lambda **a : 1\n");
+		parseModelFromStringAndExpectSuccess("lambda *a, **b : 1\n");
+		parseModelFromStringAndExpectSuccess("lambda a=name : 1\n");
+		parseModelFromStringAndExpectSuccess("lambda a=name, b= q+1 : 1\n");
 	}
 
 	//invalid lambda statement
@@ -499,20 +545,33 @@ public class PythonTest extends AbstractPythonTest {
 		parseModelFromStringAndExpectFail("lambda x, y z\n");
 	}
 
-	// valid lambda statement
+	// valid raise statement
 	@Test
 	public void parseValidRaiseStatement() {
 		parseModelFromStringAndExpectSuccess("raise RuntimeError('Error')\n");
 		parseModelFromStringAndExpectSuccess("raise\n");
 	}
 
-	//invalid lambda statement
+	//invalid raise statement
 	@Test
 	public void parseInvalidRaiseStatement() {
 		parseModelFromStringAndExpectFail("raise RuntimeError('Error'), ArithmeticError('Error')\n");
 		parseModelFromStringAndExpectFail("raise RuntimeError('Error') ArithmeticError('Error')\n");
 	}
+	// tests for yield  inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+	// valid yield statement
+	@Test
+	public void parseValidYieldStatement() {
+		parseModelFromStringAndExpectSuccess("def function():\n  i+=1 \n  yield i\n");
+		parseModelFromStringAndExpectSuccess("def function():\n  yield from anotherFunction()\n");
+	}
 
+	//invalid yield statement
+	@Test
+	public void parseInvalidYieldStatement() {
+		parseModelFromStringAndExpectFail("def function():\n yield yield\n");
+		parseModelFromStringAndExpectFail("def function():\n yield from\n");
+	}
 	/*===========================Literals======================================*/
 
 	// valid string literals python
@@ -530,6 +589,21 @@ public class PythonTest extends AbstractPythonTest {
 		parseModelFromStringAndExpectFail("helloworld = Hello World\n");
 	}
 
+	//Same tests as above just with the modifier f (and with a single char string)
+	// valid fstring literals python
+	@Test
+	public void parseValidFStringPython() {
+		parseModelFromStringAndExpectSuccess("helloworld =  f\" \"\n");
+		parseModelFromStringAndExpectSuccess("helloworld = F'Hello World'\n");
+	}
+
+	// invalid fstring literals python
+	@Test
+	public void parseInvalidFStringPython() {
+		parseModelFromStringAndExpectFail("helloworld = f\"Hello World\n");
+		parseModelFromStringAndExpectFail("helloworld = F'Hello World\n");
+		parseModelFromStringAndExpectFail("helloworld = Hello World\n");
+	}
 	// boolean literals for python
 	@Test
 	public void parseValidBooleanPython() {
@@ -562,6 +636,16 @@ public class PythonTest extends AbstractPythonTest {
 		parseModelFromStringAndExpectFail("x = if a==b else u\n");
 		//trenary operator without else condition
 		parseModelFromStringAndExpectFail("x = u if a==b else\n");
+	}
+
+	// tests for Walrus inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+	@Test
+	public void parseValidWalrusOperator(){
+		parseModelFromStringAndExpectSuccess("def function():\n  yield a:=2\n");
+	}
+	@Test
+	public void parseInalidWalrusOperator(){
+		parseModelFromStringAndExpectFail("def function():\n  a:= Yield 2\n");
 	}
 
 	// valid logical expressions
