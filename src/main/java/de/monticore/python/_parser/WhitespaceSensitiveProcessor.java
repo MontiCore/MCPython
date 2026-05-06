@@ -25,14 +25,14 @@ public class WhitespaceSensitiveProcessor {
   private final TokenFactory<?> tokenFactory;
 
   public WhitespaceSensitiveProcessor(
-      Pair<TokenSource, CharStream> source,
-      List<Integer> indents,
-      List<Integer> emptyLines,
-      TokenFactory<?> tokenFactory,
-      Token eolTokenProto,
-      Token incIndentTokenProto,
-      Token decIndentTokenProto,
-      PreprocessingTokens preprocessingTokens
+    Pair<TokenSource, CharStream> source,
+    List<Integer> indents,
+    List<Integer> emptyLines,
+    TokenFactory<?> tokenFactory,
+    Token eolTokenProto,
+    Token incIndentTokenProto,
+    Token decIndentTokenProto,
+    PreprocessingTokens preprocessingTokens
   ) {
     this.source = source;
     this.indents = indents;
