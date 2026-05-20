@@ -79,10 +79,9 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
     = (StringFDQCharacterPython)+;
 
   fragment token StringFSQCharacterPython
-    = ~ ('\''| '\\'| '{' )| PythonEscapeSequence |InnerFString;
+    = ~ ('\''| '\\')| PythonEscapeSequence;
   fragment token StringFDQCharacterPython
-    = ~ ('"'| '\\'| '{') | PythonEscapeSequence |InnerFString;
-  fragment token InnerFString = '{' ~('}')* '}';
+    = ~ ('"'| '\\') | PythonEscapeSequence;
 
   // === number tokens for python ===
 
