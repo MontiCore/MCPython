@@ -91,9 +91,6 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   token PyFloat = DigitsPart? '.' DigitsPart | DigitsPart '.';
   PyFloatLiteral implements NumericLiteral <200> = PyFloat;
 
-  token PyComplexNumber = (DigitsPart | PyFloat)? ('+' | '-')? DigitsPart "j";
-  PyComplexNumberLiteral implements NumericLiteral <95> = PyComplexNumber;
-
   // PEP 515
   token DigitsPart = Digit ('_'? Digit)*;
 
@@ -106,6 +103,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   /*====================================== Literals ======================================*/
 
   HexNumberLiteral implements NumericLiteral <100> = HexNumberToken;
+  ImaginaryNumberLiteral implements NumericLiteral <100> = {noSpace(2)}? (DigitsPart| Digits | PyFloat) key("j");
 
   //Literals for Datastructures
   ArrayLiteral implements Literal = "[" (VariableInit || ",")* ","? "]" ;
