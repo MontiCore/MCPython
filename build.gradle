@@ -51,12 +51,16 @@ test {
     showStandardStreams = true
   }
 
-  onOutput { descriptor, event ->
-    logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message)
-  }
+  addTestOutputListener(new TestOutputListener() {
+    @Override
+    void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
+      logger.lifecycle("Test: " + testDescriptor.getName() + " produced standard out/err: " + outputEvent.getMessage())
+
+    }
+  })
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
   options.encoding = "UTF-8"
 }
 
@@ -67,9 +71,9 @@ shadowJar {
   archiveClassifier = "cli"
 }
 
-task testReport(type: TestReport) {
-  destinationDir = file("$buildDir/reports/allTests")
-  reportOn tasks.withType(Test)
+tasks.register('testReport', TestReport) {
+  destinationDirectory = layout.buildDirectory.dir("reports/allTests")
+  getTestResults().from(tasks.withType(Test))
 }
 
 def testProjects = [
@@ -82,7 +86,7 @@ def testProjects = [
 testProjects.forEach { pn, pUrl ->
   def tn = "cloneExternalTestRepos_$pn"
   tasks.register(tn, Exec) {
-    def cloneDir = "$buildDir/testRepos/$pn"
+    def cloneDir = layout.buildDirectory.dir("testRepos/$pn").get().getAsFile().getAbsolutePath()
     commandLine "git", "clone", pUrl, cloneDir
     outputs.dir(cloneDir)
   }
