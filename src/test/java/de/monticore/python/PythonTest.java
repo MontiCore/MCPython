@@ -5,8 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class PythonTest extends AbstractPythonTest {
 
 	@BeforeEach
@@ -686,7 +684,7 @@ public class PythonTest extends AbstractPythonTest {
 
 	@Test
 	public void parseSimplePython() {
-		String model = "tests/simple_python.sipy";
+		String model = "tests/simple_python.py";
 		parseModelFromFileAndExpectSuccess(model);
 	}
 
