@@ -122,7 +122,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   StringLiteralPython implements Literal, SignedLiteral =
           (
               StringModifier?
-              (source:StringPython | source:String |source:Char)
+              (sourceStrPy:StringPython | sourceStr:String |sourceChar:Char)
           )
           | fsource: FStringPython;
 
@@ -232,7 +232,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   //Variable related statements and definitions
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration STATEMENT_END;
 
-  VariableDeclaration implements Variable = Name (
+  VariableDeclaration implements Variable <1000> = Name (
     ((":" TypeAnnotation)? "=" VariableInit)
     |
     (":" TypeAnnotation)
@@ -255,10 +255,10 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   FunctionParameters = (FunctionParameter  || ",")* ","?;
 
   interface FunctionParameter;
-  SimpleFunctionParameter   implements FunctionParameter, Variable = Name GenericsAnnotation? (":" TypeAnnotation)?;
-  OptionalFunctionParameter implements FunctionParameter, Variable = Name GenericsAnnotation? (":" TypeAnnotation)? "=" Expression ;
-  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name GenericsAnnotation? (":" TypeAnnotation)?;
-  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name  GenericsAnnotation? (":" TypeAnnotation)?;
+  SimpleFunctionParameter   implements FunctionParameter, Variable = Name  (":" TypeAnnotation)?;
+  OptionalFunctionParameter implements FunctionParameter, Variable = Name  (":" TypeAnnotation)? "=" Expression ;
+  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name  (":" TypeAnnotation)?;
+  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name   (":" TypeAnnotation)?;
   StarFunctionParameter     implements FunctionParameter = "*";
 
   @Override
@@ -277,7 +277,7 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   RaiseStatement implements Statement,ClassStatement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
 
   //Typing related statements
-  TypeDeclaration implements Statement = Expression ":" TypeAnnotation STATEMENT_END;
+  TypeDeclarationStatement implements Statement = Expression ":" TypeAnnotation STATEMENT_END;
   symbol TypeRuleStatement implements Statement,ClassStatement = key("type") Name GenericsAnnotation? "=" Expression STATEMENT_END;
   ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
 
@@ -307,7 +307,6 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   /*====================================== Expressions ======================================*/
 
   symbol Alias = Name;
-
   //Spreadlist expression
   SpreadListExpression implements Expression = "*" Expression;
   SpreadMappingExpression implements Expression = "**" Expression;
@@ -401,22 +400,22 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
-  ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
+  ClassAttributes implements ClassStatement <300> = VariableDeclaration STATEMENT_END;
 
   ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
 
   /*====================================== Type Annotations ======================================*/
 
-  interface TypeAnnotation;
-  GenericTypeAnnotation     implements TypeAnnotation = TypeAnnotation GenericsAnnotation;
-  StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
-  TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
-  QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
-  AlternativeTypeAnnotation implements TypeAnnotation = <rightassoc> lhs:TypeAnnotation "|" rhs:TypeAnnotation;
-  CommaTypeAnnotation       implements TypeAnnotation = <rightassoc> lhs:TypeAnnotation "," rhs:TypeAnnotation ","?;
-  ListTypeAnnotation        implements TypeAnnotation = "[" TypeAnnotation "]";
-  EllipsisTypeAnnotation    implements TypeAnnotation = "...";
-  ComplexTypeAnnotation     implements TypeAnnotation <200> = Expression;
+   interface TypeAnnotation;
+    GenericTypeAnnotation     implements TypeAnnotation <100> = TypeAnnotation GenericsAnnotation;
+    StringTypeAnnotation      implements TypeAnnotation <100> = StringLiteralPython;
+    TupleTypeAnnotation       implements TypeAnnotation <100> = "(" (TypeAnnotation || ",")+ ","? ")";
+    QualifiedTypeAnnotation   implements TypeAnnotation <200> = type:PyQualifiedName;
+    AlternativeTypeAnnotation implements TypeAnnotation <100> = <rightassoc> lhs:TypeAnnotation "|" rhs:TypeAnnotation;
+    CommaTypeAnnotation       implements TypeAnnotation <60> = <rightassoc> lhs:TypeAnnotation "," rhs:TypeAnnotation ","?;
+    ListTypeAnnotation        implements TypeAnnotation <100> = "[" TypeAnnotation "]";
+    EllipsisTypeAnnotation    implements TypeAnnotation <100> = "...";
+    ComplexTypeAnnotation     implements TypeAnnotation <50> = Expression;
 
   /*====================================== Generics ======================================*/
 
