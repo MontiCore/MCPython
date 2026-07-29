@@ -1,0 +1,265 @@
+/* (c) https://github.com/MontiCore/monticore */
+package de.monticore;
+
+import de.monticore.MultilineString;
+import de.monticore.expressions.*;
+import de.monticore.literals.MCCommonLiterals;
+import de.monticore.symbols.OOSymbols;
+
+grammar PythonBasis extends MultilineString,
+                               MCCommonLiterals,
+                               CommonExpressions,
+                               AssignmentExpressions,
+                               OOSymbols{
+
+  /*====================================== Tokens ======================================*/
+  @Override
+  token WS = (' ' | '\t' | '\r' | '\n' ) : -> channel(HIDDEN);
+  @Override
+  token SL_COMMENT = "#" (~('\n' | '\r' ))* : -> channel(HIDDEN);
+  token ByteOrderMark = '\uFEFF' : -> skip;
+
+  /**
+  * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
+  * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
+  */
+  token BLOCK_START = '\u2983';
+  token BLOCK_END = '\u2984';
+  token STATEMENT_END = ';'? '\u204f' | ';' '\u204f'?;
+
+  // Will be filtered out by the WhitespacePreprocessingTokenSource
+  // Used break a line without finishing the statement
+  token CONTINUE_LINE_TOKEN = '\\' '\r'? '\n';
+
+  // === string tokens for python ===
+  //Often (mis)used as a multiline comment but can also be used as a string literal, thus we can not skip it
+  token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
+  token MultiLineFStringToken = ((("\'\'\'") .*? ("\'\'\'")) |((DoubleQuoteMultilineFStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
+
+  //Double quoted Strings "Text"
+  @Override
+  token String = '"' (StringDQCharactersPython)? '"' : {setText(getText().substring(1, getText().length() - 1));};
+
+  fragment token StringDQCharactersPython
+    = (StringDQCharacterPython)+;
+  fragment token StringDQCharacterPython
+    = ~ ('"'| '\\' | '\n') | PythonEscapeSequence;
+
+  //Single quoted Strings 'Text'
+  token StringPython = '\'' (StringSQCharactersPython)? '\'' : {setText(getText().substring(1, getText().length() - 1));};
+
+  fragment token StringSQCharactersPython
+    = (StringSQCharacterPython)+;
+  fragment token StringSQCharacterPython
+    = ~ ('\''| '\\' | '\n') | PythonEscapeSequence;
+
+  //Escape in strings "\n"
+  fragment token PythonEscapeSequence = '\\' .;
+
+  //Double and single quoted strings with an f modifier f'text1{exp}text2', separate definition to allow more expressions.
+  token FSQStringPython
+    = ('f'|'F') '\'' (StringFSQCharactersPython)? '\'' : {setText(getText().substring(1, getText().length() - 1));};
+  token FDQStringPython
+    = ('f'|'F') '"' (StringFDQCharactersPython)? '"' : {setText(getText().substring(1, getText().length() - 1));};
+
+  fragment token StringFSQCharactersPython
+    = (StringFSQCharacterPython)+;
+  fragment token StringFDQCharactersPython
+    = (StringFDQCharacterPython)+;
+
+  fragment token StringFSQCharacterPython
+    = ~ ('\''| '\\')| PythonEscapeSequence;
+  fragment token StringFDQCharacterPython
+    = ~ ('"'| '\\') | PythonEscapeSequence;
+
+  // === number tokens for python ===
+
+  token FloatWithExponent = (DigitsPart | PyFloat) ('e'|'E') ('+' | '-')? DigitsPart;
+  FloatWithExponentLiteral implements NumericLiteral <100> = FloatWithExponent;
+
+  token PyFloat = DigitsPart? '.' DigitsPart | DigitsPart '.';
+  PyFloatLiteral implements NumericLiteral <200> = PyFloat;
+
+  // PEP 515
+  token DigitsPart = Digit ('_'? Digit)*;
+
+  token HexNumberToken = '0' 'x' ('0'..'9' | 'a'..'f' | 'A'..'F')+;
+  // PEP 515: Underscores in Numeric Literals
+  @Override
+  token Digits
+    = Digit ('_'?  Digit)*; // technically the first digit must be nonzero except for 0(_0)*
+
+  /*====================================== Literals ======================================*/
+
+  HexNumberLiteral implements NumericLiteral <100> = HexNumberToken;
+  ImaginaryNumberLiteral implements NumericLiteral <100> = {noSpace(2)}? (DigitsPart| Digits | PyFloat) key("j");
+
+  //Literals for Datastructures
+  ArrayLiteral implements Literal = "[" (VariableInit || ",")* ","? "]" ;
+  TupleLiteral implements Literal = "(" (VariableInit || ",")* ","? ")" ;
+  DictLiteral implements Literal = "{" (DictEntry || ",")* ","? "}" ;
+  SetLiteral implements Literal = "{" (Expression || ",")* ","? "}" ;
+
+  DictEntry = key:VariableInit ":" value:VariableInit | SpreadMappingExpression;
+
+  //Literals and helper-definitions regarding Strings
+  MultiLineStringLiteral implements Literal = (StringModifier)? MultiLineStringToken;
+  MultiLineFStringLiteral implements Literal = (StringModifier)? MultiLineFStringToken;
+
+  //Char is necessary because single quoted characters will be recognized as char tokens not string tokens,
+  // as char is imported from MCCommonLiterals.mc4
+  StringLiteralPython implements Literal, SignedLiteral =
+          (
+              StringModifier?
+              (sourceStrPy:StringPython | sourceStr:String |sourceChar:Char)
+          )
+          | fsource: FStringPython;
+
+  StringsLiteralPython implements Literal <200> = (StringLiteralPython | StringLiteral | MultiLineStringLiteral | MultiLineFStringLiteral | FStringPython)+;
+
+  FStringPython =  (FSQStringPython | FDQStringPython | ("f"|"F") Char);
+  StringModifier = /*{cmpTokenRegEx(1, "(r|b|u|R|B|U)+")}?*/ type:Name;
+
+  // boolean literals for python
+  @Override
+  BooleanLiteral implements Literal, SignedLiteral =
+      source:["True" | "False"];
+
+  // https://docs.python.org/dev/library/constants.html#Ellipsis
+  EllipsisLiteral implements Literal = "...";
+  splittoken "...";
+
+  /*====================================== Expressions ======================================*/
+  //Spreadlist expression
+  SpreadListExpression implements Expression = "*" Expression;
+  SpreadMappingExpression implements Expression = "**" Expression;
+  splittoken "**";
+
+  // ternary-operator expression
+  TernaryOperatorExpression implements Expression <200> = thenExpression:Expression ( "if" condition:Expression
+                                       "else" elseExpression:Expression )+ ;
+
+  //mathematical expression
+  IntegerDivisionExpression implements Expression <165>, InfixExpression = left:Expression  operator:"//" right:Expression ;
+  IntegerPowExpression implements Expression <195>, InfixExpression = left:Expression operator:"**" right:Expression ;
+  MatrixMultiplicationExpression implements Expression <200>, InfixExpression = left:Expression operator:"@" right:Expression;
+
+  //logical expressions
+  AndExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
+  OrExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
+  NotExpression implements Expression <10> = "not" Expression ;
+  IsExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
+  InExpression implements Expression <195>, InfixExpression = left:Expression operator:"in" right:Expression ;
+  NotInExpression implements Expression <195>, InfixExpression = left:Expression operator:"not" "in" right:Expression; // TODO: set operator to "not in" programmatically
+
+  //Bitwise expressions
+  BitwiseAndExpression implements Expression <120>, InfixExpression = left:Expression operator:"&" right:Expression;
+  BitwiseOrExpression implements Expression <120>, InfixExpression = left:Expression operator:"|" right:Expression;
+  BitwiseXOrExpression implements Expression <120>, InfixExpression = left:Expression operator:"^" right:Expression;
+  BitwiseLeftShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:"<<" right:Expression;
+  BitwiseRightShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:">>" right:Expression;
+
+  BitwiseOnesComplimentExpression implements Expression <120> = "~" Expression;
+
+  // lambda expression
+  scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;
+  AppliedLambdaExpression implements Expression = "(" LambdaExpression ")" "(" Expression ")" ;
+
+  //Assignment expressions
+  AnnotatedAssignmentExpression implements Expression <60> = <rightassoc>
+      left:Expression
+      ":" annotated: TypeAnnotation
+      "=" right:Expression ","?;
+  @Override
+  AssignmentExpression implements Expression <60> = <rightassoc>
+      left:Expression
+      operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
+                | "^=" | ">>=" | ">>>=" | "<<=" | "%=" | "**=" | "@=" | "//="]
+      right:Expression ","?;
+
+  UnpackingAssignmentExpression implements Expression <60> = <rightassoc>
+    "(" left:Expression ("," left:Expression)* ","? ")" "="
+    right: Expression;
+
+ // 6.3.3 - Slicing
+  IndexExpression implements Expression = Expression "[" (IndexExpressionInner || ",")+ tuple:","? "]";
+
+  // slice_item
+  interface IndexExpressionInner;
+
+  SimpleIndex implements IndexExpressionInner = Expression;
+  ProperSlice implements IndexExpressionInner = lower:Expression? ":" upper:Expression? (":" stride:Expression?)?;
+
+  // Walrus operator
+  PyAssignmentExpression implements Expression = variable:Name operator:":=" right:Expression;
+
+  //Await expression
+  AwaitExpression implements Expression = "await" Expression;
+
+  // List/Set/Dict comprehension
+  ListComprehensionExpression implements Expression = "[" Expression "for" ForControl GeneratorFilter* "]";
+  SetComprehensionExpression implements Expression = "{" Expression "for" ForControl GeneratorFilter* "}";
+  DictComprehensionExpression implements Expression = "{" Name ":" Expression "for" ForControl GeneratorFilter* "}";
+  GeneratorExpression implements Expression = Expression "for" ForControl GeneratorFilter? ;
+
+
+  ForControl = ForList "in" ForIterable;
+
+  interface ForDecomposition;
+  ForList = (ForDecomposition || ",")+ ","?;
+  ForVariable implements Variable, ForDecomposition = Name;
+  ForDecompositionParenthesis implements ForDecomposition = "(" ForList? ")";
+  ForDecompositionBrackets implements ForDecomposition = "[" ForList? "]";
+  ForStarredVariable  implements ForDecomposition = "*" ForDecomposition ;
+  ForPyQualifiedName implements ForDecomposition = PyQualifiedName;
+  ForIterable = Expression;
+
+  GeneratorFilter = "if" condition:Expression;
+
+  /*====================================== Type Annotations ======================================*/
+
+  interface TypeAnnotation;
+  GenericTypeAnnotation     implements TypeAnnotation <100> = TypeAnnotation GenericsAnnotation;
+  StringTypeAnnotation      implements TypeAnnotation <100> = StringLiteralPython;
+  TupleTypeAnnotation       implements TypeAnnotation <100> = "(" (TypeAnnotation || ",")+ ","? ")";
+  QualifiedTypeAnnotation   implements TypeAnnotation <200> = type:PyQualifiedName;
+  AlternativeTypeAnnotation implements TypeAnnotation <100> = <rightassoc> lhs:TypeAnnotation "|" rhs:TypeAnnotation;
+  CommaTypeAnnotation       implements TypeAnnotation <60> = <rightassoc> lhs:TypeAnnotation "," rhs:TypeAnnotation ","?;
+  ListTypeAnnotation        implements TypeAnnotation <100> = "[" TypeAnnotation "]";
+  EllipsisTypeAnnotation    implements TypeAnnotation <100> = "...";
+  ComplexTypeAnnotation     implements TypeAnnotation <50> = Expression;
+
+  /*====================================== Generics ======================================*/
+
+  GenericsAnnotation = "[" Generics? "]";
+  Generics = (Generic || ",")+ ;
+  Generic = type:TypeAnnotation (":" TypeAnnotation)?;
+
+  /*====================================== Variables ======================================*/
+
+  interface VariableInit ;
+  SimpleInit implements VariableInit = Expression ;
+
+  //Helper-definition for qualified names in python.
+  PyQualifiedName = (Name || ".")+;
+  astrule PyQualifiedName = method public String joined(){
+    return String.join(".", getNameList());
+  };
+
+  FunctionParameters = (FunctionParameter  || ",")* ","?;
+  interface FunctionParameter;
+  SimpleFunctionParameter   implements FunctionParameter, Variable = Name  (":" TypeAnnotation)?;
+  OptionalFunctionParameter implements FunctionParameter, Variable = Name  (":" TypeAnnotation)? "=" Expression ;
+  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name  (":" TypeAnnotation)?;
+  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name   (":" TypeAnnotation)?;
+  StarFunctionParameter     implements FunctionParameter = "*";
+
+  @Override
+  Arguments = "("
+    (Argument || ",")*
+     ","?
+  ")";
+  interface Argument;
+  NormalArgument implements Argument = Expression;
+  NamedArgument implements Argument = paramName:Name "=" Expression;
+  }
