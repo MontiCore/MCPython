@@ -225,13 +225,13 @@ grammar PythonBasis extends MultilineString,
   QualifiedTypeAnnotation   implements TypeAnnotation <200> = type:PyQualifiedName;
   AlternativeTypeAnnotation implements TypeAnnotation <100> = <rightassoc> lhs:TypeAnnotation "|" rhs:TypeAnnotation;
   CommaTypeAnnotation       implements TypeAnnotation <60> = <rightassoc> lhs:TypeAnnotation "," rhs:TypeAnnotation ","?;
-  ListTypeAnnotation        implements TypeAnnotation <100> = "[" TypeAnnotation "]";
+  ListTypeAnnotation        implements TypeAnnotation <100> = "[" TypeAnnotation? "]";
   EllipsisTypeAnnotation    implements TypeAnnotation <100> = "...";
-  ComplexTypeAnnotation     implements TypeAnnotation <50> = Expression;
+  ParameterizedGenericTypeAnnotation implements TypeAnnotation <100> = TypeAnnotation "[" (Expression ||",")* ","? "]";
 
   /*====================================== Generics ======================================*/
 
-  GenericsAnnotation = "[" Generics? "]";
+  GenericsAnnotation = "[" Generics? ","? "]";
   Generics = (Generic || ",")+ ;
   Generic = type:TypeAnnotation (":" TypeAnnotation)?;
 
@@ -248,12 +248,12 @@ grammar PythonBasis extends MultilineString,
 
   FunctionParameters = (FunctionParameter  || ",")* ","?;
   interface FunctionParameter;
-  SimpleFunctionParameter   implements FunctionParameter, Variable = Name  (":" TypeAnnotation)?;
-  OptionalFunctionParameter implements FunctionParameter, Variable = Name  (":" TypeAnnotation)? "=" Expression ;
-  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name  (":" TypeAnnotation)?;
-  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name   (":" TypeAnnotation)?;
-  StarFunctionParameter     implements FunctionParameter = "*";
-
+  SimpleFunctionParameter   implements FunctionParameter, Variable <100> = Name  (":" TypeAnnotation)?;
+  OptionalFunctionParameter implements FunctionParameter, Variable <100> = Name  (":" TypeAnnotation)? "=" Expression ;
+  VarArgFunctionParameter   implements FunctionParameter, Variable <100> = "*" Name  (":" TypeAnnotation)?;
+  KWArgFunctionParameter    implements FunctionParameter, Variable <100> = "**" Name   (":" TypeAnnotation)?;
+  StarFunctionParameter     implements FunctionParameter <100> = "*";
+  SlashFunctionParameter    implements FunctionParameter <100> = "/";
   @Override
   Arguments = "("
     (Argument || ",")*
