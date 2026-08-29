@@ -1,13 +1,7 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore;
-
 /* This is a MontiCore alpha grammar. Adaptions are possible */
-
-import de.monticore.MultilineString;
-import de.monticore.expressions.*;
-import de.monticore.literals.MCCommonLiterals;
-import de.monticore.symbols.OOSymbols;
-
+import de.monticore.PythonBasis;
 /**
  * The Python language defines an almost complete subset of the Python programming language.
  * The goal is to analyze existing Python (research) software; therefore, the grammar and CoCos are somewhat simplified.
@@ -15,103 +9,9 @@ import de.monticore.symbols.OOSymbols;
  * e.g., accepting code that is not strictly valid Python.
  * The focus is instead on building an abstract syntax that is easy to analyze within the MontiCore toolchain.
  */
-grammar Python extends  MultilineString, // Must be first to avoid conflicts with String token!
-                        CommonExpressions,
-                        AssignmentExpressions,
-                        MCCommonLiterals,
-                        OOSymbols {
+grammar Python extends  PythonBasis {
 
   PythonScript = Statement*;
-
-  /*====================================== Tokens ======================================*/
-  @Override
-  token WS = (' ' | '\t' | '\r' | '\n' ) : -> channel(HIDDEN);
-  @Override
-  token SL_COMMENT = "#" (~('\n' | '\r' ))* : -> channel(HIDDEN);
-  token ByteOrderMark = '\uFEFF' : -> skip;
-
-  /**
-   * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
-   * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
-   */
-  token BLOCK_START = '\u2983';
-  token BLOCK_END = '\u2984';
-  token STATEMENT_END = ';'? '\u204f' | ';' '\u204f'?;
-
-  // Will be filtered out by the WhitespacePreprocessingTokenSource
-  // Used break a line without finishing the statement
-  token CONTINUE_LINE_TOKEN = '\\' '\r'? '\n';
-
-  // === string tokens for python ===
-  // Often (mis)used as a multiline comment but can also be used as a string literal, thus we can not skip it
-  token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
-
-  @Override
-  token String = '"' (StringDQCharactersPython)? '"' : {setText(getText().substring(1, getText().length() - 1));};
-
-  token StringPython
-    = '\'' (StringSQCharactersPython)? '\''
-    : {setText(getText().substring(1, getText().length() - 1));};
-
-  fragment token StringSQCharactersPython
-    = (StringSQCharacterPython)+;
-  fragment token StringDQCharactersPython
-    = (StringDQCharacterPython)+;
-
-  fragment token StringSQCharacterPython
-    = ~ ('\''| '\\' | '\n') | PythonEscapeSequence;
-  fragment token StringDQCharacterPython
-    = ~ ('"'| '\\' | '\n') | PythonEscapeSequence;
-
-  fragment token PythonEscapeSequence
-       = '\\' .;
-
-  // === number tokens for python ===
-
-  token FloatWithExponent = (DigitsPart | PyFloat) ('e'|'E') ('+' | '-')? DigitsPart;
-  FloatWithExponentLiteral implements NumericLiteral <100> = FloatWithExponent;
-
-  token PyFloat = DigitsPart? '.' DigitsPart | DigitsPart '.';
-  PyFloatLiteral implements NumericLiteral <200> = PyFloat;
-
-  // PEP 515
-  token DigitsPart = Digit ('_'? Digit)*;
-
-  token HexNumberToken = '0' 'x' ('0'..'9' | 'a'..'f' | 'A'..'F')+;
-  // PEP 515: Underscores in Numeric Literals
-  @Override
-  token Digits
-    = Digit ('_'?  Digit)*; // technically the first digit must be nonzero except for 0(_0)*
-
-  /*====================================== Literals ======================================*/
-
-  HexNumberLiteral implements NumericLiteral <100> = HexNumberToken;
-
-  ArrayLiteral implements Literal = "[" (VariableInit || ",")* ","? "]" ;
-  TupleLiteral implements Literal = "(" (VariableInit || ",")* ","? ")" ;
-  DictLiteral implements Literal = "{" (DictEntry || ",")* ","? "}" ;
-  SetLiteral implements Literal = "{" (Expression || ",")* ","? "}" ;
-
-  DictEntry = key:VariableInit ":" value:VariableInit | SpreadMappingExpression;
-
-  StringLiteralPython implements Literal, SignedLiteral =
-          (
-              StringModifier?
-              (source:StringPython | source:String)
-          );
-
-  StringsLiteralPython implements Literal <200> = (StringLiteralPython | StringLiteral | MultiLineStringLiteral)+;
-
-  StringModifier = /*{cmpTokenRegEx(1, "(f|r|b|u|F|R|B|U)+")}?*/ type:Name;
-  MultiLineStringLiteral implements Literal = StringModifier? MultiLineStringToken;
-
-  // boolean literals for python
-  BooleanLiteralPython implements Literal, SignedLiteral =
-      source:["True" | "False"];
-
-  // https://docs.python.org/dev/library/constants.html#Ellipsis
-  EllipsisLiteral implements Literal = "...";
-  splittoken "...";
 
   /*====================================== Statements ======================================*/
   interface Statement;
@@ -120,19 +20,8 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   scope StatementBlock = (BLOCK_START StatementBlockBody BLOCK_END) | Statement;
   StatementBlockBody = Statement+;
 
-  LiteralStatement implements ClassStatement = Literal STATEMENT_END;
-
-  PassStatement implements Statement, ClassStatement = "pass" STATEMENT_END;
-
-  ElseStatementPart = "else" ":" StatementBlock;
-
-  PyQualifiedName = (Name || ".")+;
-  astrule PyQualifiedName = method public String joined(){
-    return String.join(".", getNameList());
-  };
-
   // import statement
-  ImportStatement implements Statement =
+  ImportStatement implements Statement,ClassStatement =
       ("from" {!next("import")}? (leadingDots:"."*) (module:PyQualifiedName)?)?
       "import"
           (
@@ -145,36 +34,31 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
 
   ModuleWithOptionalAlias = name:PyQualifiedName ("as" alias:Name)?;
 
+  //Conditional statements
+  IfStatement implements Statement,ClassStatement = "if"   condition:Expression     ":" thenStatement:StatementBlock
+                                                  ("elif" elifCondition:Expression ":" elifStatement:StatementBlock )*
+                                                  ElseStatementPart?;
+  ElseStatementPart = "else" ":" StatementBlock;
+  ConditionalExecutionStatement implements Statement ,ClassStatement= "if" condition: Expression ":" Expression;
 
-  // if-else statement
-  IfStatement implements Statement = "if"   condition:Expression     ":" thenStatement:StatementBlock
-                                   ("elif" elifCondition:Expression ":" elifStatement:StatementBlock )*
-                                   ElseStatementPart?;
+  //assert statement
+  AssertStatement implements Statement,ClassStatement = "assert" condition:Expression ("," errorMessage:Expression)? STATEMENT_END;
 
-  // assert statement
-  AssertStatement implements Statement = "assert" condition:Expression ("," errorMessage:Expression)? STATEMENT_END;
+  //for statement
+  scope ForStatement implements Statement,ClassStatement = async:"async"? "for" ForControl ":" StatementBlock
+                                                           ElseStatementPart? ;
 
-  // for statement
-  scope ForStatement implements Statement = async:"async"? "for" ForControl ":" StatementBlock
-                                            ElseStatementPart? ;
+  //while statement
+  WhileStatement implements Statement,ClassStatement = "while" condition:Expression ":" StatementBlock
+                                                     ElseStatementPart? ;
 
-  ForControl = ForDecomposition "in" ForIterable;
-  interface ForDecomposition;
-  ForVariable implements Variable, ForDecomposition = Name;
-  ForDecompositionComma implements ForDecomposition = ForDecomposition "," (ForDecomposition ","?)?;
-  ForDecompositionParenthesis implements ForDecomposition = "(" ForDecomposition ")";
-
-  ForIterable = Expression;
-
-  // while statement
-  WhileStatement implements Statement = "while" condition:Expression ":" StatementBlock
-                                      ElseStatementPart? ;
-
+  //Control-flow statements
+  PassStatement implements Statement, ClassStatement = "pass" STATEMENT_END;
   BreakStatement implements Statement = "break" STATEMENT_END;
   ContinueStatement implements Statement = "continue" STATEMENT_END;
 
   // try-except-finally statement
-  TryExceptStatement implements Statement = "try" ":" tryStatement:StatementBlock
+  TryExceptStatement implements Statement,ClassStatement = "try" ":" tryStatement:StatementBlock
                                               (
                                                   (
                                                         ExceptStatement+
@@ -184,17 +68,25 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
                                                   | FinallyStatement
                                               )
                                           ;
-
-  ExceptStatement = "except" (PyQualifiedName? | "(" (PyQualifiedName || ",")+ ")") ("as" alias:Name)? ":" StatementBlock;
+  scope ExceptStatement = "except" ExceptPattern? ":" ExceptStatementBlock;
+  ExceptStatementBlock =  BLOCK_START Statement* BLOCK_END | Statement;
   FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
-  // with open file statement
-  scope WithStatement implements Statement = async:"async"? "with" (WithStatementContents || ",")+ ":"
-                                            StatementBlock ;
+  //PEP758
+  interface ExceptPattern;
+  AliasedSingleExpressionPattern implements ExceptPattern = Expression ("as" Alias)?;
+  ExpressionListing implements ExceptPattern = (Expression || ",")+;
+  ParenthesisedExpressionListing implements  ExceptPattern = "(" (Expression || ",")+ ")" ("as" Alias)?;
+  StarredExpressionListing implements ExceptPattern = "*"(Expression || ",")+;
+  StarredParenthesisedExpressionListing implements  ExceptPattern = "*""(" (Expression || ",")+ ")" ("as" Alias)?;
+
+  //With open file statement
+  scope WithStatement implements Statement,ClassStatement = async:"async"? "with" (WithStatementContents || ",")+ ":"
+                                                            StatementBlock ;
 
   WithStatementContents = Expression ("as" target:Name)? ; // target has slicing/etc
 
-  // variable declaration statement
+  //Variable related statements and definitions
   LocalVariableDeclarationStatement implements Statement = VariableDeclaration STATEMENT_END;
 
   VariableDeclaration implements Variable = Name (
@@ -203,126 +95,54 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
     (":" TypeAnnotation)
   );
 
-  GlobalVariableDeclaration implements Statement = "global" Name (":" TypeAnnotation)? STATEMENT_END;
+  GlobalVariableDeclaration implements Statement,ClassStatement = "global" names:(Name || ",")+ STATEMENT_END;
+  NonLocalVariableDeclaration implements Statement,ClassStatement = "nonlocal" names:(Name || ",")+ STATEMENT_END;
+  MultiVariableDeclaration implements Statement,ClassStatement = (Name || ",")+ ","? "=" (Expression || "," )+ ","? STATEMENT_END;
+  ParenMultiVariableDeclaration implements Statement,ClassStatement = "(" (Name || ",")+ ","? ")" "=" (Expression || "," )+ ","? STATEMENT_END;
 
-  MultiVariableDeclaration implements Statement = (Name || ",")+ ","? "=" Expression STATEMENT_END;
-  ParenMultiVariableDeclaration implements Statement = "(" (Name || ",")+ ","? ")" "=" Expression STATEMENT_END;
 
-  interface VariableInit ;
 
-  SimpleInit implements VariableInit = Expression ;
-
-  // function declaration statement
+  //function declaration statement and function argument definitions
   interface FunctionDeclaration extends Function = Name ;
 
-  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator* async:"async"? "def" Name "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
+  SimpleFunctionDeclaration implements FunctionDeclaration, Statement = PyDecorator* async:"async"? "def" Name GenericsAnnotation? "(" FunctionParameters ")" ("->" returnType:TypeAnnotation)? ":"
                                                         StatementBlock ;
-  FunctionParameters = (FunctionParameter  || ",")* ","?;
 
-  interface FunctionParameter;
-  SimpleFunctionParameter   implements FunctionParameter, Variable = Name (":" TypeAnnotation)?;
-  OptionalFunctionParameter implements FunctionParameter, Variable = Name (":" TypeAnnotation)? "=" Expression ;
-  VarArgFunctionParameter   implements FunctionParameter, Variable = "*" Name (":" TypeAnnotation)?;
-  KWArgFunctionParameter    implements FunctionParameter, Variable = "**" Name (":" TypeAnnotation)?;
-  StarFunctionParameter     implements FunctionParameter = "*";
-
-  @Override
-  Arguments = "("
-    (Argument || ",")*
-     ","?
-  ")";
-
-  interface Argument;
-  NormalArgument implements Argument = Expression;
-  NamedArgument implements Argument = paramName:Name "=" Expression;
-
-  PyDecorator = "@" Expression STATEMENT_END;
-
+  //Behaviour statements
   ReturnStatement implements Statement = "return" (Expression || ",")* ","? STATEMENT_END;
   YieldStatement implements Statement = "yield" (Expression || ",")* ","? STATEMENT_END;
-  RaiseStatement implements Statement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
+  YieldFromStatement implements Statement = "yield" "from" Expression STATEMENT_END; //PEP380
+  RaiseStatement implements Statement,ClassStatement = "raise" (Expression ("from" Name)?)? STATEMENT_END;
 
-  ExpressionStatement implements Statement = Expression ("," Expression)* STATEMENT_END;
+  //Typing related statements
+  TypeDeclarationStatement implements Statement = Expression ":" TypeAnnotation STATEMENT_END;
+  symbol TypeRuleStatement implements Statement,ClassStatement = key("type") Name GenericsAnnotation? "=" Expression STATEMENT_END;
+  TypeAliasStatement implements Statement,ClassStatement <400> = alias:Expression ":" "TypeAlias" "=" type:Expression STATEMENT_END;
+  ExpressionStatement implements Statement,ClassStatement = Expression ("," Expression)* STATEMENT_END;
 
-  EmptyStatement implements Statement, ClassStatement = STATEMENT_END;
-
-  MatchStatement implements Statement = key("match") Expression ":" MatchBlock;
-
+  //Match statement
+  MatchStatement implements Statement,ClassStatement = key("match") Expression ":" MatchBlock;
   scope MatchBlock = BLOCK_START CaseStatement* BLOCK_END;
-  CaseStatement = key("case") (Expression || "|")+ ("if" condition:Expression)? ":" StatementBlock;
+  scope CaseStatement = key("case") CasePattern ("if" condition:Expression)? ":" CaseStatementBlock;
+  CaseStatementBlock = BLOCK_START Statement* BLOCK_END | Statement;
 
-  ConditionalExecutionStatement implements Statement = "if" condition: Expression ":" Expression;
+  // https://docs.python.org/3/reference/compound_stmts.html#grammar-token-python-grammar-patterns
+  CasePattern = OpenSequencePattern | Pattern;
+  Pattern = AsPattern | OrPattern;
+  AsPattern = OrPattern "as" Alias;
+  OrPattern = (ClosedPattern|| "|")+;
+  ClosedPattern = PyQualifiedName | "(" Pattern ")" | SequencePattern | Expression;
 
-  DeleteStatement implements Statement = "del" (Expression || ",")+ ","? STATEMENT_END;
+  SequencePattern = ("[" OpenSequencePattern? "]") | ("(" OpenSequencePattern? ")");
+  OpenSequencePattern = (MaybeStarredPattern || ",")+ ","?;
+  MaybeStarredPattern = ("*"? Name) | Pattern;
 
-  /*====================================== Expressions ======================================*/
-
-  SpreadListExpression implements Expression = "*" Expression;
-  SpreadMappingExpression implements Expression = "**" Expression;
-  splittoken "**";
-
-  // ternary-operator expression
-  TernaryOperatorExpression implements Expression <200> = thenExpression:Expression ( "if" condition:Expression
-                                       "else" elseExpression:Expression )+ ;
-
-  //mathematical expression
-  IntegerDivisionExpression implements Expression <165>, InfixExpression = left:Expression  operator:"//" right:Expression ;
-  IntegerPowExpression implements Expression <195>, InfixExpression = left:Expression operator:"**" right:Expression ;
-  MatrixMultiplicationExpression implements Expression <200>, InfixExpression = left:Expression operator:"@" right:Expression;
-
-  //logical expressions
-  AndExpression implements Expression <120>, InfixExpression = left:Expression operator:"and" right:Expression ;
-  OrExpression implements Expression <117>, InfixExpression = left:Expression operator:"or" right:Expression ;
-  NotExpression implements Expression <10> = "not" Expression ;
-  IsExpression implements Expression <130>, InfixExpression = left:Expression operator:"is" right:Expression ;
-  InExpression implements Expression <195>, InfixExpression = left:Expression operator:"in" right:Expression ;
-  NotInExpression implements Expression <195>, InfixExpression = left:Expression operator:"not" "in" right:Expression; // TODO: set operator to "not in" programmatically
-
-  //Bitwise expressions
-  BitwiseAndExpression implements Expression <120>, InfixExpression = left:Expression operator:"&" right:Expression;
-  BitwiseOrExpression implements Expression <120>, InfixExpression = left:Expression operator:"|" right:Expression;
-  BitwiseXOrExpression implements Expression <120>, InfixExpression = left:Expression operator:"^" right:Expression;
-  BitwiseLeftShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:"<<" right:Expression;
-  BitwiseRightShiftExpression implements Expression <120>, InfixExpression = left:Expression operator:">>" right:Expression;
-
-  BitwiseOnesComplimentExpression implements Expression <120> = "~" Expression;
-
-  // lambda expression
-  scope LambdaExpression implements Expression = "lambda" FunctionParameters ":" Expression ;
-  AppliedLambdaExpression implements Expression = "(" LambdaExpression ")" "(" Expression ")" ;
-
-  AwaitExpression implements Expression = "await" Expression;
-
-  AnnotatedAssignmentExpression implements Expression <60> = <rightassoc>
-      left:Expression
-      ":" annotated: TypeAnnotation
-      operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
-                | "^=" | ">>=" | ">>>=" | "<<=" | "%=" ]
-      right:Expression;
-
-  UnpackingAssignmentExpression implements Expression <60> = <rightassoc>
-    "(" left:Expression ("," left:Expression)* ","? ")" "="
-    right: Expression;
-
-  // 6.3.3 - Slicing
-  IndexExpression implements Expression = Expression "[" (IndexExpressionInner || ",")+ tuple:","? "]";
-
-  // slice_item
-  interface IndexExpressionInner;
-
-  SimpleIndex implements IndexExpressionInner = Expression;
-  ProperSlice implements IndexExpressionInner = lower:Expression? ":" upper:Expression? (":" stride:Expression?)?;
-
-  // Walrus operator
-  PyAssignmentExpression implements Expression = variable:Name operator:":=" right:Expression;
-
-  // List/Set/Dict comprehension
-  ListComprehensionExpression implements Expression = "[" Expression "for" ForControl GeneratorFilter? "]";
-  SetComprehensionExpression implements Expression = "{" Expression "for" ForControl GeneratorFilter? "}";
-  DictComprehensionExpression implements Expression = "{" Name ":" Expression "for" ForControl GeneratorFilter?  "}";
-  GeneratorExpression implements Expression = Expression "for" ForControl GeneratorFilter? ;
-
-  GeneratorFilter = "if" condition:Expression;
+  //Other Statements
+  DeleteStatement implements Statement,ClassStatement= "del" (Expression || ",")+ ","? STATEMENT_END;
+  LiteralStatement implements ClassStatement = Literal STATEMENT_END;
+  EmptyStatement implements Statement, ClassStatement = STATEMENT_END;
+  PyDecorator = "@" Expression STATEMENT_END;
+  symbol Alias = Name;
 
   /*===========================Classes======================================*/
 
@@ -330,30 +150,22 @@ grammar Python extends  MultilineString, // Must be first to avoid conflicts wit
   interface scope symbol PythonClass = Name ;
 
   // class declaration statement
-  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name ( "(" ((superClasses:PyQualifiedName TypeAnnotation? | arguments:NamedArgument) ","?)* ")" )? ":" ClassStatementBlock ;
+  ClassDeclaration implements PythonClass, Statement, ClassStatement = PyDecorator* "class" Name GenericsAnnotation?
+ ( "(" ((superClasses:PyQualifiedName TypeAnnotation? | arguments:NamedArgument) ","?)* ")" )? ":" ClassStatementBlock ;
 
   interface ClassStatement;
 
-  ClassStatementBlock = BLOCK_START ClassStatementBlockBody BLOCK_END;
+  ClassStatementBlock = (BLOCK_START ClassStatementBlockBody BLOCK_END)|ClassStatement;
   ClassStatementBlockBody = ClassStatement+;
 
-  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
+  ClassFunctionDeclaration implements FunctionDeclaration, ClassStatement = PyDecorator* async:"async"? "def" Name GenericsAnnotation?
+ "(" ClassFunctionParameters ")" ("->" returnType:TypeAnnotation)? ":" StatementBlock;
 
   ClassFunctionParameters = (FunctionParameter || ",")* ","?;
 
-  ClassAttributes implements ClassStatement = VariableDeclaration STATEMENT_END;
+  ClassAttributes implements ClassStatement <300> = VariableDeclaration STATEMENT_END;
 
   ClassCommentStatement implements ClassStatement = MultiLineStringLiteral STATEMENT_END;
 
-  /*====================================== Type Annotations ======================================*/
 
-  interface TypeAnnotation;
-  StringTypeAnnotation      implements TypeAnnotation = StringLiteralPython;
-  TupleTypeAnnotation       implements TypeAnnotation = "(" (TypeAnnotation || ",")+ ","? ")";
-  QualifiedTypeAnnotation   implements TypeAnnotation = type:PyQualifiedName ("[" typeParams:(TypeAnnotation || ",")* "]")?;
-  AlternativeTypeAnnotation implements TypeAnnotation = <rightassoc> lhs:TypeAnnotation "|" rhs:TypeAnnotation;
-  CommaTypeAnnotation       implements TypeAnnotation = <rightassoc> lhs:TypeAnnotation "," rhs:TypeAnnotation ","?;
-  ListTypeAnnotation        implements TypeAnnotation = "[" TypeAnnotation "]";
-  EllipsisTypeAnnotation    implements TypeAnnotation = "...";
-  ComplexTypeAnnotation     implements TypeAnnotation <200> = Expression;
 }
