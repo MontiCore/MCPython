@@ -2,9 +2,9 @@ package de.monticore.python._cocos;
 
 import de.monticore.python._ast.ASTClassFunctionDeclaration;
 import de.monticore.python._ast.ASTFunctionDeclaration;
-import de.monticore.python._ast.ASTFunctionParameter;
+import de.monticore.pythonbasis._ast.ASTFunctionParameter;
 import de.monticore.python._ast.ASTSimpleFunctionDeclaration;
-import de.monticore.python._util.PythonTypeDispatcher;
+import de.monticore.pythonbasis._util.PythonBasisTypeDispatcher;
 import de.se_rwth.commons.logging.Log;
 
 import java.util.ArrayList;
@@ -26,14 +26,14 @@ public class PythonFunctionDuplicateParameterNameCoco implements PythonASTFuncti
 			parameters.addAll(((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getFunctionParameterList());
 		}
 
-		PythonTypeDispatcher td = new PythonTypeDispatcher();
+		PythonBasisTypeDispatcher td = new PythonBasisTypeDispatcher();
 
 		for (ASTFunctionParameter parameter : parameters) {
       String name = null;
-			if(td.isBasicSymbolsASTTypeVar(parameter)) {
+		if(td.isBasicSymbolsASTTypeVar(parameter)) {
 				name = td.asBasicSymbolsASTTypeVar(parameter).getName();
-			}else if(td.isPythonASTSimpleFunctionParameter(parameter)){
-        name = td.asPythonASTSimpleFunctionParameter(parameter).getName();
+		}else if(td.isPythonBasisASTSimpleFunctionParameter(parameter)) {
+        name = td.asPythonBasisASTSimpleFunctionParameter(parameter).getName();
       }
       if (name != null) {
         if (names.contains(name)) {

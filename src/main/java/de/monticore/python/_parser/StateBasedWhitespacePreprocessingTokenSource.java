@@ -23,6 +23,7 @@ public class StateBasedWhitespacePreprocessingTokenSource {
   private final List<Integer> closingParens;
   private Token lastToken;
   private Token lastEmittedToken;
+  private PreprocessingTokens preprocessingTokens;
 
   public StateBasedWhitespacePreprocessingTokenSource(
       Pair<TokenSource, CharStream> source,
@@ -50,6 +51,7 @@ public class StateBasedWhitespacePreprocessingTokenSource {
 
     this.lastToken = null;
     this.lastEmittedToken = null;
+    this.preprocessingTokens = preprocessingTokens;
   }
 
   public List<Token> process(Token token) {
@@ -70,8 +72,12 @@ public class StateBasedWhitespacePreprocessingTokenSource {
       // whitespace sensitive
       res = sensitiveProcessor.process(token, lastToken, lastEmittedToken);
     } else {
-      // whitespace insensitive
-      return List.of(token);
+      // always ignore the continueLineToken
+      if(token.getType() == preprocessingTokens.continueLineTokenType){
+        return List.of();
+      } else {
+        return List.of(token);
+      }
     }
 
     // bookkeeping of emitted tokens

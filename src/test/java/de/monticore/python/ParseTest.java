@@ -2,7 +2,7 @@ package de.monticore.python;
 
 import de.monticore.expressions.expressionsbasis._ast.ASTLiteralExpression;
 import de.monticore.python._ast.ASTPythonScript;
-import de.monticore.python._ast.ASTStringLiteralPython;
+import de.monticore.pythonbasis._ast.ASTStringLiteralPython;
 import de.monticore.python._parser.PythonParser;
 import de.se_rwth.commons.logging.Log;
 import org.antlr.v4.runtime.Token;
