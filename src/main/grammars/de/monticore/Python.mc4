@@ -117,7 +117,6 @@ grammar Python extends  PythonBasis {
   //Typing related statements
   TypeDeclarationStatement implements Statement = Expression ":" TypeAnnotation STATEMENT_END;
   symbol TypeRuleStatement implements Statement,ClassStatement = key("type") Name GenericsAnnotation? "=" Expression STATEMENT_END;
-  TypeAliasStatement implements Statement,ClassStatement <400> = alias:Expression ":" "TypeAlias" "=" type:Expression STATEMENT_END;
   ExpressionStatement implements Statement,ClassStatement = Expression ("," Expression)* STATEMENT_END;
 
   //Match statement

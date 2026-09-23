@@ -227,7 +227,7 @@ grammar PythonBasis extends MultilineString,
   CommaTypeAnnotation       implements TypeAnnotation <60> = <rightassoc> lhs:TypeAnnotation "," rhs:TypeAnnotation ","?;
   ListTypeAnnotation        implements TypeAnnotation <100> = "[" TypeAnnotation? "]";
   EllipsisTypeAnnotation    implements TypeAnnotation <100> = "...";
-  ParameterizedGenericTypeAnnotation implements TypeAnnotation <100> = TypeAnnotation "[" (Expression ||",")* ","? "]";
+  ParameterizedGenericTypeAnnotation implements TypeAnnotation <40> = TypeAnnotation "[" (Expression ||",")* ","? "]";
 
   /*====================================== Generics ======================================*/
 
