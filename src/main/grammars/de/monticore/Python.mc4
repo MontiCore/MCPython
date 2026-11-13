@@ -36,8 +36,8 @@ grammar Python extends  PythonBasis {
 
   //Conditional statements
   IfStatement implements Statement,ClassStatement = "if"   condition:Expression     ":" thenStatement:StatementBlock
-                                                  ("elif" elifCondition:Expression ":" elifStatement:StatementBlock )*
-                                                  ElseStatementPart?;
+                                   ("elif" elifCondition:Expression ":" elifStatement:StatementBlock )*
+                                   ElseStatementPart?;
   ElseStatementPart = "else" ":" StatementBlock;
   ConditionalExecutionStatement implements Statement ,ClassStatement= "if" condition: Expression ":" Expression;
 
@@ -46,11 +46,11 @@ grammar Python extends  PythonBasis {
 
   //for statement
   scope ForStatement implements Statement,ClassStatement = async:"async"? "for" ForControl ":" StatementBlock
-                                                           ElseStatementPart? ;
+                                            ElseStatementPart? ;
 
   //while statement
   WhileStatement implements Statement,ClassStatement = "while" condition:Expression ":" StatementBlock
-                                                     ElseStatementPart? ;
+                                      ElseStatementPart? ;
 
   //Control-flow statements
   PassStatement implements Statement, ClassStatement = "pass" STATEMENT_END;
@@ -68,8 +68,7 @@ grammar Python extends  PythonBasis {
                                                   | FinallyStatement
                                               )
                                           ;
-  scope ExceptStatement = "except" ExceptPattern? ":" ExceptStatementBlock;
-  ExceptStatementBlock =  BLOCK_START Statement* BLOCK_END | Statement;
+  scope ExceptStatement = "except" ExceptPattern? ":" StatementBlock;
   FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
   //PEP758
@@ -82,7 +81,7 @@ grammar Python extends  PythonBasis {
 
   //With open file statement
   scope WithStatement implements Statement,ClassStatement = async:"async"? "with" (WithStatementContents || ",")+ ":"
-                                                            StatementBlock ;
+                                            StatementBlock ;
 
   WithStatementContents = Expression ("as" target:Name)? ; // target has slicing/etc
 
@@ -122,8 +121,7 @@ grammar Python extends  PythonBasis {
   //Match statement
   MatchStatement implements Statement,ClassStatement = key("match") Expression ":" MatchBlock;
   scope MatchBlock = BLOCK_START CaseStatement* BLOCK_END;
-  scope CaseStatement = key("case") CasePattern ("if" condition:Expression)? ":" CaseStatementBlock;
-  CaseStatementBlock = BLOCK_START Statement* BLOCK_END | Statement;
+  scope CaseStatement = key("case") CasePattern ("if" condition:Expression)? ":" StatementBlock;
 
   // https://docs.python.org/3/reference/compound_stmts.html#grammar-token-python-grammar-patterns
   CasePattern = OpenSequencePattern | Pattern;

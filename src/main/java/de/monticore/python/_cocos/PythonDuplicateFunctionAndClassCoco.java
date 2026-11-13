@@ -18,12 +18,18 @@ public class PythonDuplicateFunctionAndClassCoco implements PythonASTPythonScrip
 
 	@Override
 	public void check(ASTStatementBlock node) {
-		this.check(node.getStatementBlockBody().getStatementList());
+		// one-line blocks (e.g. "except E: pass") have a single Statement instead of a body
+		if (node.isPresentStatementBlockBody()) {
+			this.check(node.getStatementBlockBody().getStatementList());
+		}
 	}
 
 	@Override
 	public void check(ASTClassStatementBlock node) {
-		this.check(node.getClassStatementBlockBody().getClassStatementList());
+		// one-line classes (e.g. "class A: pass") have a single ClassStatement instead of a body
+		if (node.isPresentClassStatementBlockBody()) {
+			this.check(node.getClassStatementBlockBody().getClassStatementList());
+		}
 	}
 
 	private void check(List<? extends ASTPythonNode> statements) {

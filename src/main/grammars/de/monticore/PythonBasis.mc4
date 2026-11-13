@@ -7,9 +7,9 @@ import de.monticore.literals.MCCommonLiterals;
 import de.monticore.symbols.OOSymbols;
 
 grammar PythonBasis extends MultilineString,
-                               MCCommonLiterals,
-                               CommonExpressions,
-                               AssignmentExpressions,
+                        MCCommonLiterals,
+                        CommonExpressions,
+                        AssignmentExpressions,
                                OOSymbols{
 
   /*====================================== Tokens ======================================*/
@@ -20,9 +20,9 @@ grammar PythonBasis extends MultilineString,
   token ByteOrderMark = '\uFEFF' : -> skip;
 
   /**
-  * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
-  * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
-  */
+   * The following utf-8 symbols are used to parse the Python files without having to add whitespace to the Grammar.
+   * In a preprocessing step code blocks are denoted with \u204f = ⦃ and \u2984 = ⦄, and lines are ended with \u204f = ⁏
+   */
   token BLOCK_START = '\u2983';
   token BLOCK_END = '\u2984';
   token STATEMENT_END = ';'? '\u204f' | ';' '\u204f'?;
@@ -181,7 +181,7 @@ grammar PythonBasis extends MultilineString,
     "(" left:Expression ("," left:Expression)* ","? ")" "="
     right: Expression;
 
- // 6.3.3 - Slicing
+  // 6.3.3 - Slicing
   IndexExpression implements Expression = Expression "[" (IndexExpressionInner || ",")+ tuple:","? "]";
 
   // slice_item
@@ -262,4 +262,4 @@ grammar PythonBasis extends MultilineString,
   interface Argument;
   NormalArgument implements Argument = Expression;
   NamedArgument implements Argument = paramName:Name "=" Expression;
-  }
+}

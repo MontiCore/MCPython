@@ -31,6 +31,12 @@ public class PythonTest extends AbstractPythonTest {
 	}
 
 	@Test
+	public void parseContinuedLineInsideParentheses(){
+		// inside brackets the continue line token reaches the whitespace insensitive path and must be ignored there
+		parseModelFromStringAndExpectSuccess("x = foo(1, \\\n    2)\n");
+	}
+
+	@Test
 	public void parseFloorDiv(){
 		parseModelFromStringAndExpectSuccess("a = test(1 // 3)\n");
 	}

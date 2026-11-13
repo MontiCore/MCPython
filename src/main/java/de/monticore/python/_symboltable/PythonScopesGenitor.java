@@ -114,7 +114,12 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
 	public void visit(ASTClassDeclaration node) {
 		super.visit(node);
 
-		for (ASTClassStatement classStatement : node.getClassStatementBlock().getClassStatementBlockBody().getClassStatementList()) {
+		ASTClassStatementBlock block = node.getClassStatementBlock();
+		// one-line classes (e.g. "class A: pass") have a single ClassStatement instead of a body
+		List<ASTClassStatement> classStatements = block.isPresentClassStatementBlockBody()
+				? block.getClassStatementBlockBody().getClassStatementList()
+				: List.of(block.getClassStatement());
+		for (ASTClassStatement classStatement : classStatements) {
 			if (classStatement instanceof ASTClassFunctionDeclaration) {
 				ASTClassFunctionDeclaration functionDeclaration = ((ASTClassFunctionDeclaration) classStatement);
 
