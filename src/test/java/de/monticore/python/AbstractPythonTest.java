@@ -22,11 +22,7 @@ public class AbstractPythonTest {
 		Log.getFindings().clear();
 		PythonParser parser = new PythonParser();
 		Optional<ASTPythonScript> astPythonScriptOptional = Optional.empty();
-		try {
-			astPythonScriptOptional = parser.parsePythonScript("src/test/resources/" + modelFileName);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		assertDoesNotThrow(() -> parser.parsePythonScript("src/test/resources/" + modelFileName));
 
 		return astPythonScriptOptional;
 	}
@@ -48,11 +44,7 @@ public class AbstractPythonTest {
 		Log.getFindings().clear();
 		PythonParser pythonParser = new PythonParser();
 		Optional<ASTPythonScript> astPythonScriptOptional = Optional.empty();
-		try {
-			astPythonScriptOptional = pythonParser.parse(new StringReader(codeString));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		assertDoesNotThrow(() -> pythonParser.parse(new StringReader(codeString)));
 
 		//astPythonScriptOptional.ifPresent(AbstractTest::runCocos);
 		return astPythonScriptOptional;
