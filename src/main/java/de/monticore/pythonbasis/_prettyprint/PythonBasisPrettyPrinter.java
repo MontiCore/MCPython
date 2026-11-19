@@ -15,11 +15,11 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
       de.monticore.prettyprint.CommentPrettyPrinter.printPreComments(node, getPrinter());
     }
     if (node.isPresentFSQStringPython()) {
-      getPrinter().print("f" + node.getFSQStringPython() + "\'");
+      getPrinter().print("f" + node.getFSQStringPython() + "\'" + " ");
     } else if (node.isPresentFDQStringPython()) {
         getPrinter().print("f" + node.getFDQStringPython() + "\" ");
     } else if (node.isPresentChar()) {
-        getPrinter().print("f \'" + node.getChar() + "\'" + " ");
+        getPrinter().print("f\'" + node.getChar() + "\'" + " ");
         
       }
     if (this.isPrintComments()) {
@@ -38,7 +38,7 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
           node.getStringModifier().accept(getTraverser());
         }
         if (node.isPresentSourceStrPy()) {
-          getPrinter().print("\'" + node.getSourceStrPy() + "\'");
+          getPrinter().print("\'" + node.getSourceStrPy() + "\'" + " ");
           
         } else if (node.isPresentSourceStr()) {
           getPrinter().print( "\"" + node.getSourceStr() + "\"" + " ");

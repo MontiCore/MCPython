@@ -37,6 +37,13 @@ public class PythonTest extends AbstractPythonTest {
 	}
 
 	@Test
+	public void parseMultiLineFStringWithSingleQuotes(){
+		// f''' must be lexed as one MultiLineFStringToken, not as the empty f-string f'' followed by a string
+		parseModelFromStringAndExpectSuccess("x = f'''a {b}\nc'''\n");
+		parseModelFromStringAndExpectSuccess("x = F'''{d['k']}\n'''\n");
+	}
+
+	@Test
 	public void parseFloorDiv(){
 		parseModelFromStringAndExpectSuccess("a = test(1 // 3)\n");
 	}

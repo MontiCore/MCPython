@@ -34,7 +34,7 @@ grammar PythonBasis extends MultilineString,
   // === string tokens for python ===
   //Often (mis)used as a multiline comment but can also be used as a string literal, thus we can not skip it
   token MultiLineStringToken = ((("\'\'\'") .*? ("\'\'\'")) | ((DoubleQuoteMultilineStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
-  token MultiLineFStringToken = ((("\'\'\'") .*? ("\'\'\'")) |((DoubleQuoteMultilineFStringDelimiter .*? DoubleQuoteMultilineStringDelimiter)));
+  token MultiLineFStringToken = (('f'|'F') ("\'\'\'") .*? ("\'\'\'")) |((DoubleQuoteMultilineFStringDelimiter .*? DoubleQuoteMultilineStringDelimiter));
 
   //Double quoted Strings "Text"
   @Override

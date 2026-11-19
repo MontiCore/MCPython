@@ -43,7 +43,18 @@ public class PrettyPrinterTest {
         "    case _: pass\n");
   }
 
-  private void assertPrettyPrintReparses(String model) throws IOException {
+  @Test
+  public void testPrettyPrintStrings() throws IOException {
+    String printed = assertPrettyPrintReparses(
+        "x = 'a' in y\n" +
+        "x = f'ab' in y\n" +
+        "x = f'''a {b}\nc'''\n" +
+        "x = f\"\"\"a {b}\nc\"\"\"\n");
+    assertFalse(printed.contains("f '"), "f prefix must be followed directly by the quote:\n" + printed);
+    assertTrue(printed.contains("f'''a {b}\nc'''"), printed);
+  }
+
+  private String assertPrettyPrintReparses(String model) throws IOException {
     PythonMill.init();
     Log.init();
     Log.enableFailQuick(false);
@@ -54,5 +65,6 @@ public class PrettyPrinterTest {
     Optional<ASTPythonScript> reparsed = PythonMill.parser().parse_String(prettyPrinted);
     assertTrue(reparsed.isPresent(), "Pretty printed model does not parse:\n" + prettyPrinted);
     assertEquals(0, Log.getErrorCount());
+    return prettyPrinted;
   }
 }
