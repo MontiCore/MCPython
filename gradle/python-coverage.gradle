@@ -1,0 +1,243 @@
+/* (c) https://github.com/MontiCore/monticore */
+// Grammar coverage tasks, applied from build.gradle.
+//
+//   pythonCoverage   parses every sample in src/test/resources/python-coverage/ (one test per file);
+//                    failures are recorded but do not fail the build
+//   compareCoverage  runs the samples of the current branch against the grammar of the current branch
+//                    and of the base branch (dev), prints the differences, and fails if a file no longer parses
+//
+// Neither task is part of `build`.
+
+def coverageSamplesDir = "src/test/resources/python-coverage"
+def coverageTestClass = "src/test/java/de/monticore/python/PythonCoverageTest.java"
+def coverageScript = "gradle/python-coverage.gradle"
+def coverageBaseBranch = "dev"
+
+tasks.register('pythonCoverage', Test) {
+  description = "Parses all Python coverage samples and records which ones the grammar supports."
+  group = "verification"
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  useJUnitPlatform {
+    includeTags "coverage"
+  }
+  ignoreFailures = true
+  reports.junitXml.outputLocation = layout.buildDirectory.dir("test-results/pythonCoverage")
+  reports.html.outputLocation = layout.buildDirectory.dir("reports/pythonCoverage")
+  inputs.dir(coverageSamplesDir)
+  testLogging {
+    events "passed", "failed"
+  }
+}
+
+tasks.register('compareCoverage') {
+  description = "Compares the Python coverage of this branch with the '$coverageBaseBranch' branch."
+  group = "verification"
+  dependsOn 'pythonCoverage'
+  outputs.upToDateWhen { false }
+
+  def projectDir = layout.projectDirectory.asFile
+  def buildDir = layout.buildDirectory.get().asFile
+  // the Gradle installation running this build (the wrapper is not tracked in this repo, and CI uses an installed Gradle)
+  def gradleHome = gradle.gradleHomeDir
+  def currentResults = layout.buildDirectory.dir("test-results/pythonCoverage").get().asFile
+  def reportFile = layout.buildDirectory.file("reports/compareCoverage/report.md").get().asFile
+
+  doLast {
+    // ---- helpers (plain ProcessBuilder, so no deprecated project.exec) ----
+    // showOutput: forward the process output to the build log line by line instead of returning it
+    // (inheriting the streams would send it to the Gradle daemon's log file, not to the console).
+    // stdin is always closed: a nested Gradle client that shares stdin with this build does not exit
+    // after its build on Windows (seen with Gradle 8.5).
+    def run = { List cmd, File dir, boolean showOutput, long timeoutMinutes = 30 ->
+      def pb = new ProcessBuilder(cmd.collect { it.toString() } as List<String>).directory(dir).redirectErrorStream(true)
+      def proc = pb.start()
+      proc.outputStream.close()
+      // read the output in its own thread, so the timeout below still works if the process hangs
+      def out = new StringBuffer()
+      def reader = Thread.start {
+        proc.inputStream.eachLine { line -> showOutput ? logger.lifecycle("  | $line") : out.append(line).append("\n") }
+      }
+      if (!proc.waitFor(timeoutMinutes, java.util.concurrent.TimeUnit.MINUTES)) {
+        proc.descendants().forEach { it.destroyForcibly() }
+        proc.destroyForcibly()
+        throw new GradleException("${cmd.join(' ')} did not finish within $timeoutMinutes minutes")
+      }
+      reader.join(10000)
+      [exit: proc.exitValue(), out: out.toString().trim()]
+    }
+    def git = { String... args ->
+      def r = run(["git"] + args.toList(), projectDir, false)
+      if (r.exit != 0) throw new GradleException("git ${args.join(' ')} failed:\n${r.out}")
+      r.out
+    }
+    def readResults = { File dir ->
+      def results = [:]
+      def slurper = new groovy.xml.XmlSlurper()
+      dir.listFiles({ f -> f.name.endsWith(".xml") } as FileFilter)?.each { f ->
+        slurper.parse(f).testcase.each { tc ->
+          results[tc.@name.toString()] = tc.failure.size() == 0 && tc.error.size() == 0 && tc.skipped.size() == 0
+        }
+      }
+      results
+    }
+    def since = { String file ->
+      def f = new File(projectDir, "$coverageSamplesDir/$file")
+      def line = f.exists() ? f.readLines().find { it.startsWith("# Since:") } : null
+      line ? line.substring("# Since:".length()).trim() : "(no Since header)"
+    }
+    // sorts "original syntax ..." first, then "Python X.Y" numerically, everything else last
+    def versionKey = { String s ->
+      def m = s =~ /Python (\d+)\.(\d+)/
+      s.startsWith("original") ? [0, 0, 0] : (m.find() ? [1, m.group(1) as int, m.group(2) as int] : [2, 0, 0])
+    }
+    def versionComparator = { a, b ->
+      def ka = versionKey(a.key), kb = versionKey(b.key)
+      (0..2).collect { ka[it] <=> kb[it] }.find { it != 0 } ?: 0
+    }
+    // plain Java file operations: Project.copy/delete must not be called while a task runs
+    def deleteDir = { File dir -> if (dir.exists()) dir.deleteDir() }
+    def copyInto = { File source, File target ->
+      if (source.isDirectory()) {
+        source.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+          def dest = new File(target, source.toPath().relativize(f.toPath()).toString())
+          dest.parentFile.mkdirs()
+          java.nio.file.Files.copy(f.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+      } else {
+        target.parentFile.mkdirs()
+        java.nio.file.Files.copy(source.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+      }
+    }
+
+    // ---- 1. resolve the base commit (prefer the remote branch, which is what gets merged into) ----
+    def baseRef = run(["git", "rev-parse", "--verify", "--quiet", "origin/$coverageBaseBranch"], projectDir, false).exit == 0 ?
+        "origin/$coverageBaseBranch" : coverageBaseBranch
+    def baseSha = git("rev-parse", "--short", baseRef)
+    logger.lifecycle("Base: $baseRef ($baseSha)")
+
+    // ---- 2. base results: from the cache if the base commit, samples, test class and script are unchanged ----
+    // The key covers everything the base results depend on. CI keeps build/coverage-base-cache/ between runs.
+    def cacheRoot = new File(buildDir, "coverage-base-cache")
+    def digest = java.security.MessageDigest.getInstance("SHA-256")
+    digest.update(git("rev-parse", baseRef).bytes)
+    def relPath = { File file -> projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/') }
+    [coverageSamplesDir, coverageTestClass, coverageScript].each { path ->
+      def f = new File(projectDir, path)
+      def files = []
+      if (f.isDirectory()) {
+        f.eachFileRecurse(groovy.io.FileType.FILES) { files << it }
+      } else {
+        files << f
+      }
+      files.sort { relPath(it) }.each { file ->
+        digest.update(relPath(file).bytes)
+        digest.update(file.bytes)
+      }
+    }
+    def cacheKey = digest.digest().encodeHex().toString().take(16)
+    def cachedResults = new File(cacheRoot, cacheKey)
+
+    if (cachedResults.isDirectory() && cachedResults.listFiles().any { it.name.endsWith(".xml") }) {
+      logger.lifecycle("Using cached results for $baseRef (cache key $cacheKey)")
+    } else {
+      // ---- 3. check out the base in a worktree under build/ ----
+      def worktree = new File(buildDir, "coverage-base")
+      // `git worktree remove` fails on Windows when the build created paths longer than 260 characters,
+      // so delete the folder directly (Java handles long paths) and let git forget it with `prune`
+      def removeWorktree = {
+        deleteDir(worktree)
+        git("worktree", "prune")
+      }
+      removeWorktree()
+      git("worktree", "add", "--detach", worktree.absolutePath, baseSha)
+
+      try {
+        // copy the current samples, test class and task definitions into the worktree
+        deleteDir(new File(worktree, coverageSamplesDir))
+        [coverageSamplesDir, coverageTestClass, coverageScript].each { path ->
+          copyInto(new File(projectDir, path), new File(worktree, path))
+        }
+
+        // init script: add pythonCoverage to the base build unless its build.gradle already applies the script
+        def initScript = new File(buildDir, "coverage-base.init.gradle")
+        def scriptPath = new File(worktree, coverageScript).absolutePath.replace('\\', '/')
+        initScript.text = """\
+          gradle.afterProject { p ->
+            if (p == p.rootProject && p.tasks.findByName('pythonCoverage') == null) {
+              p.apply from: '${scriptPath}'
+            }
+          }
+          """.stripIndent()
+
+        // ---- 4. run pythonCoverage on the base grammar ----
+        def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+        def gradleCmd = new File(gradleHome, isWindows ? "bin/gradle.bat" : "bin/gradle").absolutePath
+        logger.lifecycle("Running pythonCoverage on $baseRef ...")
+        def r = run([gradleCmd, "-p", worktree.absolutePath, "--init-script", initScript.absolutePath,
+                     "pythonCoverage", "--console=plain", "--quiet"], projectDir, true)
+        if (r.exit != 0) throw new GradleException("pythonCoverage failed on $baseRef (exit code ${r.exit})")
+
+        // keep only the newest cache entry
+        deleteDir(cacheRoot)
+        copyInto(new File(worktree, "build/test-results/pythonCoverage"), cachedResults)
+      } finally {
+        removeWorktree()
+      }
+    }
+
+    // ---- 5. compare ----
+    def current = readResults(currentResults)
+    def base = readResults(cachedResults)
+    if (current.isEmpty()) throw new GradleException("No pythonCoverage results found in $currentResults")
+
+    def baseFiles = git("ls-tree", "-r", "--name-only", baseSha, "--", coverageSamplesDir)
+        .readLines().collect { it.substring(coverageSamplesDir.length() + 1) } as Set
+    // branch name: from GitHub Actions if available, else from git; the short commit hash for a detached HEAD
+    def branchName = System.getenv("GITHUB_REF_NAME") ?: run(["git", "rev-parse", "--abbrev-ref", "HEAD"], projectDir, false).out
+    if (!branchName || branchName == "HEAD") branchName = git("rev-parse", "--short", "HEAD")
+    def mark = { Boolean ok -> ok == null ? "–" : (ok ? "✅" : "❌") }
+
+    def names = current.keySet().sort()
+    def newFiles = names.findAll { !baseFiles.contains(it) }
+    def known = names - newFiles
+    def newlyParsed = known.findAll { current[it] && base[it] == false }
+    def lost = known.findAll { !current[it] && base[it] }
+    def basePassed = names.count { base[it] }
+    def currentPassed = names.count { current[it] }
+
+    def lines = []
+    lines << "## Python coverage: $coverageBaseBranch ($baseSha) $basePassed/${names.size()} → $branchName $currentPassed/${names.size()}"
+    lines << ""
+    lines << "| Chapter | $coverageBaseBranch | $branchName |"
+    lines << "|---|---|---|"
+    names.groupBy { it.contains('/') ? it.split('/')[0] : '(root)' }.sort().each { chapter, files ->
+      lines << "| $chapter | ${files.count { base[it] }}/${files.size()} | ${files.count { current[it] }}/${files.size()} |"
+    }
+    lines << ""
+    lines << "| Since | $coverageBaseBranch | $branchName |"
+    lines << "|---|---|---|"
+    names.groupBy { since(it) }.sort(versionComparator).each { version, files ->
+      lines << "| $version | ${files.count { base[it] }}/${files.size()} | ${files.count { current[it] }}/${files.size()} |"
+    }
+    lines << ""
+    lines << "### Newly parsed (${newlyParsed.size()})"
+    newlyParsed.each { lines << "- `$it`" }
+    lines << ""
+    lines << "### New files (${newFiles.size()})"
+    newFiles.each { lines << "- `$it` $coverageBaseBranch ${mark(base[it])} → $branchName ${mark(current[it])}" }
+    lines << ""
+    lines << "### No longer parsed (${lost.size()})"
+    lost.each { lines << "- `$it`" }
+
+    def report = lines.join("\n") + "\n"
+    reportFile.parentFile.mkdirs()
+    reportFile.text = report
+    logger.lifecycle("\n" + report)
+    logger.lifecycle("Report written to $reportFile")
+
+    if (!lost.isEmpty()) {
+      throw new GradleException("${lost.size()} file(s) parse on $coverageBaseBranch but no longer on $branchName: ${lost.join(', ')}")
+    }
+  }
+}
