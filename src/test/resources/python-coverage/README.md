@@ -52,7 +52,7 @@ except* ValueError:
 | Line | Required | Content |
 |---|---|---|
 | `Reference` | always | Link to the section, pinned to the Python version the file was written against |
-| `Grammar` | always | Rule name in CPython's grammar, [`Grammar/python.gram`](https://github.com/python/cpython/blob/v3.15.2/Grammar/python.gram) |
+| `Grammar` | always | Rule name in CPython's grammar, [`Grammar/python.gram`](https://github.com/python/cpython/blob/v3.15.2/Grammar/python.gram). Lexical features that `python.gram` only sees as tokens use the lexical definition from the reference (e.g. `hexinteger`, `stringprefix`), or, where the reference has none, the token name from Python's [`token`](https://docs.python.org/3.15/library/token.html) module (e.g. `INDENT`, `COMMENT`, `ENCODING`) |
 | `PEP` | if one exists | Number of the PEP that introduced the feature |
 | `Since` | always | First Python version with this syntax (from the reference's "Added in version" notes or the [What's New](https://docs.python.org/3.15/whatsnew/) pages); `original syntax (before Python 2.0)` for older features |
 | `Generated` | if AI-generated | The AI model that wrote the file (name and model ID) and the date. Leave it out for files written by hand |

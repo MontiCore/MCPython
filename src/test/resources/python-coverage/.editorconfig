@@ -1,0 +1,4 @@
+# This sample tests a Latin-1 encoding declaration, so its bytes are Latin-1, not UTF-8.
+# Tells editors (IntelliJ, VS Code with the EditorConfig extension, ...) to open it as Latin-1.
+[lexical/encoding_declarations/latin1.py]
+charset = latin1
