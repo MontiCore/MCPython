@@ -46,17 +46,25 @@ jobs:
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
 
-  # Grammar coverage: compares which Python samples parse on this branch and on dev
+  # Grammar coverage: compares which Python samples parse on this branch and on every other remote branch
   # (see src/test/resources/python-coverage/README.md). A separate job, so it also runs when `build` fails.
-  # Fails only if a sample that parses on dev no longer parses on this branch.
+  # Fails only if a sample that parses on dev or on the parent branch no longer parses on this branch.
   python-coverage:
     runs-on: ubuntu-latest
-    timeout-minutes: 45 # two builds (branch + dev); guards against a hanging nested Gradle build
+    timeout-minutes: 120 # one nested build per branch without cached results; guards against a hanging build
     steps:
       - name: Checkout project sources
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # full history, so origin/dev is available as the comparison base
+          fetch-depth: 0 # full history and all branches, as the comparison needs them
+      - name: Cache coverage results of the other branches
+        # one entry per run; the newest earlier entry is restored. compareCoverage checks a key per branch commit
+        # itself and only rebuilds branches whose results are missing, so a stale cache can never give wrong results
+        uses: actions/cache@v4
+        with:
+          path: build/coverage-base-cache
+          key: python-coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: python-coverage-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -66,16 +74,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{env.GRADLE_VERSION}}
-      - name: Determine dev commit
-        id: base
-        run: echo "sha=$(git rev-parse origin/dev)" >> "$GITHUB_OUTPUT"
-      - name: Cache dev coverage results
-        # compareCoverage checks the cache key itself as well, so a stale cache can never give wrong results
-        uses: actions/cache@v4
-        with:
-          path: build/coverage-base-cache
-          key: python-coverage-base-${{ steps.base.outputs.sha }}-${{ hashFiles('src/test/resources/python-coverage/**', 'src/test/java/de/monticore/python/PythonCoverageTest.java', 'gradle/python-coverage.gradle') }}
-      - name: Compare coverage with dev
+      - name: Compare coverage with all branches
         run: gradle compareCoverage ${{env.GRADLE_CLI_OPTS}}
       - name: Add report to job summary
         if: always() # also show the report when the comparison found files that no longer parse
@@ -83,7 +82,7 @@ jobs:
           if [ -f build/reports/compareCoverage/report.md ]; then
             cat build/reports/compareCoverage/report.md >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "No coverage report was created, see the log of the 'Compare coverage with dev' step." >> "$GITHUB_STEP_SUMMARY"
+            echo "No coverage report was created, see the log of the 'Compare coverage with all branches' step." >> "$GITHUB_STEP_SUMMARY"
           fi
 
   # Run the MontiVerse pipeline (tests this change on a suite of projects)

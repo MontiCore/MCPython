@@ -30,7 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>
  * Not all of Python is supported yet, so failures here are expected. These tests are excluded from the
  * normal {@code test} task and run with {@code gradlew pythonCoverage} (failures are recorded, not fatal).
- * {@code gradlew compareCoverage} compares the results with the {@code dev} branch.
+ * {@code gradlew compareCoverage} runs the samples of all branches against the grammar of every branch
+ * and compares the results (the samples are then read from {@code pythonCoverage.root}).
  * <p>
  * The tests are grouped as chapter -> section -> file. The name of each file test is always the full
  * relative path (e.g. {@code compound_statements/try/except_star.py}), because the branch comparison

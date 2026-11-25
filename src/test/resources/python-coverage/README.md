@@ -10,13 +10,16 @@ That's why these tests do not run in the normal `test` task and never fail the b
 | Command | What it does |
 |---|---|
 | `gradlew pythonCoverage` | Parses every file here (one JUnit test per file). Failures are recorded, not fatal. Report: `build/reports/pythonCoverage/index.html` |
-| `gradlew compareCoverage` | Runs the samples of the current branch against the grammar of the current branch **and** of `dev`, and prints what is newly parsed, which files are new, and what no longer parses. Fails only if something no longer parses. |
+| `gradlew compareCoverage` | Collects the samples of the current branch **and** of every other remote branch (a sample added on a parallel branch is run too), and runs them against the grammar of every branch. Prints the coverage per branch and a table of the samples whose result differs between branches (🆕 marks samples that don't exist on a branch). Fails only if a sample that parses on `dev` or on the parent branch (the branch with the nearest fork point) no longer parses. Deleting a sample doesn't hide this: samples of `dev` and the parent are always run. |
+| `gradlew compareCoverage -PcoverageBranches=dev,foo` | The same, but uses only the listed branches. |
+| `gradlew checkPythonSamples` | Checks that every sample of the current branch is valid Python (`python -m compileall` in the Docker image `python:3.15-slim`). Needs a running Docker. Fails if a sample is not valid Python. |
 
 A file counts as supported if it parses without errors and an AST is returned (no symbol table, no CoCos, no pretty printing).
 
 **CI:** the `python-coverage` job in `.github/workflows/test_branch.yml` runs `compareCoverage` on every push (except to `dev`)
 and adds the report to the job summary. It can also be started by hand with "Run workflow" in the Actions tab.
-The `dev` results are cached (in `build/coverage-base-cache/`) until `dev`, the samples or the test change.
+The workflow `.github/workflows/check_python_samples.yml` runs `checkPythonSamples` on every push that changes samples (except to `dev`), and can be started by hand too.
+The results of the other branches are cached (in `build/coverage-base-cache/`, one entry per branch commit) until that branch, the samples or the test change.
 
 ## Layout
 
