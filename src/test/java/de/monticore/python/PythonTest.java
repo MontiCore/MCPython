@@ -504,6 +504,20 @@ public class PythonTest extends AbstractPythonTest {
 		);
 	}
 
+	// PEP 646: star annotations (unpacked TypeVarTuple)
+	@Test
+	public void parseStarAnnotations() {
+		parseModelFromStringAndExpectSuccess(
+				"def f(*args: *Ts):\n" +
+						"    pass\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def f[*Ts](*args: *Ts) -> tuple[*Ts]:\n" +
+						"    pass\n"
+		);
+		parseModelFromStringAndExpectSuccess("type Row[*Ts] = tuple[int, *Ts]\n");
+	}
+
 	// invalid function declaration
 	@Test
 	public void parseInvalidFunctionDeclaration() {
