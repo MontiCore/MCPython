@@ -216,6 +216,8 @@ tasks.register('pythonCoverageAll', Test) {
   configureCoverageTest(it, 'pythonCoverageAll')
   dependsOn 'collectCoverageSamples'
   systemProperty "pythonCoverage.root", collectedSamples.absolutePath
+  // the collected samples are an input, so the build cache never returns results for other samples
+  inputs.dir(collectedSamples).withPropertyName("collectedSamples").withPathSensitivity(PathSensitivity.RELATIVE)
   outputs.upToDateWhen { false }
 }
 
@@ -444,6 +446,9 @@ tasks.register('compareCoverage') {
         int n = names.count { String t -> res.containsKey(t) && res[t] == null }
         if (n) notRun[b] = n
       }
+      // a hang on this branch fails the comparison, unless dev / the parent hang too (then it is not new,
+      // e.g. a sample from another branch that the grammar of dev cannot handle either)
+      boolean newHang = notRun[branchName] && guarded.every { String b -> !notRun[b] }
 
       // display width in a monospace console: emoji such as ✅ ❌ 🆕 ⚠ take two columns,
       // the variation selector U+FE0F (after ⚠) takes none, everything else one
@@ -496,7 +501,7 @@ tasks.register('compareCoverage') {
       lines << "The samples of all branches are run on every branch. 🆕 = the sample does not exist on that branch " +
           "(it comes from another branch, or was removed there). – = not run."
       notRun.each { String b, Integer n ->
-        String effect = b == branchName ? "This fails the comparison." : "They count as unknown (neither parsed nor lost)."
+        String effect = b == branchName && newHang ? "This fails the comparison." : "They count as unknown (neither parsed nor lost)."
         lines.add("- ⚠️ $b: $n samples were not run, because a parser did not stop after its timeout. $effect".toString())
       }
       columns.each { String b ->
@@ -559,7 +564,7 @@ tasks.register('compareCoverage') {
         throw new GradleException("pythonCoverage failed on $b, so the coverage of $branchName could not be checked against it")
       }
       // a parser that does not stop after its timeout is a grammar bug, and it hides the results of the samples after it
-      if (notRun[branchName]) {
+      if (newHang) {
         throw new GradleException("A parser on $branchName did not stop after its timeout, so ${notRun[branchName]} " +
             "samples were not run (see the skipped tests in the pythonCoverageAll report)")
       }
