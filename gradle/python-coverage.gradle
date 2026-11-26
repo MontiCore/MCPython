@@ -366,8 +366,14 @@ tasks.register('compareCoverage') {
             """.stripIndent()
 
           logger.lifecycle("$b (${shas[b]}): running pythonCoverage ...")
-          def r = run([gradleCmd, "-p", worktree.absolutePath, "--init-script", initScript.absolutePath,
-                       "pythonCoverage", "--console=plain", "--quiet"], projectDir, true)
+          def r
+          try {
+            r = run([gradleCmd, "-p", worktree.absolutePath, "--init-script", initScript.absolutePath,
+                     "pythonCoverage", "--console=plain", "--quiet"], projectDir, true)
+          } catch (GradleException e) { // the nested build did not finish within the timeout
+            logger.warn("$b (${shas[b]}): ${e.message}")
+            r = [exit: -1]
+          }
           def xmlDir = new File(worktree, "build/test-results/pythonCoverage")
           if (r.exit != 0 || !xmlDir.isDirectory()) {
             // not cached, so the next run tries again (the failure may be temporary)
