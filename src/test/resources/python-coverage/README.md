@@ -10,14 +10,15 @@ That's why these tests do not run in the normal `test` task and never fail the b
 | Command | What it does |
 |---|---|
 | `gradlew pythonCoverage` | Parses every file here (one JUnit test per file). Failures are recorded, not fatal. Report: `build/reports/pythonCoverage/index.html` |
-| `gradlew compareCoverage` | Collects the samples of the current branch **and** of every other remote branch (a sample added on a parallel branch is run too), and runs them against the grammar of every branch. Prints the coverage per branch and a table of the samples whose result differs between branches (🆕 marks samples that don't exist on a branch). Fails only if a sample that parses on `dev` or on the parent branch (the branch with the nearest fork point) no longer parses. Deleting a sample doesn't hide this: samples of `dev` and the parent are always run. |
-| `gradlew compareCoverage -PcoverageBranches=dev,foo` | The same, but uses only the listed branches. |
+| `gradlew compareCoverage` | Collects the samples of the current branch **and** of every other remote branch (a sample added on a parallel branch is run too), and runs them against the grammar of every branch. Prints the coverage per branch and a table of the samples whose result differs between branches (🆕 marks samples that don't exist on a branch). Fails only if a sample that parses on `dev` or on the parent branch no longer parses. Deleting a sample doesn't hide this: samples of `dev` and the parent are always run. If a parser hangs and doesn't stop after its timeout, the following samples of that run are skipped and count as "not run" (neither parsed nor lost). |
+| `gradlew compareCoverage -PcoverageParent=foo` | The same, with `foo` as the parent branch. Without it, the parent is `dev`. Git history can't tell whether a branch was forked from another one or the other way round, so the parent is never guessed. |
+| `gradlew compareCoverage -PcoverageBranches=dev,foo` | The same, but uses only the listed branches (plus the parent). |
 | `gradlew checkPythonSamples` | Checks that every sample of the current branch is valid Python (`python -m compileall` in the Docker image `python:3.15-slim`). Needs a running Docker. Fails if a sample is not valid Python. |
 
 A file counts as supported if it parses without errors and an AST is returned (no symbol table, no CoCos, no pretty printing).
 
 **CI:** the `python-coverage` job in `.github/workflows/test_branch.yml` runs `compareCoverage` on every push (except to `dev`)
-and adds the report to the job summary. It can also be started by hand with "Run workflow" in the Actions tab.
+and adds the report to the job summary. The parent branch is the base branch of the open pull request (`dev` without one). It can also be started by hand with "Run workflow" in the Actions tab.
 The workflow `.github/workflows/check_python_samples.yml` runs `checkPythonSamples` on every push that changes samples (except to `dev`), and can be started by hand too.
 The results of the other branches are cached (in `build/coverage-base-cache/`, one entry per branch commit) until that branch, the samples or the test change.
 
@@ -66,5 +67,8 @@ To find the tests for a definition, search this folder for the anchor (e.g. `#ex
 
 1. Find the section in the [reference](https://docs.python.org/3.15/reference/) and create the file in the matching folder.
 2. Write the header and check that the link and the grammar rule exist.
-3. Check that the file is valid Python, e.g. `python -m py_compile <file>` with a Python version that supports the feature.
+3. Check that the file is valid Python with a Python version that supports the feature, without writing `__pycache__` files into this folder:
+   `python -c "import sys; compile(open(sys.argv[1], 'rb').read(), sys.argv[1], 'exec')" <file>`
+   (prints nothing if the file is valid; unlike `ast.parse` it also finds errors such as `return` outside a function).
+   Or check all samples at once with `gradlew checkPythonSamples` (needs Docker).
 4. Supported range: Python 3.10 up to the newest stable version.

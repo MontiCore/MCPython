@@ -11,6 +11,8 @@
 //                           parses on dev or on the parent branch of the current branch no longer parses
 //
 // Options:  -PcoverageBranches=dev,foo   use only these branches instead of all remote branches
+//           -PcoverageParent=foo         the parent branch (default: dev); in CI the environment variable
+//                                        COVERAGE_PARENT, set to the base branch of the open pull request
 //
 // None of these tasks is part of `build`.
 
@@ -31,6 +33,7 @@ def collectedSamples = layout.buildDirectory.dir("coverage-samples").get().asFil
 // which branch each collected sample was taken from (path<TAB>branch)
 def collectedOrigins = layout.buildDirectory.file("coverage-samples-origin.txt").get().asFile
 def branchFilter = providers.gradleProperty("coverageBranches").orNull
+def parentProperty = providers.gradleProperty("coverageParent").orNull ?: System.getenv("COVERAGE_PARENT")
 def coverageProjectDir = layout.projectDirectory.asFile
 
 // ---- helpers shared by the tasks (plain ProcessBuilder, so no deprecated project.exec) ----
@@ -109,7 +112,8 @@ def samplesOf = { String sha ->
   files
 }
 
-// The current branch and the other branches: [current: name, branches: [names, dev first], refOf: name -> git ref]
+// The current branch, the other branches and the parent branch:
+// [current: name, branches: [names: dev, parent, then by name], refOf: name -> git ref, parent: name or null, parentNote: text]
 def coverageBranches = {
   // branch name: from GitHub Actions if available, else from git; the short commit hash for a detached HEAD
   def current = System.getenv("GITHUB_REF_NAME") ?: coverageRun(["git", "rev-parse", "--abbrev-ref", "HEAD"], coverageProjectDir, false).out
@@ -130,10 +134,26 @@ def coverageBranches = {
     branches = remote ?: local
   }
   branches = (branches - current).unique()
-  // order: dev first, then the others by name
-  branches = branches.sort { a, b -> (a == coverageMainBranch ? 0 : 1) <=> (b == coverageMainBranch ? 0 : 1) ?: a <=> b }
+
+  // The parent branch is given explicitly (CI: the base branch of the open pull request), because git history
+  // cannot tell whether this branch was forked from another branch or the other branch from this one.
+  // Without it, dev is the parent.
+  String explicitParent = parentProperty?.trim() ?: null
+  if (explicitParent) {
+    if (explicitParent == current) throw new GradleException("coverageParent: '$explicitParent' is the current branch")
+    if (!coverageGitOk("rev-parse", "--verify", "--quiet", refOf(explicitParent))) {
+      throw new GradleException("coverageParent: unknown branch '$explicitParent'")
+    }
+    if (!branches.contains(explicitParent)) branches = branches + explicitParent // also with -PcoverageBranches
+  }
+  String parent = explicitParent ?: (branches.contains(coverageMainBranch) ? coverageMainBranch : null)
+  String parentNote = explicitParent ? "$parent (given with coverageParent)" : (parent ? "$parent (default)" : "none")
+
+  // order: dev first, then the parent, then the others by name
+  def rank = { String b -> b == coverageMainBranch ? 0 : (b == parent ? 1 : 2) }
+  branches = branches.sort { a, b -> rank(a) <=> rank(b) ?: a <=> b }
   if (branches.isEmpty()) throw new GradleException("No other branches found to compare with")
-  [current: current, branches: branches, refOf: refOf]
+  [current: current, branches: branches, refOf: refOf, parent: parent, parentNote: parentNote.toString()]
 }
 
 def configureCoverageTest = { Test t, String name ->
@@ -172,7 +192,8 @@ tasks.register('collectCoverageSamples') {
     copyInto(new File(coverageProjectDir, coverageSamplesDir), collectedSamples)
     def origins = new TreeMap<String, String>()
     samplesIn(collectedSamples).each { String f -> origins.put(f, currentBranch) }
-    // 2. the samples that exist only on other branches (dev first, then by name)
+    // 2. the samples that exist only on other branches (dev first, then the parent, then by name; the first one wins,
+    //    so dev and the parent are always checked against their own version of a sample)
     otherBranches.each { String b ->
       String sha = coverageGit("rev-parse", refOfBranch(b))
       samplesOf(sha).findAll { String f -> !origins.containsKey(f) }.each { String file ->
@@ -214,14 +235,15 @@ tasks.register('compareCoverage') {
   doLast {
     def run = coverageRun
     def git = coverageGit
-    def gitOk = coverageGitOk
-    // test name -> passed, from the JUnit XML files of a results folder
+    // test name -> true (parses), false (does not parse) or null (not run: the test was skipped, see
+    // PythonCoverageTest), from the JUnit XML files of a results folder
     def readResults = { File dir ->
       Map<String, Boolean> parsed = [:]
       def slurper = new groovy.xml.XmlSlurper()
       dir.listFiles({ File f -> f.name.endsWith(".xml") } as FileFilter)?.each { File f ->
         slurper.parse(f).testcase.each { tc ->
-          parsed.put(tc.@name.toString(), tc.failure.size() == 0 && tc.error.size() == 0 && tc.skipped.size() == 0)
+          Boolean result = tc.skipped.size() > 0 ? null : (tc.failure.size() == 0 && tc.error.size() == 0)
+          parsed.put(tc.@name.toString(), result)
         }
       }
       parsed
@@ -263,31 +285,9 @@ tasks.register('compareCoverage') {
       List<String> branches = info.branches
       Closure<String> refOf = info.refOf
 
-      // ---- 2. parent branch: the branch whose fork point has the fewest commits up to HEAD ----
-      // Branches that already contain HEAD (the same commit or branches started from this one) cannot be the parent.
-      // On a tie dev wins; a tie between other branches leaves the parent unknown.
-      Map<String, Integer> distances = [:]
-      branches.each { b ->
-        def ref = refOf(b)
-        if (gitOk("merge-base", "--is-ancestor", "HEAD", ref)) return
-        def mergeBase = run(["git", "merge-base", "HEAD", ref], projectDir, false)
-        if (mergeBase.exit != 0) return // no common history
-        distances[b] = git("rev-list", "--count", "${mergeBase.out}..HEAD") as int
-      }
-      String parent = null
-      def parentNote = "unknown"
-      if (!distances.isEmpty()) {
-        def nearest = distances.values().min()
-        def candidates = distances.findAll { it.value == nearest }.keySet().sort()
-        if (candidates.contains(coverageMainBranch)) {
-          parent = coverageMainBranch
-        } else if (candidates.size() == 1) {
-          parent = candidates[0]
-        } else {
-          parentNote = "unknown (equally close: ${candidates.join(', ')})"
-        }
-        if (parent) parentNote = "$parent ($nearest commit(s) since the fork point)"
-      }
+      // ---- 2. parent branch: given with -PcoverageParent / COVERAGE_PARENT, else dev (see coverageBranches) ----
+      String parent = info.parent
+      String parentNote = info.parentNote
       logger.lifecycle("Branch: $branchName, parent: $parentNote")
       logger.lifecycle("Comparing with: ${branches.join(', ')}")
 
@@ -383,8 +383,11 @@ tasks.register('compareCoverage') {
           removeWorktree()
         }
       }
-      // drop cache entries no branch uses any more
-      cacheRoot.listFiles()?.findAll { it.isDirectory() && !usedKeys.contains(it.name) }?.each { deleteDir(it) }
+      // drop cache entries no branch uses any more (not with -PcoverageBranches: the entries of the branches left
+      // out are still valid and would otherwise be rebuilt by the next full run)
+      if (!branchFilter) {
+        cacheRoot.listFiles()?.findAll { it.isDirectory() && !usedKeys.contains(it.name) }?.each { deleteDir(it) }
+      }
 
       // ---- 5. compare ----
       Map<String, Boolean> current = readResults(currentResults)
@@ -413,19 +416,26 @@ tasks.register('compareCoverage') {
       }
       def column = { String b -> b == branchName ? "**$b**" : (b == parent ? "$b (parent)" : b) }
 
-      // a test is listed only if the branches disagree (branches whose build failed are left out)
+      // a test is listed only if the branches disagree (branches whose build failed and samples that were not run
+      // are left out)
       List<String> guarded = [coverageMainBranch, parent].findAll { String b -> b && results[b] != null }.unique()
       List<String> differing = names.findAll { String t ->
-        Set<Boolean> seen = [current[t]] as Set
-        built.each { String b -> seen.add(results[b][t]) }
+        Set<Boolean> seen = ([current[t]] + built.collect { String b -> results[b][t] }).findAll { it != null } as Set
         seen.size() > 1
       }
       // no longer parsed: a sample of dev or the parent parses there, but not on this branch.
       // Samples deleted on this branch still come from dev / the parent, so deleting a sample does not hide a loss.
+      // A sample that was not run on this branch (null) is unknown, never lost.
       Map<String, List<String>> lost = [:]
       guarded.each { String b ->
-        List<String> l = names.findAll { String t -> !current[t] && results[b][t] && !isMissingOn(b, t) }
+        List<String> l = names.findAll { String t -> current[t] == false && results[b][t] == true && !isMissingOn(b, t) }
         if (l) lost[b] = l
+      }
+      // samples that were not run (skipped after a parser timeout), per branch with results
+      Map<String, Integer> notRun = [:]
+      columns.findAll { String b -> b == branchName || results[b] != null }.each { String b ->
+        int n = names.count { String t -> (b == branchName ? current : results[b]).containsKey(t) && resultOf(b, t) == null }
+        if (n) notRun[b] = n
       }
 
       // display width in a monospace console: emoji such as ✅ ❌ 🆕 ⚠ take two columns
@@ -467,7 +477,11 @@ tasks.register('compareCoverage') {
           " no longer parses on $branchName."
       lines << ""
       lines << "The samples of all branches are run on every branch. 🆕 = the sample does not exist on that branch " +
-          "(it comes from another branch, or was removed there)."
+          "(it comes from another branch, or was removed there). – = not run."
+      notRun.each { String b, Integer n ->
+        lines.add("- ⚠️ $b: $n samples were not run, because a parser did not stop after its timeout. ".toString() +
+            "They count as unknown (neither parsed nor lost); see the skipped tests in the pythonCoverage report.")
+      }
       columns.each { String b ->
         List<String> missing = names.findAll { String t -> isMissingOn(b, t) }
         if (missing) lines << "- $b: ${missing.size()} of ${names.size()} samples do not exist there"

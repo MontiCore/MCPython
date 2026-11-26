@@ -4,6 +4,7 @@ package de.monticore.python;
 import de.monticore.python._ast.ASTPythonScript;
 import de.se_rwth.commons.logging.Finding;
 import de.se_rwth.commons.logging.Log;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -20,6 +21,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,10 +52,13 @@ public class PythonCoverageTest {
 
   static final Duration TIMEOUT = Duration.ofSeconds(10);
 
+  /** How long to wait for the parser thread to stop after a timeout before the following tests are skipped. */
+  static final Duration STOP_TIMEOUT = Duration.ofSeconds(10);
+
   @TestFactory
   Stream<DynamicNode> pythonCoverage() throws IOException {
     List<String> files = findSampleFiles(ROOT);
-      assertFalse(files.isEmpty(), "No sample files found in " + ROOT.toAbsolutePath());
+    assertFalse(files.isEmpty(), "No sample files found in " + ROOT.toAbsolutePath());
 
     // chapter -> section -> files (sorted, so the order is stable)
     Map<String, Map<String, List<String>>> tree = new TreeMap<>();
@@ -78,22 +88,49 @@ public class PythonCoverageTest {
     }
   }
 
-  // Failures are plain AssertionErrors and not JUnit's fail(): Gradle 8.5 (used in CI) cannot map an
-  // AssertionFailedError without expected/actual values and logs every error message twice.
-  static void assertParses(String file) {
+  /**
+   * The file whose parser thread was still running after its timeout, or null. The parser ignores interrupts, so
+   * such a thread keeps running and shares the static {@code Log} and {@code PythonMill} with the following tests,
+   * which would make their results random. Those tests are therefore skipped (the comparison counts them as
+   * "not run", neither parsed nor lost).
+   */
+  static volatile String leakedParser = null;
+
+  // Failures are plain AssertionErrors and not JUnit's fail() or assertTimeoutPreemptively: Gradle 8.5 (used in
+  // CI) cannot map an AssertionFailedError without expected/actual values and logs every error message twice.
+  static void assertParses(String file) throws InterruptedException {
+    if (leakedParser != null) {
+      Assumptions.abort("Not run: the parser of " + leakedParser + " did not stop after its timeout");
+    }
     Path path = ROOT.resolve(file);
     PythonMill.init();
     Log.init();
     Log.enableFailQuick(false);
 
     Optional<ASTPythonScript> ast;
+    // a daemon thread, so a parser that never stops does not keep the test JVM alive
+    ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+      Thread t = new Thread(r, "coverage-parser");
+      t.setDaemon(true);
+      return t;
+    });
     try {
-      ast = assertTimeoutPreemptively(TIMEOUT, () -> PythonMill.parser().parse(path.toAbsolutePath().toString()),
-          "Parsing took longer than " + TIMEOUT.toSeconds() + "s");
-    } catch (AssertionError e) {
-      throw e;
-    } catch (Throwable t) {
-      throw new AssertionError(file + " does not parse: the parser threw " + t, t);
+      Future<Optional<ASTPythonScript>> future =
+          executor.submit(() -> PythonMill.parser().parse(path.toAbsolutePath().toString()));
+      try {
+        ast = future.get(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+      } catch (TimeoutException e) {
+        future.cancel(true);
+        executor.shutdownNow();
+        if (!executor.awaitTermination(STOP_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
+          leakedParser = file;
+        }
+        throw new AssertionError(file + " does not parse: parsing took longer than " + TIMEOUT.toSeconds() + "s");
+      } catch (ExecutionException e) {
+        throw new AssertionError(file + " does not parse: the parser threw " + e.getCause(), e.getCause());
+      }
+    } finally {
+      executor.shutdownNow();
     }
 
     String errors = Log.getFindings().stream()

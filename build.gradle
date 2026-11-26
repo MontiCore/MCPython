@@ -79,7 +79,9 @@ apply from: "gradle/python-coverage.gradle"
 
 tasks.register('testReport', TestReport) {
   destinationDirectory = layout.buildDirectory.dir("reports/allTests")
-  getTestResults().from(tasks.withType(Test))
+  // only the normal tests: the coverage tasks (pythonCoverage*) write their own reports and would otherwise
+  // run as dependencies of this task
+  getTestResults().from(tasks.named('test'))
 }
 
 def testProjects = [

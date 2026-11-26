@@ -52,15 +52,20 @@ jobs:
   python-coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 120 # one nested build per branch without cached results; guards against a hanging build
+    permissions:
+      contents: read
+      pull-requests: read # to find the base branch of the open pull request (the parent branch)
     steps:
       - name: Checkout project sources
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # full history and all branches, as the comparison needs them
-      - name: Cache coverage results of the other branches
-        # one entry per run; the newest earlier entry is restored. compareCoverage checks a key per branch commit
-        # itself and only rebuilds branches whose results are missing, so a stale cache can never give wrong results
-        uses: actions/cache@v4
+      - name: Restore cached coverage results of the other branches
+        # one entry per run; the newest earlier entry of this branch is restored (GitHub only shares caches within a
+        # branch and from the default branch, and this workflow does not run on dev). compareCoverage checks a key per
+        # branch commit itself and only rebuilds branches whose results are missing, so a stale cache can never give
+        # wrong results
+        uses: actions/cache/restore@v4
         with:
           path: build/coverage-base-cache
           key: python-coverage-${{ github.run_id }}-${{ github.run_attempt }}
@@ -74,6 +79,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{env.GRADLE_VERSION}}
+      - name: Find the parent branch (base branch of the open pull request, else dev)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base=$(gh pr view "$GITHUB_REF_NAME" --json baseRefName,state -q 'select(.state == "OPEN") | .baseRefName' 2>/dev/null || true)
+          echo "Parent branch: ${base:-dev}"
+          echo "COVERAGE_PARENT=${base:-dev}" >> "$GITHUB_ENV"
       - name: Compare coverage with all branches
         run: gradle compareCoverage ${{env.GRADLE_CLI_OPTS}}
       - name: Add report to job summary
@@ -84,6 +96,14 @@ jobs:
           else
             echo "No coverage report was created, see the log of the 'Compare coverage with all branches' step." >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: Save coverage results of the other branches
+        # also when the comparison failed: the results of the other branches are still valid, and without them every
+        # following push would rebuild every branch until the failure is fixed
+        if: always() && hashFiles('build/coverage-base-cache/**') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: build/coverage-base-cache
+          key: python-coverage-${{ github.run_id }}-${{ github.run_attempt }}
 
   # Run the MontiVerse pipeline (tests this change on a suite of projects)
   # trigger-montiverse:
