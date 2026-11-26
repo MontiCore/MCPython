@@ -56,7 +56,7 @@ public class PythonCoverageTest {
   static final Duration STOP_TIMEOUT = Duration.ofSeconds(10);
 
   @TestFactory
-  Stream<DynamicNode> pythonCoverage() throws IOException {
+  List<DynamicNode> pythonCoverage() throws IOException {
     List<String> files = findSampleFiles(ROOT);
     assertFalse(files.isEmpty(), "No sample files found in " + ROOT.toAbsolutePath());
 
@@ -71,10 +71,19 @@ public class PythonCoverageTest {
           .add(file);
     }
 
-    return tree.entrySet().stream().map(chapter ->
-        DynamicContainer.dynamicContainer(chapter.getKey(), chapter.getValue().entrySet().stream().map(section ->
-            DynamicContainer.dynamicContainer(section.getKey(), section.getValue().stream().map(file ->
-                DynamicTest.dynamicTest(file, ROOT.resolve(file).toUri(), () -> assertParses(file)))))));
+    List<DynamicNode> chapters = new ArrayList<>();
+    for (Map.Entry<String, Map<String, List<String>>> chapter : tree.entrySet()) {
+      List<DynamicNode> sections = new ArrayList<>();
+      for (Map.Entry<String, List<String>> section : chapter.getValue().entrySet()) {
+        List<DynamicNode> tests = new ArrayList<>();
+        for (String file : section.getValue()) {
+          tests.add(DynamicTest.dynamicTest(file, ROOT.resolve(file).toUri(), () -> assertParses(file)));
+        }
+        sections.add(DynamicContainer.dynamicContainer(section.getKey(), tests));
+      }
+      chapters.add(DynamicContainer.dynamicContainer(chapter.getKey(), sections));
+    }
+    return chapters;
   }
 
   /** Returns all {@code .py} files below {@code root} as sorted, '/'-separated relative paths. */

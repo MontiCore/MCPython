@@ -253,15 +253,14 @@ tasks.register('compareCoverage') {
       def line = f.exists() ? f.readLines().find { it.startsWith("# Since:") } : null
       line ? line.substring("# Since:".length()).trim() : "(no Since header)"
     }
-    // sorts "original syntax ..." first, then "Python X.Y" numerically, everything else last
+    // sort key of a "Since" header: "original syntax ..." first, then "Python X.Y" by version, anything else last
     def versionKey = { String s ->
+      if (s.startsWith("original")) return 0
       def m = s =~ /Python (\d+)\.(\d+)/
-      s.startsWith("original") ? [0, 0, 0] : (m.find() ? [1, m.group(1) as int, m.group(2) as int] : [2, 0, 0])
+      if (m.find()) return 1_00_00 + (m.group(1) as int) * 100 + (m.group(2) as int)
+      return 2_00_00
     }
-    def versionComparator = { a, b ->
-      def ka = versionKey(a.key), kb = versionKey(b.key)
-      (0..2).collect { ka[it] <=> kb[it] }.find { it != 0 } ?: 0
-    }
+    def versionComparator = { a, b -> versionKey(a.key) <=> versionKey(b.key) }
 
     // ---- 0. only one compareCoverage per checkout: they would share the worktree folder ----
     def lockFile = new File(buildDir, "compareCoverage.lock")
@@ -420,8 +419,9 @@ tasks.register('compareCoverage') {
       // are left out)
       List<String> guarded = [coverageMainBranch, parent].findAll { String b -> b && results[b] != null }.unique()
       List<String> differing = names.findAll { String t ->
-        Set<Boolean> seen = ([current[t]] + built.collect { String b -> results[b][t] }).findAll { it != null } as Set
-        seen.size() > 1
+        List<Boolean> all = [current[t]] + built.collect { String b -> results[b][t] }
+        Set<Boolean> known = all.findAll { it != null } as Set // null = not run
+        known.size() > 1
       }
       // no longer parsed: a sample of dev or the parent parses there, but not on this branch.
       // Samples deleted on this branch still come from dev / the parent, so deleting a sample does not hide a loss.
@@ -434,14 +434,22 @@ tasks.register('compareCoverage') {
       // samples that were not run (skipped after a parser timeout), per branch with results
       Map<String, Integer> notRun = [:]
       columns.findAll { String b -> b == branchName || results[b] != null }.each { String b ->
-        int n = names.count { String t -> (b == branchName ? current : results[b]).containsKey(t) && resultOf(b, t) == null }
+        Map<String, Boolean> res = b == branchName ? current : results[b]
+        int n = names.count { String t -> res.containsKey(t) && res[t] == null }
         if (n) notRun[b] = n
       }
 
-      // display width in a monospace console: emoji such as ✅ ❌ 🆕 ⚠ take two columns
+      // display width in a monospace console: emoji such as ✅ ❌ 🆕 ⚠ take two columns,
+      // the variation selector U+FE0F (after ⚠) takes none, everything else one
       def displayWidth = { String text ->
         int width = 0
-        text.codePoints().toArray().each { int cp -> width += (cp >= 0x1F000 || (cp >= 0x2600 && cp <= 0x27BF)) ? 2 : (cp == 0xFE0F ? 0 : 1) }
+        text.codePoints().toArray().each { int cp ->
+          if (cp >= 0x1F000 || (cp >= 0x2600 && cp <= 0x27BF)) {
+            width += 2
+          } else if (cp != 0xFE0F) {
+            width += 1
+          }
+        }
         width
       }
       def pad = { String text, int width, boolean center ->
@@ -463,7 +471,10 @@ tasks.register('compareCoverage') {
           "| " + (0..<r.size()).collect { int i -> pad(r[i], widths[i], i > 0) }.join(" | ") + " |"
         }
         List<String> out = [line(header)]
-        out.add("|" + (0..<widths.size()).collect { int i -> i == 0 ? "-" * (widths[i] + 2) : ":" + "-" * widths[i] + ":" }.join("|") + "|")
+        // separator row: the first column left-aligned ("---"), all others centered (":---:")
+        List<String> separators = ["-" * (widths[0] + 2)]
+        widths.drop(1).each { int w -> separators.add(":" + "-" * w + ":") }
+        out.add("|" + separators.join("|") + "|")
         rows.each { List<String> r -> out.add(line(r)) }
         out
       }
@@ -507,20 +518,24 @@ tasks.register('compareCoverage') {
         r
       }
       def header = { String first -> row(first, column) }
+      // a row with the number of parsed samples per branch, and a row with the result of one sample per branch
+      def countRow = { String label, List<String> files -> row(label) { String b -> count(b, files) } }
+      def testRow = { String test -> row("`$test`".toString()) { String b -> cell(b, test) } }
+
       Map<String, List<String>> byChapter = names.groupBy { String t -> t.contains('/') ? t.substring(0, t.indexOf('/')) : '(root)' }
-      List<List<String>> chapterRows = byChapter.sort().collect { String chapter, List<String> files -> row(chapter) { String b -> count(b, files) } }
-      chapterRows.add(row("**Total**") { String b -> count(b, names) })
+      List<List<String>> chapterRows = byChapter.sort().collect { String chapter, List<String> files -> countRow(chapter, files) }
+      chapterRows.add(countRow("**Total**", names))
       lines.addAll(table(header("Chapter"), chapterRows))
       lines << ""
       Map<String, List<String>> bySince = names.groupBy { String t -> since(t) }
-      lines.addAll(table(header("Since"), bySince.sort(versionComparator).collect { String version, List<String> files ->
-        row(version) { String b -> count(b, files) }
-      }))
+      List<List<String>> sinceRows = bySince.sort(versionComparator).collect { String version, List<String> files -> countRow(version, files) }
+      lines.addAll(table(header("Since"), sinceRows))
       lines << ""
       lines << "### Differences between branches (${differing.size()})"
       lines << ""
       if (differing) {
-        lines.addAll(table(header("Test"), differing.collect { String t -> row("`$t`".toString()) { String b -> cell(b, t) } }))
+        List<List<String>> testRows = differing.collect { String t -> testRow(t) }
+        lines.addAll(table(header("Test"), testRows))
       } else {
         lines << "All branches parse the same samples."
       }
@@ -572,7 +587,7 @@ tasks.register('checkPythonSamples') {
     // show the paths relative to the repo instead of the container paths
     def output = r.out.replace("/samples/", "$coverageSamplesDir/")
     def failed = output.readLines().findAll { it.startsWith("*** Error compiling") }
-        .collect { (it =~ /'(.*)'/).with { m -> m.find() ? m.group(1) : it } }
+        .collect { String line -> line.find(/'(.*)'/) { String match, String path -> path } ?: line } // the quoted path
 
     def lines = []
     if (r.exit == 0) {
