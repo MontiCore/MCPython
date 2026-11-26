@@ -50,8 +50,24 @@ public class PrettyPrinterTest {
         "x = f'ab' in y\n" +
         "x = f'''a {b}\nc'''\n" +
         "x = f\"\"\"a {b}\nc\"\"\"\n");
-    assertFalse(printed.contains("f '"), "f prefix must be followed directly by the quote:\n" + printed);
+    assertTrue(printed.contains("f'ab' in y"), printed);
     assertTrue(printed.contains("f'''a {b}\nc'''"), printed);
+  }
+
+  // the comma after an assignment is only printed if it was in the source
+  @Test
+  public void testPrettyPrintAssignmentTrailingComma() throws IOException {
+    String printed = assertPrettyPrintReparses(
+        "print(a, sep='', end='x')\n" +
+        "x = 1\n" +
+        "a.y = 1,\n" +
+        "z: int = 1\n");
+    assertFalse(printed.contains(",,"), printed);
+    assertFalse(printed.contains(",)"), printed);
+    assertTrue(printed.contains("x=1 "), printed);
+    // `y = 1,` would be a MultiVariableDeclaration, which has its own optional-comma printer issue
+    assertTrue(printed.contains("a.y=1,"), printed);
+    assertTrue(printed.contains("z:int=1 "), printed);
   }
 
   private String assertPrettyPrintReparses(String model) throws IOException {

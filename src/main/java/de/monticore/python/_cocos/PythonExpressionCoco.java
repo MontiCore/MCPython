@@ -5,6 +5,7 @@ import de.monticore.expressions.commonexpressions._ast.ASTCallExpression;
 import de.monticore.expressions.expressionsbasis._ast.ASTExpression;
 import de.monticore.expressions.expressionsbasis._ast.ASTLiteralExpression;
 import de.monticore.python._ast.ASTExpressionStatement;
+import de.monticore.pythonbasis._ast.ASTConstantsPythonBasis;
 import de.se_rwth.commons.logging.Log;
 
 public class PythonExpressionCoco implements PythonASTExpressionStatementCoCo {
@@ -19,7 +20,8 @@ public class PythonExpressionCoco implements PythonASTExpressionStatementCoCo {
 
         if (expression instanceof ASTAssignmentExpression
             && ((ASTAssignmentExpression) expression).getLeft() instanceof ASTLiteralExpression) {
-          if (((ASTAssignmentExpression) expression).getOperator() == 2) {
+          // PythonBasis overrides AssignmentExpression, so the operator is a PythonBasis constant
+          if (((ASTAssignmentExpression) expression).getOperator() == ASTConstantsPythonBasis.EQUALS) {
             Log.error("Invalid variable declaration " + node.get_SourcePositionStart());
           }
         }

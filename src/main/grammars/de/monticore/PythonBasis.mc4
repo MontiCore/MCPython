@@ -169,13 +169,13 @@ grammar PythonBasis extends MultilineString,
   AnnotatedAssignmentExpression implements Expression <60> = <rightassoc>
       left:Expression
       ":" annotated: TypeAnnotation
-      "=" right:Expression ","?;
+      "=" right:Expression trailingComma:[","]?;
   @Override
   AssignmentExpression implements Expression <60> = <rightassoc>
       left:Expression
       operator: [ "=" | "+=" | "-=" | "*=" | "/=" | "&=" | "|="
                 | "^=" | ">>=" | ">>>=" | "<<=" | "%=" | "**=" | "@=" | "//="]
-      right:Expression ","?;
+      right:Expression trailingComma:[","]?;
 
   UnpackingAssignmentExpression implements Expression <60> = <rightassoc>
     "(" left:Expression ("," left:Expression)* ","? ")" "="
@@ -229,6 +229,8 @@ grammar PythonBasis extends MultilineString,
   EllipsisTypeAnnotation    implements TypeAnnotation <100> = "...";
   // PEP 646: unpacked TypeVarTuple, e.g. def f(*args: *Ts) or class C[*Ts]
   StarredTypeAnnotation     implements TypeAnnotation <100> = "*" TypeAnnotation;
+  // call used as an annotation, e.g. def f(x: make_type()) or def g() -> type(None)
+  CallTypeAnnotation        implements TypeAnnotation <100> = TypeAnnotation Arguments;
   ParameterizedGenericTypeAnnotation implements TypeAnnotation <40> = TypeAnnotation "[" (Expression ||",")* ","? "]";
 
   /*====================================== Generics ======================================*/

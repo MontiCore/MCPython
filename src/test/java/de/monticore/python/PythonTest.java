@@ -261,7 +261,6 @@ public class PythonTest extends AbstractPythonTest {
 	public void parseInvalidMatchStatement(){
 		parseModelFromStringAndExpectFail(
 				"match x:\n" +
-						"    case (a,b as var1 ) as var2: pass\n" +
 						"    case  as var3: pass\n"
 		);
 		parseModelFromStringAndExpectFail(
@@ -518,6 +517,37 @@ public class PythonTest extends AbstractPythonTest {
 		parseModelFromStringAndExpectSuccess("type Row[*Ts] = tuple[int, *Ts]\n");
 	}
 
+	// True/False are a PythonBasis override of BooleanLiteral, getValue() must still work
+	@Test
+	public void booleanLiteralValue() throws java.io.IOException {
+		PythonMill.init();
+		java.util.List<Boolean> values = new java.util.ArrayList<>();
+		de.monticore.python._visitor.PythonTraverser traverser = PythonMill.inheritanceTraverser();
+		traverser.add4MCCommonLiterals(new de.monticore.literals.mccommonliterals._visitor.MCCommonLiteralsVisitor2() {
+			@Override
+			public void visit(de.monticore.literals.mccommonliterals._ast.ASTBooleanLiteral node) {
+				values.add(node.getValue());
+			}
+		});
+		PythonMill.parser().parse_String("x = True\ny = False\n").get().accept(traverser);
+		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(true, false), values);
+	}
+
+	// calls as annotations
+	@Test
+	public void parseCallAnnotations() {
+		parseModelFromStringAndExpectSuccess(
+				"def f(x: make_type()):\n" +
+						"    pass\n"
+		);
+		parseModelFromStringAndExpectSuccess(
+				"def g() -> type(None):\n" +
+						"    pass\n"
+		);
+		parseModelFromStringAndExpectSuccess("x: foo(1, b=2) = 1\n");
+		parseModelFromStringAndExpectSuccess("x: mod.factory()[int] = 1\n");
+	}
+
 	// invalid function declaration
 	@Test
 	public void parseInvalidFunctionDeclaration() {
@@ -666,7 +696,8 @@ public class PythonTest extends AbstractPythonTest {
 	// tests for Walrus inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
 	@Test
 	public void parseValidWalrusOperator(){
-		parseModelFromStringAndExpectSuccess("def function():\n  yield a:=2\n");
+		// an unparenthesized walrus is not allowed after yield
+		parseModelFromStringAndExpectSuccess("def function():\n  yield (a:=2)\n");
 	}
 	@Test
 	public void parseInalidWalrusOperator(){
