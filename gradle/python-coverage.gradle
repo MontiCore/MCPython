@@ -490,8 +490,8 @@ tasks.register('compareCoverage') {
       lines << "The samples of all branches are run on every branch. 🆕 = the sample does not exist on that branch " +
           "(it comes from another branch, or was removed there). – = not run."
       notRun.each { String b, Integer n ->
-        lines.add("- ⚠️ $b: $n samples were not run, because a parser did not stop after its timeout. ".toString() +
-            "They count as unknown (neither parsed nor lost); see the skipped tests in the pythonCoverage report.")
+        String effect = b == branchName ? "This fails the comparison." : "They count as unknown (neither parsed nor lost)."
+        lines.add("- ⚠️ $b: $n samples were not run, because a parser did not stop after its timeout. $effect".toString())
       }
       columns.each { String b ->
         List<String> missing = names.findAll { String t -> isMissingOn(b, t) }
@@ -551,6 +551,11 @@ tasks.register('compareCoverage') {
 
       [coverageMainBranch, parent].findAll { it && branches.contains(it) && results[it] == null }.unique().each { b ->
         throw new GradleException("pythonCoverage failed on $b, so the coverage of $branchName could not be checked against it")
+      }
+      // a parser that does not stop after its timeout is a grammar bug, and it hides the results of the samples after it
+      if (notRun[branchName]) {
+        throw new GradleException("A parser on $branchName did not stop after its timeout, so ${notRun[branchName]} " +
+            "samples were not run (see the skipped tests in the pythonCoverageAll report)")
       }
       if (!lost.isEmpty()) {
         throw new GradleException("Files parse on ${lost.keySet().join(' / ')} but no longer on $branchName: " +

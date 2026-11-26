@@ -86,8 +86,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           base=$(gh pr view "$GITHUB_REF_NAME" --json baseRefName,state -q 'select(.state == "OPEN") | .baseRefName' 2>/dev/null || true)
-          echo "Parent branch: ${base:-dev}"
-          echo "COVERAGE_PARENT=${base:-dev}" >> "$GITHUB_ENV"
+          echo "Parent branch: ${base:-dev (default)}"
+          # without an open pull request, compareCoverage uses dev itself (also when this is dev)
+          if [ -n "$base" ]; then echo "COVERAGE_PARENT=$base" >> "$GITHUB_ENV"; fi
       - name: Compare coverage with all branches
         run: gradle compareCoverage ${{env.GRADLE_CLI_OPTS}}
       - name: Add report to job summary
