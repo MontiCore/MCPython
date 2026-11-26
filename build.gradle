@@ -5,10 +5,18 @@ plugins {
   id "maven-publish"
   id "com.gradleup.shadow" version "$shadow_plugin_version"
   id 'org.ec4j.editorconfig' version "0.0.3"
+  id 'de.se_rwth.codestyle' version "$mc_version" // SE code style (Spotless), see se-commons-codestyle
 }
 
 group = "de.monticore.lang"
 description = "MCPython"
+
+spotless {
+  // Only format and check files that differ from dev, until the whole code base has been formatted once.
+  // This keeps the branches that are open while Spotless is introduced free of formatting-only merge
+  // conflicts. Remove this line in the commit that formats everything.
+  ratchetFrom 'origin/dev'
+}
 
 java {
   withSourcesJar()
