@@ -10,6 +10,7 @@ on:
     paths-ignore:
       - "*.md" # do not run this pipeline if the only change was to markdown files
     branches-ignore: [ "dev" ] # Do not run this on the default branch
+  workflow_dispatch: # allow starting it by hand ("Run workflow" button in the Actions tab)
 
 env:
   GRADLE_VERSION: 8.5 # Gradle version used
@@ -26,6 +27,8 @@ jobs:
     steps:
       - name: Checkout project sources
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history: spotlessCheck compares with origin/dev (ratchetFrom in build.gradle)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -42,8 +45,71 @@ jobs:
         if: always() # always run even if the previous step fails
         with:
           name: junit-test-results
-          path: '**/target/test-results/test/TEST-*.xml'
+          path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
+
+  # Grammar coverage: compares which Python samples parse on this branch and on every other remote branch
+  # (see src/test/resources/python-coverage/README.md). A separate job, so it also runs when `build` fails.
+  # Fails only if a sample that parses on dev or on the parent branch no longer parses on this branch.
+  python-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120 # one nested build per branch without cached results; guards against a hanging build
+    permissions:
+      contents: read
+      pull-requests: read # to find the base branch of the open pull request (the parent branch)
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history and all branches, as the comparison needs them
+      - name: Restore cached coverage results of the other branches
+        # one entry per run; the newest earlier entry of this branch is restored (GitHub only shares caches within a
+        # branch and from the default branch, and this workflow does not run on dev). compareCoverage checks a key per
+        # branch commit itself and only rebuilds branches whose results are missing, so a stale cache can never give
+        # wrong results
+        uses: actions/cache/restore@v4
+        with:
+          path: build/coverage-base-cache
+          key: python-coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: python-coverage-
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{env.GRADLE_VERSION}}
+      - name: Find the parent branch (base branch of the open pull request, else dev)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base=$(gh pr view "$GITHUB_REF_NAME" --json baseRefName,state -q 'select(.state == "OPEN") | .baseRefName' 2>/dev/null || true)
+          echo "Parent branch: ${base:-dev (default)}"
+          # without an open pull request, compareCoverage uses dev itself (also when this is dev)
+          if [ -n "$base" ]; then echo "COVERAGE_PARENT=$base" >> "$GITHUB_ENV"; fi
+      - name: Compare coverage with all branches
+        run: gradle compareCoverage ${{env.GRADLE_CLI_OPTS}}
+      - name: Coverage report
+        # its own step, so the report can be read without scrolling through the build output of all branches;
+        # also added to the job summary
+        if: always() # also show the report when the comparison found files that no longer parse
+        run: |
+          if [ -f build/reports/compareCoverage/report.md ]; then
+            cat build/reports/compareCoverage/report.md
+            cat build/reports/compareCoverage/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No coverage report was created, see the log of the 'Compare coverage with all branches' step." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Save coverage results of the other branches
+        # also when the comparison failed: the results of the other branches are still valid, and without them every
+        # following push would rebuild every branch until the failure is fixed
+        if: always() && hashFiles('build/coverage-base-cache/**') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: build/coverage-base-cache
+          key: python-coverage-${{ github.run_id }}-${{ github.run_attempt }}
 
   # Run the MontiVerse pipeline (tests this change on a suite of projects)
   # trigger-montiverse:

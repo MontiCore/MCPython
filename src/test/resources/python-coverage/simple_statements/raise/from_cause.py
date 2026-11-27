@@ -1,0 +1,6 @@
+# Reference: https://docs.python.org/3.15/reference/simple_stmts.html#the-raise-statement
+# Grammar:   raise_stmt
+# PEP:       3134
+# Since:     Python 3.0
+# Generated: Claude Opus 5.5 (claude-opus-5-5), 2026-11-20
+raise RuntimeError('failed') from exc

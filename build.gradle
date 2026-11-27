@@ -5,10 +5,22 @@ plugins {
   id "maven-publish"
   id "com.gradleup.shadow" version "$shadow_plugin_version"
   id 'org.ec4j.editorconfig' version "0.0.3"
+  id 'de.se_rwth.codestyle' version "$mc_version" // SE code style (Spotless), see se-commons-codestyle
 }
 
 group = "de.monticore.lang"
 description = "MCPython"
+
+spotless {
+  // Only check and format files that differ from dev, until everything has been formatted once.
+  // Without origin/dev (e.g. no git checkout) the code style is not enforced. Remove this block in
+  // the commit that formats the whole code base.
+  def hasDev = file('.git').exists() && providers.exec {
+    commandLine 'git', 'rev-parse', '--verify', '--quiet', 'origin/dev'
+    ignoreExitValue = true
+  }.result.get().exitValue == 0
+  if (hasDev) ratchetFrom 'origin/dev' else enforceCheck = false
+}
 
 java {
   withSourcesJar()
@@ -44,7 +56,10 @@ repositories {
 }
 
 test {
-  useJUnitPlatform()
+  useJUnitPlatform {
+    // grammar coverage tests run in their own task, see pythonCoverage
+    excludeTags "coverage"
+  }
   testLogging {
     exceptionFormat = 'full'
     showStackTraces = true
@@ -71,9 +86,14 @@ shadowJar {
   archiveClassifier = "cli"
 }
 
+// Grammar coverage tasks (pythonCoverage, compareCoverage), see the file for details
+apply from: "gradle/python-coverage.gradle"
+
 tasks.register('testReport', TestReport) {
   destinationDirectory = layout.buildDirectory.dir("reports/allTests")
-  getTestResults().from(tasks.withType(Test))
+  // only the normal tests: the coverage tasks (pythonCoverage*) write their own reports and would otherwise
+  // run as dependencies of this task
+  getTestResults().from(tasks.named('test'))
 }
 
 def testProjects = [

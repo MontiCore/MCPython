@@ -1,0 +1,7 @@
+# All samples are checked out with LF, also on Windows with core.autocrlf=true, so local runs test the
+# same bytes as CI.
+*.py text eol=lf
+# These samples test line endings and source encodings, so git must store them byte for byte
+# (no CRLF/LF conversion, no text diff of the Latin-1 bytes).
+lexical/physical_lines/*.py -text
+lexical/encoding_declarations/latin1.py -text

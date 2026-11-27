@@ -1,0 +1,18 @@
+# Some samples test exactly the bytes that editors like to "repair". These sections stop editors
+# (IntelliJ, VS Code with the EditorConfig extension, ...) from changing them on save.
+
+# This sample tests a Latin-1 encoding declaration, so its bytes are Latin-1, not UTF-8.
+[lexical/encoding_declarations/latin1.py]
+charset = latin1
+
+# This sample tests the UTF-8 byte order mark.
+[lexical/encoding_declarations/utf8_bom.py]
+charset = utf-8-bom
+
+# These samples test CR, CRLF and mixed line endings.
+[lexical/physical_lines/*.py]
+end_of_line = unset
+
+# These samples test tabs in indentation and between tokens.
+[{lexical/indentation/tabs.py,lexical/indentation/tabs_and_spaces.py,lexical/whitespace_between_tokens/tab_between_tokens.py}]
+indent_style = unset

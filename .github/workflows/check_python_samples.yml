@@ -1,0 +1,53 @@
+# (c) https://github.com/MontiCore/monticore
+name: Check Python Samples
+
+# Checks that every Python coverage sample of the pushed branch is valid Python (python -m compileall in the
+# official Python image, see src/test/resources/python-coverage/README.md). A workflow of its own, because only
+# a whole workflow can be limited to changes in certain paths.
+
+concurrency: # run this workflow only once per branch
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    paths: # only when samples (or this check) change
+      - "src/test/resources/python-coverage/**"
+      - "gradle/python-coverage.gradle"
+      - ".github/workflows/check_python_samples.yml"
+    branches-ignore: [ "dev" ] # like test_branch.yml
+  workflow_dispatch: # allow starting it by hand ("Run workflow" button in the Actions tab)
+
+env:
+  GRADLE_VERSION: 8.5 # Gradle version used
+  GRADLE_CLI_OPTS: "-Pci --build-cache --refresh-dependencies " # CLI options passed to Gradle
+
+permissions:
+  contents: read
+
+jobs:
+  check-python-samples:
+    runs-on: ubuntu-latest # has Docker
+    timeout-minutes: 20
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{env.GRADLE_VERSION}}
+      - name: Check that the samples are valid Python
+        run: gradle checkPythonSamples ${{env.GRADLE_CLI_OPTS}}
+      - name: Add report to job summary
+        if: always() # also show the report when samples are invalid
+        run: |
+          if [ -f build/reports/checkPythonSamples/report.md ]; then
+            cat build/reports/checkPythonSamples/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No report was created, see the log of the 'Check that the samples are valid Python' step." >> "$GITHUB_STEP_SUMMARY"
+          fi
