@@ -58,15 +58,20 @@ public class PythonCoCoCheckerTest {
   public void namesBoundSeveralTimesExist() throws IOException {
     LogStub.init();
     Log.enableFailQuick(false);
-    // valid Python that binds the same alias name twice must not make the CoCo throw
+    // valid Python that binds the same function, class or alias name twice must not make the CoCo
+    // throw
     List<String> models = List.of(
         "try:\n    f()\nexcept A as e:\n    try:\n        g()\n    except B as e:\n        print(e)\n",
         "match p:\n    case (A() as q) | (B() as q):\n        print(q)\n",
-        "type X = int\ntype X = str\nprint(X)\n");
+        "type X = int\ntype X = str\nprint(X)\n",
+        "@overload\ndef o(a: int): ...\n@overload\ndef o(a: str): ...\no(1)\n",
+        "class C:\n    @property\n    def x(self): return 1\n    @x.setter\n    def x(self, v): pass\n",
+        "class K: pass\nclass K: pass\nK()\n");
     for (String model : models) {
       List<Finding> findings = assertDoesNotThrow(() -> runNameExistsCocoOnString(model), model);
-      assertTrue(findings.stream().noneMatch(f -> f.getMsg().contains(" e ") || f.getMsg().contains(
-          " q ") || f.getMsg().contains(" X ")), findings.toString());
+      List<String> names = List.of(" e ", " q ", " X ", " o ", " x ", " K ");
+      assertTrue(findings.stream().noneMatch(f -> names.stream().anyMatch(n -> f.getMsg().contains(
+          n))), findings.toString());
     }
   }
   
