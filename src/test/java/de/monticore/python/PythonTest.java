@@ -1,3 +1,4 @@
+/* (c) https://github.com/MontiCore/monticore */
 package de.monticore.python;
 
 import de.se_rwth.commons.logging.Log;
@@ -6,839 +7,623 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class PythonTest extends AbstractPythonTest {
-
-	@BeforeEach
-	public void init() {
-		Log.init();
-		Log.enableFailQuick(false);
-	}
-
-//	---------------------------------------------------------------
-//	Tests for single code snippets from strings.
-//	---------------------------------------------------------------
-
-
-	/*===========================Statements======================================*/
-
+  
+  @BeforeEach
+  public void init() {
+    Log.init();
+    Log.enableFailQuick(false);
+  }
+  
+  //	---------------------------------------------------------------
+  //	Tests for single code snippets from strings.
+  //	---------------------------------------------------------------
+  
+  /*===========================Statements======================================*/
+  
   @Test
-  public void parseTemplateString(){
+  public void parseTemplateString() {
     parseModelFromStringAndExpectSuccess("f\"test {}\"\n");
   }
-
-	@Test
-	public void parseContinuedLine(){
-		parseModelFromStringAndExpectSuccess("a = \\\n3\n");
-	}
-
-	@Test
-	public void parseContinuedLineInsideParentheses(){
-		// inside brackets the continue line token reaches the whitespace insensitive path and must be ignored there
-		parseModelFromStringAndExpectSuccess("x = foo(1, \\\n    2)\n");
-	}
-
-	@Test
-	public void parseMultiLineFStringWithSingleQuotes(){
-		// f''' must be lexed as one MultiLineFStringToken, not as the empty f-string f'' followed by a string
-		parseModelFromStringAndExpectSuccess("x = f'''a {b}\nc'''\n");
-		parseModelFromStringAndExpectSuccess("x = F'''{d['k']}\n'''\n");
-	}
-
-	@Test
-	public void parseFloorDiv(){
-		parseModelFromStringAndExpectSuccess("a = test(1 // 3)\n");
-	}
-
-	@Test
-	public void parseListComprehension(){
-		parseModelFromStringAndExpectSuccess("rgb = [i for i in range(0, hlen, hlen // 3)]\n");
-		parseModelFromStringAndExpectSuccess("rgb = [i for i, *b in range(0, hlen, hlen // 3) if cond1 if cond2]\n");
-
-	}
-
-	@Test
-	public void parseReturnInFunction(){
-		parseModelFromStringAndExpectSuccess("def a():\n\treturn foo[['bar']]\n");
-	}
-
-	//import valid statements
-	@Test
-	public void parseValidImportStatement() {
-		parseModelFromStringAndExpectSuccess("from module import var\n");
-		parseModelFromStringAndExpectSuccess("from module import var as alias\n");
-	}
-
-	@Test
-	//import invalid statements
-	public void parseInvalidImportStatement() {
-		parseModelFromStringAndExpectFail("from import var\n");
-		parseModelFromStringAndExpectFail("from module import\n");
-		parseModelFromStringAndExpectFail("module import var\n");
-		parseModelFromStringAndExpectFail("from module var\n");
-		parseModelFromStringAndExpectFail("from import\n");
-
-		parseModelFromStringAndExpectFail("from import var as\n");
-		parseModelFromStringAndExpectFail("from module import as\n");
-		parseModelFromStringAndExpectFail("module import var as\n");
-		parseModelFromStringAndExpectFail("from module var as\n");
-		parseModelFromStringAndExpectFail("from import as\n");
-
-		parseModelFromStringAndExpectFail("from module import var as\n");
-	}
-
-	//valid if-else statements
-	@Test
-	public void parseValidIfStatement() {
-		parseModelFromStringAndExpectSuccess(
-				"if x == 1:\n" +
-						"    print(\"one\")\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"if x == 1:\n" +
-						"    print(\"one\")\n" +
-						"elif x == 0:\n" +
-						"    print(\"zero\")\n" +
-						"else:\n" +
-						"    print(\"not one or zero\")\n"
-		);
-	}
-
-	//invalid if-else statements
-	@Test
-	public void parseInvalidIfStatement() {
+  
+  @Test
+  public void parseContinuedLine() {
+    parseModelFromStringAndExpectSuccess("a = \\\n3\n");
+  }
+  
+  @Test
+  public void parseContinuedLineInsideParentheses() {
+    // inside brackets the continue line token reaches the whitespace insensitive path and must be ignored there
+    parseModelFromStringAndExpectSuccess("x = foo(1, \\\n    2)\n");
+  }
+  
+  @Test
+  public void parseMultiLineFStringWithSingleQuotes() {
+    // f''' must be lexed as one MultiLineFStringToken, not as the empty f-string f'' followed by a string
+    parseModelFromStringAndExpectSuccess("x = f'''a {b}\nc'''\n");
+    parseModelFromStringAndExpectSuccess("x = F'''{d['k']}\n'''\n");
+  }
+  
+  @Test
+  public void parseFloorDiv() {
+    parseModelFromStringAndExpectSuccess("a = test(1 // 3)\n");
+  }
+  
+  @Test
+  public void parseListComprehension() {
+    parseModelFromStringAndExpectSuccess("rgb = [i for i in range(0, hlen, hlen // 3)]\n");
+    parseModelFromStringAndExpectSuccess(
+        "rgb = [i for i, *b in range(0, hlen, hlen // 3) if cond1 if cond2]\n");
+    
+  }
+  
+  @Test
+  public void parseReturnInFunction() {
+    parseModelFromStringAndExpectSuccess("def a():\n\treturn foo[['bar']]\n");
+  }
+  
+  //import valid statements
+  @Test
+  public void parseValidImportStatement() {
+    parseModelFromStringAndExpectSuccess("from module import var\n");
+    parseModelFromStringAndExpectSuccess("from module import var as alias\n");
+  }
+  
+  @Test
+  //import invalid statements
+  public void parseInvalidImportStatement() {
+    parseModelFromStringAndExpectFail("from import var\n");
+    parseModelFromStringAndExpectFail("from module import\n");
+    parseModelFromStringAndExpectFail("module import var\n");
+    parseModelFromStringAndExpectFail("from module var\n");
+    parseModelFromStringAndExpectFail("from import\n");
+    
+    parseModelFromStringAndExpectFail("from import var as\n");
+    parseModelFromStringAndExpectFail("from module import as\n");
+    parseModelFromStringAndExpectFail("module import var as\n");
+    parseModelFromStringAndExpectFail("from module var as\n");
+    parseModelFromStringAndExpectFail("from import as\n");
+    
+    parseModelFromStringAndExpectFail("from module import var as\n");
+  }
+  
+  //valid if-else statements
+  @Test
+  public void parseValidIfStatement() {
+    parseModelFromStringAndExpectSuccess("if x == 1:\n" + "    print(\"one\")\n");
+    
+    parseModelFromStringAndExpectSuccess("if x == 1:\n" + "    print(\"one\")\n" + "elif x == 0:\n"
+        + "    print(\"zero\")\n" + "else:\n" + "    print(\"not one or zero\")\n");
+  }
+  
+  //invalid if-else statements
+  @Test
+  public void parseInvalidIfStatement() {
     // We parse valid python only => don't care
-		// parseModelFromStringAndExpectFail("if x == 1:\nprint(\"one\")\n");
-
-		//missing ":"
-		parseModelFromStringAndExpectFail(
-				"if x == 1\n" +
-						"    print(\"one\")\n"
-		);
-
-		//missing condition
-		parseModelFromStringAndExpectFail(
-				"if :\n" +
-						"    print(\"one\")\n"
-		);
-
-		//missing if
-		parseModelFromStringAndExpectFail(
-				"x == 1:\n" +
-						"    print(\"one\")\n"
-		);
-
-		// missing condition at elif
-		parseModelFromStringAndExpectFail(
-				"if x == 1:\n" +
-						"    print(\"one\")\n" +
-						"elif:\n" +
-						"    print(\"zero\")\n" +
-						"else:\n" +
-						"    print(\"not one or zero\"\n"
-		);
-
-		// empty statement block
-		//parseModelFromStringAndExpectFail(
-		//		"if x == 1:\n" +
-		//				"    \n"
-		//);
-	}
-
-	//valid assert statements
-	@Test
-	public void parseValidAssertStatements() {
-		parseModelFromStringAndExpectSuccess(
-				"assert 2 > 3, \"Two is not greater than three\"\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"x = 1\n" +
-						"assert x > 0, \"x is too low \"\n"
-		);
-	}
-
-	//invalid assert statements
-	@Test
-	public void parseInvalidAssertStatements() {
-		// missing error string
-		parseModelFromStringAndExpectFail(
-				"assert 2 > 3,\n"
-		);
-
-		// missing condition expression
-		parseModelFromStringAndExpectFail(
-				"assert , \"missing condition \"\n"
-		);
-
-		// missing comma
-		parseModelFromStringAndExpectFail(
-				"assert 2 > 3 \"Two is not greater than three\"\n"
-		);
-	}
-
-	//valid for statements
-	@Test
-	public void parseValidForLoopStatement() {
-		parseModelFromStringAndExpectSuccess(
-				"for x in [0,1,2]:\n" +
-						"    print(x)\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"for x,y in [1]:\n" +
-						"    print(x)\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"for x in range(0, 3):\n" +
-						"    print(x)\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"for x in range(3):\n" +
-						"    print(x)\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"for x in collection_var:\n" +
-						"    print(x)\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"for x in collection_var:\n" +
-						"    if (x == 1):\n" +
-						"        break\n" +
-						"        print(x)\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"for x in collection_var:\n" +
-						"    if (x == 1):\n" +
-						"        continue\n" +
-						"        print(x)\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"for x in collection_var:\n" +
-						"    print(x)\n" +
-						"else:\n" +
-						"    print(y)\n"
-		);
-	}
-
-	//invalid for statements
-	@Test
-	public void parseInvalidForLoopStatement() {
-		//missing ":"
-		parseModelFromStringAndExpectFail(
-				"for x in [0,1,2]\n" +
-						"    print(x)\n"
-		);
-		//missing "in"
-		parseModelFromStringAndExpectFail(
-				"for x [0,1,2]:\n" +
-						"    print(x)\n"
-		);
-		//missing "for"
-		parseModelFromStringAndExpectFail(
-				"x in [0,1,2]:\n" +
-						"    print(x)\n"
-		);
-	}
-	@Test
-	public void parseValidMatchStatement(){
-		parseModelFromStringAndExpectSuccess(
-				"match x:\n" +
-						"    case (a,b as var1) as var2: pass\n" +
-						"    case (a,b,c) as var3: pass\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"match x:\n" +
-						"    case a as var1: pass\n" +
-						"    case (b,c) as var2: pass\n"
-		);
-	}
-	@Test
-	public void parseInvalidMatchStatement(){
-		parseModelFromStringAndExpectFail(
-				"match x:\n" +
-						"    case  as var3: pass\n"
-		);
-		parseModelFromStringAndExpectFail(
-				"match x:\n" +
-						"    case: pass\n"
-		);
-	}
-	//valid while statements
-	@Test
-	public void parseValidWhileLoopStatement() {
-		parseModelFromStringAndExpectSuccess(
-				"while i < 6:\n" +
-						"    print(i)\n" +
-						"    i += 1\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"while i < 6:\n" +
-						"    break\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"while i < 6:\n" +
-						"    print(i)\n" +
-						"    if i == 3:\n" +
-						"        break\n" +
-						"    i += 1\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"while i < 6:\n" +
-						"    i += 1\n" +
-						"    if i == 3:\n" +
-						"        continue\n" +
-						"    print(i)\n"
-		);
-
-		//else statements for while loops
-		parseModelFromStringAndExpectSuccess(
-				"while i < 6:\n" +
-				"    i += 1\n" +
-				"else:\n" +
-				"    print(x)\n"
-		);
-	}
-
-	//invalid while statements
-	@Test
-	public void parseInvalidWhileLoopStatement() {
-		//missing "while"
-		parseModelFromStringAndExpectFail(
-				" i < 6:\n" +
-						"    print(i)\n" +
-						"    i += 1\n"
-		);
-		//missing condition
-		parseModelFromStringAndExpectFail(
-				"while :\n" +
-						"    print(i)\n" +
-						"    i += 1\n"
-		);
-		//missing ":"
-		parseModelFromStringAndExpectFail(
-				"while i < 6\n" +
-						"    print(i)\n" +
-						"    i += 1\n"
-		);
-	}
-
-	//valid try-except-finally statements
-	@Test
-	public void parseValidTryExceptStatements() {
-		parseModelFromStringAndExpectSuccess(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"except ZeroDivisionError:\n" +
-						"    print(\"Can not divide by zero\")\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"except ZeroDivisionError:\n" +
-						"    print(\"Can not divide by zero\")\n" +
-						"finally:\n" +
-						"    print(\"Done\")\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"except ZeroDivisionError:\n" +
-						"    print(\"Can not divide by zero\")\n" +
-						"else:\n" +
-						"    print(\"Success\")\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"except ZeroDivisionError:\n" +
-						"    print(\"Can not divide by zero\")\n" +
-						"else:\n" +
-						"    print(\"Success\")\n" +
-						"finally:\n" +
-						"    print(\"Done\")\n"
-		);
-		//Additional test inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
-		parseModelFromStringAndExpectSuccess(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"except ZeroDivisionError or CustomZeroDivisionError as exp:\n" +
-						"    print(\"Can not divide by zero\")\n"
-		);
-	}
-
-	//invalid try-except-finally statements
-	@Test
-	public void parseInvalidTryExceptStatements() {
-		// missing except
-		parseModelFromStringAndExpectFail(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"else:\n" +
-						"    print(\"Success\")\n" +
-						"finally:\n" +
-						"    print(\"Done\")\n"
-		);
-
-		// missing try
-		parseModelFromStringAndExpectFail(
-				"except ZeroDivisionError:\n" +
-						"    print(\"Can not divide by zero\")\n" +
-						"else:\n" +
-						"    print(\"Success\")\n"
-		);
-		// missing aliased expression
-		parseModelFromStringAndExpectFail(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"except as exp:\n" +
-						"    print(\"Can not divide by zero\")\n" +
-						"else:\n" +
-						"    print(\"Success\")\n"
-		);
-		// duplicate finally
-		parseModelFromStringAndExpectFail(
-				"try:\n" +
-						"    i = 1//0\n" +
-						"except ZeroDivisionError:\n" +
-						"    print(\"Can not divide by zero\")\n" +
-						"else:\n" +
-						"    print(\"Success\")\n" +
-						"finally:\n" +
-						"    print(\"Done\")\n" +
-						"finally:\n" +
-						"    print(\"Done\")\n"
-		);
-	}
-
-	//valid with open file statements
-	@Test
-	public void parseValidWithOpenFileStatements() {
-		parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile:\n" +
-				"    print(\"Hello World\")\n");
-		parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile:\n" +
-				"    with open(oldfile, 'r', encoding='utf-8') as infile:\n" +
-				"        print(\"Hello World\")\n");
-		parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile, open(oldfile, 'r', encoding='utf-8') as infile:\n" +
-				"	print(\"Hello World\")\n");
-
-	}
-
-	//invalid with open file statements
-	@Test
-	public void parseInvalidWithOpenFileStatements() {
-		//missing with
-		parseModelFromStringAndExpectFail(" open(newfile, 'w') as outfile:\n" +
-				"    print(\"Hello World\")\n");
-		//missing file name
-		parseModelFromStringAndExpectFail("with open(newfile, 'w') as :\n" +
-				"    print(\"Hello World\")\n");
-		//missing open function
-		parseModelFromStringAndExpectFail("with as outfile:\n" +
-				"    print(\"Hello World\")\n");
-
-	}
-
-	//valid local variable declaration
-	@Test
-	public void parseValidLocalVariableDeclarationStatement() {
-		parseModelFromStringAndExpectSuccess("var = 1\n");
-		parseModelFromStringAndExpectSuccess("var = 1.5\n");
-
-		parseModelFromStringAndExpectSuccess("v = \"sdsdf\"\n");
-
-		parseModelFromStringAndExpectSuccess("var = []\n");
-		parseModelFromStringAndExpectSuccess("var = [1]\n");
-		parseModelFromStringAndExpectSuccess("var = [1,4]\n");
-		parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]\n");
-		parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]\n");
-		parseModelFromStringAndExpectSuccess("var = (1,4)\n");
-		parseModelFromStringAndExpectSuccess("v = 'sdsdf'\n");
-        parseModelFromStringAndExpectSuccess("var = 1,4\n");
-	}
-
-	//invalid local variable declaration
-	@Test
-	public void parseInvalidLocalVariableDeclarationStatement() {
-		parseModelFromStringAndExpectFail("var =\n");
-		parseModelFromStringAndExpectFail("var 5\n");
-		parseModelFromStringAndExpectFail("= 5\n");
-		parseModelFromStringAndExpectFail("var = [5\n");
-		parseModelFromStringAndExpectFail("var = [5,\n");
-		parseModelFromStringAndExpectFail("var = [5,5,\n");
-		parseModelFromStringAndExpectFail("var = ]\n");
-		parseModelFromStringAndExpectFail("var = 5,5]\n");
-		// We parse valid python only => don't care
-    	//parseModelFromStringAndExpectFail("var = [,]\n");
-	}
-
-	// valid function declaration
-	@Test
-	public void parseValidFunctionDeclaration() {
-		parseModelFromStringAndExpectSuccess(
-				"def function_name(x):\n" +
-						"    print(x)\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def function_name(x,y,z):\n" +
-						"    print(x,y,z)\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def function_name(x,y,z=1):\n" +
-						"    print(x,y,z)\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def absolute_value(num):\n" +
-						"    if num >= 0:\n" +
-						"        return num\n"
-		);
-
-		parseModelFromStringAndExpectSuccess(
-				"def absolute_value():\n" +
-						"    return\n"
-		);
-	}
-
-	// PEP 646: star annotations (unpacked TypeVarTuple)
-	@Test
-	public void parseStarAnnotations() {
-		parseModelFromStringAndExpectSuccess(
-				"def f(*args: *Ts):\n" +
-						"    pass\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def f[*Ts](*args: *Ts) -> tuple[*Ts]:\n" +
-						"    pass\n"
-		);
-		parseModelFromStringAndExpectSuccess("type Row[*Ts] = tuple[int, *Ts]\n");
-	}
-
-	// True/False are a PythonBasis override of BooleanLiteral, getValue() must still work
-	@Test
-	public void booleanLiteralValue() throws java.io.IOException {
-		PythonMill.init();
-		java.util.List<Boolean> values = new java.util.ArrayList<>();
-		de.monticore.python._visitor.PythonTraverser traverser = PythonMill.inheritanceTraverser();
-		traverser.add4MCCommonLiterals(new de.monticore.literals.mccommonliterals._visitor.MCCommonLiteralsVisitor2() {
-			@Override
-			public void visit(de.monticore.literals.mccommonliterals._ast.ASTBooleanLiteral node) {
-				values.add(node.getValue());
-			}
-		});
-		PythonMill.parser().parse_String("x = True\ny = False\n").get().accept(traverser);
-		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(true, false), values);
-	}
-
-	// calls as annotations
-	@Test
-	public void parseCallAnnotations() {
-		parseModelFromStringAndExpectSuccess(
-				"def f(x: make_type()):\n" +
-						"    pass\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"def g() -> type(None):\n" +
-						"    pass\n"
-		);
-		parseModelFromStringAndExpectSuccess("x: foo(1, b=2) = 1\n");
-		parseModelFromStringAndExpectSuccess("x: mod.factory()[int] = 1\n");
-	}
-
-	// invalid function declaration
-	@Test
-	public void parseInvalidFunctionDeclaration() {
-		//missing "def"
-		parseModelFromStringAndExpectFail(
-				" function_name(x):\n" +
-						"    print(x)\n"
-		);
-		// missing default value
-		parseModelFromStringAndExpectFail(
-				" function_name(x=):\n" +
-						"    print(x)\n"
-		);
-		//missing function name
-		parseModelFromStringAndExpectFail(
-				"def (x):\n" +
-						"    print(x)\n"
-		);
-		//missing function parameters
-		parseModelFromStringAndExpectFail(
-				"def function_name:\n" +
-						"    print(x)\n"
-		);
-		//missing ":"
-		parseModelFromStringAndExpectFail(
-				"def function_name(x)\n" +
-						"    print(x)\n"
-		);
-	}
-
-	// valid lambda statement
-	@Test
-	public void parseValidLambdaStatement() {
-		parseModelFromStringAndExpectSuccess("lambda: 1\n");
-		parseModelFromStringAndExpectSuccess("lambda x: x\n");
-		parseModelFromStringAndExpectSuccess("lambda x, y: x + y\n");
-		//Additional tests inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
-		parseModelFromStringAndExpectSuccess("lambda *a : 1\n");
-		parseModelFromStringAndExpectSuccess("lambda **a : 1\n");
-		parseModelFromStringAndExpectSuccess("lambda *a, **b : 1\n");
-		parseModelFromStringAndExpectSuccess("lambda a=name : 1\n");
-		parseModelFromStringAndExpectSuccess("lambda a=name, b= q+1 : 1\n");
-	}
-
-	//invalid lambda statement
-	@Test
-	public void parseInvalidLambdaStatement() {
-		parseModelFromStringAndExpectFail("lambda:\n");
-		parseModelFromStringAndExpectFail("lambda x: \n");
-		parseModelFromStringAndExpectFail("lambda x, y z\n");
-	}
-
-	// valid raise statement
-	@Test
-	public void parseValidRaiseStatement() {
-		parseModelFromStringAndExpectSuccess("raise RuntimeError('Error')\n");
-		parseModelFromStringAndExpectSuccess("raise\n");
-	}
-
-	//invalid raise statement
-	@Test
-	public void parseInvalidRaiseStatement() {
-		parseModelFromStringAndExpectFail("raise RuntimeError('Error'), ArithmeticError('Error')\n");
-		parseModelFromStringAndExpectFail("raise RuntimeError('Error') ArithmeticError('Error')\n");
-	}
-	// tests for yield  inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
-	// valid yield statement
-	@Test
-	public void parseValidYieldStatement() {
-		parseModelFromStringAndExpectSuccess("def function():\n  i+=1 \n  yield i\n");
-		parseModelFromStringAndExpectSuccess("def function():\n  yield from anotherFunction()\n");
-	}
-
-	//invalid yield statement
-	@Test
-	public void parseInvalidYieldStatement() {
-		parseModelFromStringAndExpectFail("def function():\n yield yield\n");
-		parseModelFromStringAndExpectFail("def function():\n yield from\n");
-	}
-	/*===========================Literals======================================*/
-
-	// valid string literals python
-	@Test
-	public void parseValidStringPython() {
-		parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"\n");
-		parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'\n");
-	}
-
-	// invalid string literals python
-	@Test
-	public void parseInvalidStringPython() {
-		parseModelFromStringAndExpectFail("helloworld = \"Hello World\n");
-		parseModelFromStringAndExpectFail("helloworld = 'Hello World\n");
-		parseModelFromStringAndExpectFail("helloworld = Hello World\n");
-	}
-
-	//Same tests as above just with the modifier f (and with a single char string)
-	// valid fstring literals python
-	@Test
-	public void parseValidFStringPython() {
-		parseModelFromStringAndExpectSuccess("helloworld =  f\" \"\n");
-		parseModelFromStringAndExpectSuccess("helloworld = F'Hello World'\n");
-	}
-
-	// invalid fstring literals python
-	@Test
-	public void parseInvalidFStringPython() {
-		parseModelFromStringAndExpectFail("helloworld = f\"Hello World\n");
-		parseModelFromStringAndExpectFail("helloworld = F'Hello World\n");
-		parseModelFromStringAndExpectFail("helloworld = Hello World\n");
-	}
-	// boolean literals for python
-	@Test
-	public void parseValidBooleanPython() {
-		parseModelFromStringAndExpectSuccess("true = True\n");
-		parseModelFromStringAndExpectSuccess("falseStatement = False\n");
-		parseModelFromStringAndExpectSuccess("trueStatement = True\n");
-
-	}
-
-	/*======================Expressions===========================================*/
-
-	// valid ternary-operator expression
-	@Test
-	public void parseValidTernaryOperator() {
-		parseModelFromStringAndExpectSuccess("print(\"Both a and b are equal\" if a == b else \"a is greater than b\" " +
-				"if a > b else \"b is greater than a\")\n");
-		parseModelFromStringAndExpectSuccess("min = a if a < b else b\n");
-		parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c\n");
-		parseModelFromStringAndExpectSuccess("x = \"a\" if a < b else \"b\"\n");
-		parseModelFromStringAndExpectSuccess("print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")\n");
-		parseModelFromStringAndExpectSuccess("x = 1 if True else 0\n");
-	}
-
-	// invalid ternary-operator expression
-	@Test
-	public void parseInvalidTernaryOperator() {
-		//trenary operator without if condition
-		parseModelFromStringAndExpectFail("x = a if else b\n");
-		//trenary operator without then statement
-		parseModelFromStringAndExpectFail("x = if a==b else u\n");
-		//trenary operator without else condition
-		parseModelFromStringAndExpectFail("x = u if a==b else\n");
-	}
-
-	// tests for Walrus inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
-	@Test
-	public void parseValidWalrusOperator(){
-		// an unparenthesized walrus is not allowed after yield
-		parseModelFromStringAndExpectSuccess("def function():\n  yield (a:=2)\n");
-	}
-	@Test
-	public void parseInalidWalrusOperator(){
-		parseModelFromStringAndExpectFail("def function():\n  a:= Yield 2\n");
-	}
-
-	// valid logical expressions
-	@Test
-	public void parseValidLogicalExpressions() {
-		parseModelFromStringAndExpectSuccess("(x == 3) and y\n");
-		parseModelFromStringAndExpectSuccess("(x == 3) or y\n");
-		parseModelFromStringAndExpectSuccess("not True\n");
-		parseModelFromStringAndExpectSuccess("not (x==3)\n");
-		parseModelFromStringAndExpectSuccess("not (x or y)\n");
-		parseModelFromStringAndExpectSuccess("(x == 3) and (z or y)\n");
-	}
-
-	// valid mathematical expressions
-	@Test
-	public void parseValidMathematicalExpressions() {
-		parseModelFromStringAndExpectSuccess("x**3\n");
-		parseModelFromStringAndExpectSuccess("x ** (8-9)\n");
-		parseModelFromStringAndExpectSuccess("3 // 4\n");
-		parseModelFromStringAndExpectSuccess("3 // (3+4)\n");
-	}
-
-	// valid in and not in expressions
-	@Test
-	public void parseValidInExpression() {
-		parseModelFromStringAndExpectSuccess("1 in x\n");
-		parseModelFromStringAndExpectSuccess("1 not in x\n");
-	}
-
-	// invalid in and not in expressions
-	@Test
-	public void parseInValidInExpression() {
-		parseModelFromStringAndExpectFail("1 in\n");
-		parseModelFromStringAndExpectFail("in x\n");
-	}
-
-	/*===========================Classes======================================*/
-
-	// valid class statements
-	@Test
-	public void parseValidClassFunction() {
-		parseModelFromStringAndExpectSuccess(
-				"class class_name:\n" +
-						"    def function_name(x,y):\n" +
-						"        print(x,y)\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"class class_name:\n" +
-						"    def __init__(self,i=0):\n" +
-						"        self.id = i\n"
-		);
-		parseModelFromStringAndExpectSuccess(
-				"class myClass(MySuperClass):\n" +
-						"    id=\"\"\n" +
-						"    def function_name(x,y):\n" +
-						"        print(x,y)\n" +
-						"        self.id=id\n" +
-						"    def function_name1(x,y):\n" +
-						"        print(x,y)\n"
-		);
-
-	}
-
-	// invalid class statements
-	@Test
-	public void parseInvalidClassDeclaration() {
-		//missing class name
-		parseModelFromStringAndExpectFail(
-				"class:\n" +
-						"    count = 0\n" +
-						"    list_x = []\n" +
-						"    def__init__(self, i):\n" +
-						"        self.id=i\n" +
-						"    	   e.count+=1\n" +
-						"    	   self.list_x.append(i)\n"
-		);
-	}
-
-	/*===========================Other======================================*/
-	@Test
-	public void parseValidSingleLineComments(){
-		parseModelFromStringAndExpectSuccess("#hello world\n");
-		parseModelFromStringAndExpectSuccess("#hello world\n" +
-				"#this is another comment\n");
-	}
-
-	@Test
-	public void parseValidMultiLineStringLiterals(){
-		parseModelFromStringAndExpectSuccess("'''Hello world'''\n");
-		parseModelFromStringAndExpectSuccess("'''This is another comment\n" +
-				"This is the second line of the comment'''\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"Double quote multi line \n comment \"\"\"\n");
-	}
-
-	@Test
-	public void parseInvalidMultiLineStringLiterals(){
-		//parseModelFromStringAndExpectFail("\"\"\"Hello world\n");
-		//parseModelFromStringAndExpectFail("'''Hello world\n");
-		//parseModelFromStringAndExpectFail("'''Hello world\n\"\"\"\n");
-		//parseModelFromStringAndExpectFail("\" \"\"Double quote multi line \n comment \"\"\"\n");
-		//parseModelFromStringAndExpectFail("\"\"\"Double quote multi line \n comment \" \"\"\n");
-		//parseModelFromStringAndExpectFail("\"\"\"This is another comment\n" +
-		//		"This is the second line of the comment\n");
-		// parseModelFromStringAndExpectFail("\"\n\"");
-		// TODO: uses string as defined in MCCommonLiterals, but still parsers newline in string.
-		// Is this a general MontiCore problem, or only important because of other tokens?
-	}
-
-
-//	---------------------------------------------------------------
-//	Tests for whole scripts from files.
-//	---------------------------------------------------------------
-
-	@Test
-	public void parseSimplePython() {
-		String model = "tests/simple_python.py";
-		parseModelFromFileAndExpectSuccess(model);
-	}
-
-	/**
-	 * In some cases the parser only recognises one indentation error at once (although the file contains multiple).
-	 * However, if the recognised error is fixed, the next error is detected.
-	 * Thus, the test cases at least for indentation errors must include only one error.
-	 */
-	@Test
-	@Disabled("We assume that we parse valid python")
-	public void parsePythonWithIndentError() {
-		String model = "tests/python_IndentError.sipy";
-		parseModelFromFileAndExpectFail(model);
-	}
-
-	@Test
-	public void parseLiteralsAsLine(){
-		// Python allows the only element of a line to be a literal like "Test" or 5
-		parseModelFromStringAndExpectSuccess("5\n");
-		parseModelFromStringAndExpectSuccess("'string'\n");
-		parseModelFromStringAndExpectSuccess("\"string\"\n");
-		parseModelFromStringAndExpectSuccess("\"\"\"multiline\nstring\"\"\"\n");
-	}
+    // parseModelFromStringAndExpectFail("if x == 1:\nprint(\"one\")\n");
+    
+    //missing ":"
+    parseModelFromStringAndExpectFail("if x == 1\n" + "    print(\"one\")\n");
+    
+    //missing condition
+    parseModelFromStringAndExpectFail("if :\n" + "    print(\"one\")\n");
+    
+    //missing if
+    parseModelFromStringAndExpectFail("x == 1:\n" + "    print(\"one\")\n");
+    
+    // missing condition at elif
+    parseModelFromStringAndExpectFail("if x == 1:\n" + "    print(\"one\")\n" + "elif:\n"
+        + "    print(\"zero\")\n" + "else:\n" + "    print(\"not one or zero\"\n");
+    
+    // empty statement block
+    //parseModelFromStringAndExpectFail(
+    //		"if x == 1:\n" +
+    //				"    \n"
+    //);
+  }
+  
+  //valid assert statements
+  @Test
+  public void parseValidAssertStatements() {
+    parseModelFromStringAndExpectSuccess("assert 2 > 3, \"Two is not greater than three\"\n");
+    parseModelFromStringAndExpectSuccess("x = 1\n" + "assert x > 0, \"x is too low \"\n");
+  }
+  
+  //invalid assert statements
+  @Test
+  public void parseInvalidAssertStatements() {
+    // missing error string
+    parseModelFromStringAndExpectFail("assert 2 > 3,\n");
+    
+    // missing condition expression
+    parseModelFromStringAndExpectFail("assert , \"missing condition \"\n");
+    
+    // missing comma
+    parseModelFromStringAndExpectFail("assert 2 > 3 \"Two is not greater than three\"\n");
+  }
+  
+  //valid for statements
+  @Test
+  public void parseValidForLoopStatement() {
+    parseModelFromStringAndExpectSuccess("for x in [0,1,2]:\n" + "    print(x)\n");
+    
+    parseModelFromStringAndExpectSuccess("for x,y in [1]:\n" + "    print(x)\n");
+    
+    parseModelFromStringAndExpectSuccess("for x in range(0, 3):\n" + "    print(x)\n");
+    
+    parseModelFromStringAndExpectSuccess("for x in range(3):\n" + "    print(x)\n");
+    
+    parseModelFromStringAndExpectSuccess("for x in collection_var:\n" + "    print(x)\n");
+    
+    parseModelFromStringAndExpectSuccess("for x in collection_var:\n" + "    if (x == 1):\n"
+        + "        break\n" + "        print(x)\n");
+    
+    parseModelFromStringAndExpectSuccess("for x in collection_var:\n" + "    if (x == 1):\n"
+        + "        continue\n" + "        print(x)\n");
+    
+    parseModelFromStringAndExpectSuccess("for x in collection_var:\n" + "    print(x)\n" + "else:\n"
+        + "    print(y)\n");
+  }
+  
+  //invalid for statements
+  @Test
+  public void parseInvalidForLoopStatement() {
+    //missing ":"
+    parseModelFromStringAndExpectFail("for x in [0,1,2]\n" + "    print(x)\n");
+    //missing "in"
+    parseModelFromStringAndExpectFail("for x [0,1,2]:\n" + "    print(x)\n");
+    //missing "for"
+    parseModelFromStringAndExpectFail("x in [0,1,2]:\n" + "    print(x)\n");
+  }
+  
+  @Test
+  public void parseValidMatchStatement() {
+    parseModelFromStringAndExpectSuccess("match x:\n" + "    case (a,b as var1) as var2: pass\n"
+        + "    case (a,b,c) as var3: pass\n");
+    parseModelFromStringAndExpectSuccess("match x:\n" + "    case a as var1: pass\n"
+        + "    case (b,c) as var2: pass\n");
+  }
+  
+  @Test
+  public void parseInvalidMatchStatement() {
+    parseModelFromStringAndExpectFail("match x:\n" + "    case  as var3: pass\n");
+    parseModelFromStringAndExpectFail("match x:\n" + "    case: pass\n");
+  }
+  
+  //valid while statements
+  @Test
+  public void parseValidWhileLoopStatement() {
+    parseModelFromStringAndExpectSuccess("while i < 6:\n" + "    print(i)\n" + "    i += 1\n");
+    parseModelFromStringAndExpectSuccess("while i < 6:\n" + "    break\n");
+    parseModelFromStringAndExpectSuccess("while i < 6:\n" + "    print(i)\n" + "    if i == 3:\n"
+        + "        break\n" + "    i += 1\n");
+    parseModelFromStringAndExpectSuccess("while i < 6:\n" + "    i += 1\n" + "    if i == 3:\n"
+        + "        continue\n" + "    print(i)\n");
+    
+    //else statements for while loops
+    parseModelFromStringAndExpectSuccess("while i < 6:\n" + "    i += 1\n" + "else:\n"
+        + "    print(x)\n");
+  }
+  
+  //invalid while statements
+  @Test
+  public void parseInvalidWhileLoopStatement() {
+    //missing "while"
+    parseModelFromStringAndExpectFail(" i < 6:\n" + "    print(i)\n" + "    i += 1\n");
+    //missing condition
+    parseModelFromStringAndExpectFail("while :\n" + "    print(i)\n" + "    i += 1\n");
+    //missing ":"
+    parseModelFromStringAndExpectFail("while i < 6\n" + "    print(i)\n" + "    i += 1\n");
+  }
+  
+  //valid try-except-finally statements
+  @Test
+  public void parseValidTryExceptStatements() {
+    parseModelFromStringAndExpectSuccess("try:\n" + "    i = 1//0\n" + "except ZeroDivisionError:\n"
+        + "    print(\"Can not divide by zero\")\n");
+    parseModelFromStringAndExpectSuccess("try:\n" + "    i = 1//0\n" + "except ZeroDivisionError:\n"
+        + "    print(\"Can not divide by zero\")\n" + "finally:\n" + "    print(\"Done\")\n");
+    parseModelFromStringAndExpectSuccess("try:\n" + "    i = 1//0\n" + "except ZeroDivisionError:\n"
+        + "    print(\"Can not divide by zero\")\n" + "else:\n" + "    print(\"Success\")\n");
+    parseModelFromStringAndExpectSuccess("try:\n" + "    i = 1//0\n" + "except ZeroDivisionError:\n"
+        + "    print(\"Can not divide by zero\")\n" + "else:\n" + "    print(\"Success\")\n"
+        + "finally:\n" + "    print(\"Done\")\n");
+    //Additional test inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+    parseModelFromStringAndExpectSuccess("try:\n" + "    i = 1//0\n"
+        + "except ZeroDivisionError or CustomZeroDivisionError as exp:\n"
+        + "    print(\"Can not divide by zero\")\n");
+  }
+  
+  //invalid try-except-finally statements
+  @Test
+  public void parseInvalidTryExceptStatements() {
+    // missing except
+    parseModelFromStringAndExpectFail("try:\n" + "    i = 1//0\n" + "else:\n"
+        + "    print(\"Success\")\n" + "finally:\n" + "    print(\"Done\")\n");
+    
+    // missing try
+    parseModelFromStringAndExpectFail("except ZeroDivisionError:\n"
+        + "    print(\"Can not divide by zero\")\n" + "else:\n" + "    print(\"Success\")\n");
+    // missing aliased expression
+    parseModelFromStringAndExpectFail("try:\n" + "    i = 1//0\n" + "except as exp:\n"
+        + "    print(\"Can not divide by zero\")\n" + "else:\n" + "    print(\"Success\")\n");
+    // duplicate finally
+    parseModelFromStringAndExpectFail("try:\n" + "    i = 1//0\n" + "except ZeroDivisionError:\n"
+        + "    print(\"Can not divide by zero\")\n" + "else:\n" + "    print(\"Success\")\n"
+        + "finally:\n" + "    print(\"Done\")\n" + "finally:\n" + "    print(\"Done\")\n");
+  }
+  
+  //valid with open file statements
+  @Test
+  public void parseValidWithOpenFileStatements() {
+    parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile:\n"
+        + "    print(\"Hello World\")\n");
+    parseModelFromStringAndExpectSuccess("with open(newfile, 'w') as outfile:\n"
+        + "    with open(oldfile, 'r', encoding='utf-8') as infile:\n"
+        + "        print(\"Hello World\")\n");
+    parseModelFromStringAndExpectSuccess(
+        "with open(newfile, 'w') as outfile, open(oldfile, 'r', encoding='utf-8') as infile:\n"
+            + "	print(\"Hello World\")\n");
+    
+  }
+  
+  //invalid with open file statements
+  @Test
+  public void parseInvalidWithOpenFileStatements() {
+    //missing with
+    parseModelFromStringAndExpectFail(" open(newfile, 'w') as outfile:\n"
+        + "    print(\"Hello World\")\n");
+    //missing file name
+    parseModelFromStringAndExpectFail("with open(newfile, 'w') as :\n"
+        + "    print(\"Hello World\")\n");
+    //missing open function
+    parseModelFromStringAndExpectFail("with as outfile:\n" + "    print(\"Hello World\")\n");
+    
+  }
+  
+  //valid local variable declaration
+  @Test
+  public void parseValidLocalVariableDeclarationStatement() {
+    parseModelFromStringAndExpectSuccess("var = 1\n");
+    parseModelFromStringAndExpectSuccess("var = 1.5\n");
+    
+    parseModelFromStringAndExpectSuccess("v = \"sdsdf\"\n");
+    
+    parseModelFromStringAndExpectSuccess("var = []\n");
+    parseModelFromStringAndExpectSuccess("var = [1]\n");
+    parseModelFromStringAndExpectSuccess("var = [1,4]\n");
+    parseModelFromStringAndExpectSuccess("var = [\"ab\",\"cd\"]\n");
+    parseModelFromStringAndExpectSuccess("var = [\"ab\",5,5.6]\n");
+    parseModelFromStringAndExpectSuccess("var = (1,4)\n");
+    parseModelFromStringAndExpectSuccess("v = 'sdsdf'\n");
+    parseModelFromStringAndExpectSuccess("var = 1,4\n");
+  }
+  
+  //invalid local variable declaration
+  @Test
+  public void parseInvalidLocalVariableDeclarationStatement() {
+    parseModelFromStringAndExpectFail("var =\n");
+    parseModelFromStringAndExpectFail("var 5\n");
+    parseModelFromStringAndExpectFail("= 5\n");
+    parseModelFromStringAndExpectFail("var = [5\n");
+    parseModelFromStringAndExpectFail("var = [5,\n");
+    parseModelFromStringAndExpectFail("var = [5,5,\n");
+    parseModelFromStringAndExpectFail("var = ]\n");
+    parseModelFromStringAndExpectFail("var = 5,5]\n");
+    // We parse valid python only => don't care
+    //parseModelFromStringAndExpectFail("var = [,]\n");
+  }
+  
+  // valid function declaration
+  @Test
+  public void parseValidFunctionDeclaration() {
+    parseModelFromStringAndExpectSuccess("def function_name(x):\n" + "    print(x)\n");
+    parseModelFromStringAndExpectSuccess("def function_name(x,y,z):\n" + "    print(x,y,z)\n");
+    parseModelFromStringAndExpectSuccess("def function_name(x,y,z=1):\n" + "    print(x,y,z)\n");
+    parseModelFromStringAndExpectSuccess("def absolute_value(num):\n" + "    if num >= 0:\n"
+        + "        return num\n");
+    
+    parseModelFromStringAndExpectSuccess("def absolute_value():\n" + "    return\n");
+  }
+  
+  // PEP 646: star annotations (unpacked TypeVarTuple)
+  @Test
+  public void parseStarAnnotations() {
+    parseModelFromStringAndExpectSuccess("def f(*args: *Ts):\n" + "    pass\n");
+    parseModelFromStringAndExpectSuccess("def f[*Ts](*args: *Ts) -> tuple[*Ts]:\n" + "    pass\n");
+    parseModelFromStringAndExpectSuccess("type Row[*Ts] = tuple[int, *Ts]\n");
+  }
+  
+  // True/False are a PythonBasis override of BooleanLiteral, getValue() must still work
+  @Test
+  public void booleanLiteralValue() throws java.io.IOException {
+    PythonMill.init();
+    java.util.List<Boolean> values = new java.util.ArrayList<>();
+    de.monticore.python._visitor.PythonTraverser traverser = PythonMill.inheritanceTraverser();
+    traverser.add4MCCommonLiterals(
+        new de.monticore.literals.mccommonliterals._visitor.MCCommonLiteralsVisitor2() {
+          
+          @Override
+          public void visit(de.monticore.literals.mccommonliterals._ast.ASTBooleanLiteral node) {
+            values.add(node.getValue());
+          }
+          
+        });
+    PythonMill.parser().parse_String("x = True\ny = False\n").get().accept(traverser);
+    org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(true, false), values);
+  }
+  
+  // calls as annotations
+  @Test
+  public void parseCallAnnotations() {
+    parseModelFromStringAndExpectSuccess("def f(x: make_type()):\n" + "    pass\n");
+    parseModelFromStringAndExpectSuccess("def g() -> type(None):\n" + "    pass\n");
+    parseModelFromStringAndExpectSuccess("x: foo(1, b=2) = 1\n");
+    parseModelFromStringAndExpectSuccess("x: mod.factory()[int] = 1\n");
+  }
+  
+  // invalid function declaration
+  @Test
+  public void parseInvalidFunctionDeclaration() {
+    //missing "def"
+    parseModelFromStringAndExpectFail(" function_name(x):\n" + "    print(x)\n");
+    // missing default value
+    parseModelFromStringAndExpectFail(" function_name(x=):\n" + "    print(x)\n");
+    //missing function name
+    parseModelFromStringAndExpectFail("def (x):\n" + "    print(x)\n");
+    //missing function parameters
+    parseModelFromStringAndExpectFail("def function_name:\n" + "    print(x)\n");
+    //missing ":"
+    parseModelFromStringAndExpectFail("def function_name(x)\n" + "    print(x)\n");
+  }
+  
+  // valid lambda statement
+  @Test
+  public void parseValidLambdaStatement() {
+    parseModelFromStringAndExpectSuccess("lambda: 1\n");
+    parseModelFromStringAndExpectSuccess("lambda x: x\n");
+    parseModelFromStringAndExpectSuccess("lambda x, y: x + y\n");
+    //Additional tests inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+    parseModelFromStringAndExpectSuccess("lambda *a : 1\n");
+    parseModelFromStringAndExpectSuccess("lambda **a : 1\n");
+    parseModelFromStringAndExpectSuccess("lambda *a, **b : 1\n");
+    parseModelFromStringAndExpectSuccess("lambda a=name : 1\n");
+    parseModelFromStringAndExpectSuccess("lambda a=name, b= q+1 : 1\n");
+  }
+  
+  //invalid lambda statement
+  @Test
+  public void parseInvalidLambdaStatement() {
+    parseModelFromStringAndExpectFail("lambda:\n");
+    parseModelFromStringAndExpectFail("lambda x: \n");
+    parseModelFromStringAndExpectFail("lambda x, y z\n");
+  }
+  
+  // valid raise statement
+  @Test
+  public void parseValidRaiseStatement() {
+    parseModelFromStringAndExpectSuccess("raise RuntimeError('Error')\n");
+    parseModelFromStringAndExpectSuccess("raise\n");
+  }
+  
+  //invalid raise statement
+  @Test
+  public void parseInvalidRaiseStatement() {
+    parseModelFromStringAndExpectFail("raise RuntimeError('Error'), ArithmeticError('Error')\n");
+    parseModelFromStringAndExpectFail("raise RuntimeError('Error') ArithmeticError('Error')\n");
+  }
+  
+  // tests for yield  inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+  // valid yield statement
+  @Test
+  public void parseValidYieldStatement() {
+    parseModelFromStringAndExpectSuccess("def function():\n  i+=1 \n  yield i\n");
+    parseModelFromStringAndExpectSuccess("def function():\n  yield from anotherFunction()\n");
+  }
+  
+  //invalid yield statement
+  @Test
+  public void parseInvalidYieldStatement() {
+    parseModelFromStringAndExpectFail("def function():\n yield yield\n");
+    parseModelFromStringAndExpectFail("def function():\n yield from\n");
+  }
+  /*===========================Literals======================================*/
+  
+  // valid string literals python
+  @Test
+  public void parseValidStringPython() {
+    parseModelFromStringAndExpectSuccess("helloworld = \"Hello World\"\n");
+    parseModelFromStringAndExpectSuccess("helloworld = 'Hello World'\n");
+  }
+  
+  // invalid string literals python
+  @Test
+  public void parseInvalidStringPython() {
+    parseModelFromStringAndExpectFail("helloworld = \"Hello World\n");
+    parseModelFromStringAndExpectFail("helloworld = 'Hello World\n");
+    parseModelFromStringAndExpectFail("helloworld = Hello World\n");
+  }
+  
+  //Same tests as above just with the modifier f (and with a single char string)
+  // valid fstring literals python
+  @Test
+  public void parseValidFStringPython() {
+    parseModelFromStringAndExpectSuccess("helloworld =  f\" \"\n");
+    parseModelFromStringAndExpectSuccess("helloworld = F'Hello World'\n");
+  }
+  
+  // invalid fstring literals python
+  @Test
+  public void parseInvalidFStringPython() {
+    parseModelFromStringAndExpectFail("helloworld = f\"Hello World\n");
+    parseModelFromStringAndExpectFail("helloworld = F'Hello World\n");
+    parseModelFromStringAndExpectFail("helloworld = Hello World\n");
+  }
+  
+  // boolean literals for python
+  @Test
+  public void parseValidBooleanPython() {
+    parseModelFromStringAndExpectSuccess("true = True\n");
+    parseModelFromStringAndExpectSuccess("falseStatement = False\n");
+    parseModelFromStringAndExpectSuccess("trueStatement = True\n");
+    
+  }
+  
+  /*======================Expressions===========================================*/
+  
+  // valid ternary-operator expression
+  @Test
+  public void parseValidTernaryOperator() {
+    parseModelFromStringAndExpectSuccess(
+        "print(\"Both a and b are equal\" if a == b else \"a is greater than b\" "
+            + "if a > b else \"b is greater than a\")\n");
+    parseModelFromStringAndExpectSuccess("min = a if a < b else b\n");
+    parseModelFromStringAndExpectSuccess("min = a if a < b else b if y == c else c\n");
+    parseModelFromStringAndExpectSuccess("x = \"a\" if a < b else \"b\"\n");
+    parseModelFromStringAndExpectSuccess(
+        "print(a,\"is greater\") if (a>b) else print(b,\"is Greater\")\n");
+    parseModelFromStringAndExpectSuccess("x = 1 if True else 0\n");
+  }
+  
+  // invalid ternary-operator expression
+  @Test
+  public void parseInvalidTernaryOperator() {
+    //trenary operator without if condition
+    parseModelFromStringAndExpectFail("x = a if else b\n");
+    //trenary operator without then statement
+    parseModelFromStringAndExpectFail("x = if a==b else u\n");
+    //trenary operator without else condition
+    parseModelFromStringAndExpectFail("x = u if a==b else\n");
+  }
+  
+  // tests for Walrus inspired by https://github.com/python/cpython/blob/3.9/Lib/test/test_parser.py
+  @Test
+  public void parseValidWalrusOperator() {
+    // an unparenthesized walrus is not allowed after yield
+    parseModelFromStringAndExpectSuccess("def function():\n  yield (a:=2)\n");
+  }
+  
+  @Test
+  public void parseInalidWalrusOperator() {
+    parseModelFromStringAndExpectFail("def function():\n  a:= Yield 2\n");
+  }
+  
+  // valid logical expressions
+  @Test
+  public void parseValidLogicalExpressions() {
+    parseModelFromStringAndExpectSuccess("(x == 3) and y\n");
+    parseModelFromStringAndExpectSuccess("(x == 3) or y\n");
+    parseModelFromStringAndExpectSuccess("not True\n");
+    parseModelFromStringAndExpectSuccess("not (x==3)\n");
+    parseModelFromStringAndExpectSuccess("not (x or y)\n");
+    parseModelFromStringAndExpectSuccess("(x == 3) and (z or y)\n");
+  }
+  
+  // valid mathematical expressions
+  @Test
+  public void parseValidMathematicalExpressions() {
+    parseModelFromStringAndExpectSuccess("x**3\n");
+    parseModelFromStringAndExpectSuccess("x ** (8-9)\n");
+    parseModelFromStringAndExpectSuccess("3 // 4\n");
+    parseModelFromStringAndExpectSuccess("3 // (3+4)\n");
+  }
+  
+  // valid in and not in expressions
+  @Test
+  public void parseValidInExpression() {
+    parseModelFromStringAndExpectSuccess("1 in x\n");
+    parseModelFromStringAndExpectSuccess("1 not in x\n");
+  }
+  
+  // invalid in and not in expressions
+  @Test
+  public void parseInValidInExpression() {
+    parseModelFromStringAndExpectFail("1 in\n");
+    parseModelFromStringAndExpectFail("in x\n");
+  }
+  
+  /*===========================Classes======================================*/
+  
+  // valid class statements
+  @Test
+  public void parseValidClassFunction() {
+    parseModelFromStringAndExpectSuccess("class class_name:\n" + "    def function_name(x,y):\n"
+        + "        print(x,y)\n");
+    parseModelFromStringAndExpectSuccess("class class_name:\n" + "    def __init__(self,i=0):\n"
+        + "        self.id = i\n");
+    parseModelFromStringAndExpectSuccess("class myClass(MySuperClass):\n" + "    id=\"\"\n"
+        + "    def function_name(x,y):\n" + "        print(x,y)\n" + "        self.id=id\n"
+        + "    def function_name1(x,y):\n" + "        print(x,y)\n");
+    
+  }
+  
+  // invalid class statements
+  @Test
+  public void parseInvalidClassDeclaration() {
+    //missing class name
+    parseModelFromStringAndExpectFail("class:\n" + "    count = 0\n" + "    list_x = []\n"
+        + "    def__init__(self, i):\n" + "        self.id=i\n" + "    	   e.count+=1\n"
+        + "    	   self.list_x.append(i)\n");
+  }
+  
+  /*===========================Other======================================*/
+  @Test
+  public void parseValidSingleLineComments() {
+    parseModelFromStringAndExpectSuccess("#hello world\n");
+    parseModelFromStringAndExpectSuccess("#hello world\n" + "#this is another comment\n");
+  }
+  
+  @Test
+  public void parseValidMultiLineStringLiterals() {
+    parseModelFromStringAndExpectSuccess("'''Hello world'''\n");
+    parseModelFromStringAndExpectSuccess("'''This is another comment\n"
+        + "This is the second line of the comment'''\n");
+    parseModelFromStringAndExpectSuccess("\"\"\"Double quote multi line \n comment \"\"\"\n");
+  }
+  
+  @Test
+  public void parseInvalidMultiLineStringLiterals() {
+    //parseModelFromStringAndExpectFail("\"\"\"Hello world\n");
+    //parseModelFromStringAndExpectFail("'''Hello world\n");
+    //parseModelFromStringAndExpectFail("'''Hello world\n\"\"\"\n");
+    //parseModelFromStringAndExpectFail("\" \"\"Double quote multi line \n comment \"\"\"\n");
+    //parseModelFromStringAndExpectFail("\"\"\"Double quote multi line \n comment \" \"\"\n");
+    //parseModelFromStringAndExpectFail("\"\"\"This is another comment\n" +
+    //		"This is the second line of the comment\n");
+    // parseModelFromStringAndExpectFail("\"\n\"");
+    // TODO: uses string as defined in MCCommonLiterals, but still parsers newline in string.
+    // Is this a general MontiCore problem, or only important because of other tokens?
+  }
+  
+  //	---------------------------------------------------------------
+  //	Tests for whole scripts from files.
+  //	---------------------------------------------------------------
+  
+  @Test
+  public void parseSimplePython() {
+    String model = "tests/simple_python.py";
+    parseModelFromFileAndExpectSuccess(model);
+  }
+  
+  /**
+   * In some cases the parser only recognises one indentation error at once (although the file
+   * contains multiple).
+   * However, if the recognised error is fixed, the next error is detected.
+   * Thus, the test cases at least for indentation errors must include only one error.
+   */
+  @Test
+  @Disabled("We assume that we parse valid python")
+  public void parsePythonWithIndentError() {
+    String model = "tests/python_IndentError.sipy";
+    parseModelFromFileAndExpectFail(model);
+  }
+  
+  @Test
+  public void parseLiteralsAsLine() {
+    // Python allows the only element of a line to be a literal like "Test" or 5
+    parseModelFromStringAndExpectSuccess("5\n");
+    parseModelFromStringAndExpectSuccess("'string'\n");
+    parseModelFromStringAndExpectSuccess("\"string\"\n");
+    parseModelFromStringAndExpectSuccess("\"\"\"multiline\nstring\"\"\"\n");
+  }
+  
 }

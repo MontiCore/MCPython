@@ -16,12 +16,14 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
     }
     if (node.isPresentFSQStringPython()) {
       getPrinter().print("f" + node.getFSQStringPython() + "\'" + " ");
-    } else if (node.isPresentFDQStringPython()) {
-        getPrinter().print("f" + node.getFDQStringPython() + "\" ");
-    } else if (node.isPresentChar()) {
-        getPrinter().print("f\'" + node.getChar() + "\'" + " ");
-        
-      }
+    }
+    else if (node.isPresentFDQStringPython()) {
+      getPrinter().print("f" + node.getFDQStringPython() + "\" ");
+    }
+    else if (node.isPresentChar()) {
+      getPrinter().print("f\'" + node.getChar() + "\'" + " ");
+      
+    }
     if (this.isPrintComments()) {
       de.monticore.prettyprint.CommentPrettyPrinter.printPostComments(node, getPrinter());
     }
@@ -32,20 +34,23 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
     if (this.isPrintComments()) {
       de.monticore.prettyprint.CommentPrettyPrinter.printPreComments(node, getPrinter());
     }
-    if (((node.isPresentSourceStrPy() || node.isPresentSourceStr()) || node.isPresentSourceChar())) {
-
-        if (node.isPresentStringModifier()) {
-          node.getStringModifier().accept(getTraverser());
-        }
-        if (node.isPresentSourceStrPy()) {
-          getPrinter().print("\'" + node.getSourceStrPy() + "\'" + " ");
-          
-        } else if (node.isPresentSourceStr()) {
-          getPrinter().print( "\"" + node.getSourceStr() + "\"" + " ");
-          
-        } else if (node.isPresentSourceChar()) {
-          getPrinter().print( "\'" + node.getSourceChar() + "\'" + " ");
-        }
+    if (((node.isPresentSourceStrPy() || node.isPresentSourceStr()) || node
+        .isPresentSourceChar())) {
+      
+      if (node.isPresentStringModifier()) {
+        node.getStringModifier().accept(getTraverser());
+      }
+      if (node.isPresentSourceStrPy()) {
+        getPrinter().print("\'" + node.getSourceStrPy() + "\'" + " ");
+        
+      }
+      else if (node.isPresentSourceStr()) {
+        getPrinter().print("\"" + node.getSourceStr() + "\"" + " ");
+        
+      }
+      else if (node.isPresentSourceChar()) {
+        getPrinter().print("\'" + node.getSourceChar() + "\'" + " ");
+      }
     }
     else if ((node.isPresentFsource() && !(((node.isPresentStringModifier() || node
         .isPresentSourceStrPy()) || node.isPresentSourceStr()) || node.isPresentSourceChar()))) {
@@ -67,7 +72,7 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
         .getArgumentList().iterator();
     getPrinter().stripTrailing();
     getPrinter().print("(");
-
+    
     if (iter_argument.hasNext()) {
       iter_argument.next().accept(getTraverser());
       while (iter_argument.hasNext()) {

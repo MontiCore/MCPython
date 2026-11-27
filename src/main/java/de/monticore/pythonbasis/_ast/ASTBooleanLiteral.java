@@ -7,9 +7,8 @@ package de.monticore.pythonbasis._ast;
  * of MCCommonLiterals, which has a different number, and would return false for True.
  */
 public class ASTBooleanLiteral extends ASTBooleanLiteralTOP {
-
+  
   @Override
-  public boolean getValue() {
-    return getSource() == ASTConstantsPythonBasis.TRUE;
-  }
+  public boolean getValue() { return getSource() == ASTConstantsPythonBasis.TRUE; }
+  
 }

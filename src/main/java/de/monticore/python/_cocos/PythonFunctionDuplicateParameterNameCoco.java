@@ -1,3 +1,4 @@
+/* (c) https://github.com/MontiCore/monticore */
 package de.monticore.python._cocos;
 
 import de.monticore.python._ast.ASTClassFunctionDeclaration;
@@ -13,36 +14,42 @@ import java.util.List;
 import java.util.Set;
 
 public class PythonFunctionDuplicateParameterNameCoco implements PythonASTFunctionDeclarationCoCo {
-
-	@Override
-	public void check(ASTFunctionDeclaration node) {
-		Set<String> names = new HashSet<>();
-
-		List<ASTFunctionParameter> parameters = new ArrayList<>();
-
-		if (node instanceof ASTSimpleFunctionDeclaration) {
-			parameters.addAll(((ASTSimpleFunctionDeclaration) node).getFunctionParameters().getFunctionParameterList());
-		} else if (node instanceof ASTClassFunctionDeclaration) {
-			parameters.addAll(((ASTClassFunctionDeclaration) node).getClassFunctionParameters().getFunctionParameterList());
-		}
-
-		PythonBasisTypeDispatcher td = new PythonBasisTypeDispatcher();
-
-		for (ASTFunctionParameter parameter : parameters) {
+  
+  @Override
+  public void check(ASTFunctionDeclaration node) {
+    Set<String> names = new HashSet<>();
+    
+    List<ASTFunctionParameter> parameters = new ArrayList<>();
+    
+    if (node instanceof ASTSimpleFunctionDeclaration) {
+      parameters.addAll(((ASTSimpleFunctionDeclaration) node).getFunctionParameters()
+          .getFunctionParameterList());
+    }
+    else if (node instanceof ASTClassFunctionDeclaration) {
+      parameters.addAll(((ASTClassFunctionDeclaration) node).getClassFunctionParameters()
+          .getFunctionParameterList());
+    }
+    
+    PythonBasisTypeDispatcher td = new PythonBasisTypeDispatcher();
+    
+    for (ASTFunctionParameter parameter : parameters) {
       String name = null;
-		if(td.isBasicSymbolsASTTypeVar(parameter)) {
-				name = td.asBasicSymbolsASTTypeVar(parameter).getName();
-		}else if(td.isPythonBasisASTSimpleFunctionParameter(parameter)) {
+      if (td.isBasicSymbolsASTTypeVar(parameter)) {
+        name = td.asBasicSymbolsASTTypeVar(parameter).getName();
+      }
+      else if (td.isPythonBasisASTSimpleFunctionParameter(parameter)) {
         name = td.asPythonBasisASTSimpleFunctionParameter(parameter).getName();
       }
       if (name != null) {
         if (names.contains(name)) {
-          Log.error("Duplicate parameter name '" + name + "' in function '" + node.getName() +
-              "' " + node.get_SourcePositionStart());
-        } else {
+          Log.error("Duplicate parameter name '" + name + "' in function '" + node.getName() + "' "
+              + node.get_SourcePositionStart());
+        }
+        else {
           names.add(name);
         }
       }
-		}
-	}
+    }
+  }
+  
 }
