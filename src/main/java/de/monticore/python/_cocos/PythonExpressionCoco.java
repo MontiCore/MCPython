@@ -19,11 +19,10 @@ public class PythonExpressionCoco implements PythonASTExpressionStatementCoCo {
         Log.warn("Statement seems to have no effect " + node.get_SourcePositionStart());
       }
       
-      if (expression instanceof ASTAssignmentExpression && ((ASTAssignmentExpression) expression)
-          .getLeft() instanceof ASTLiteralExpression) {
+      if (expression instanceof ASTAssignmentExpression assignment) {
+        boolean literalOnLeft = assignment.getLeft() instanceof ASTLiteralExpression;
         // PythonBasis overrides AssignmentExpression, so the operator is a PythonBasis constant
-        if (((ASTAssignmentExpression) expression).getOperator()
-            == ASTConstantsPythonBasis.EQUALS) {
+        if (literalOnLeft && assignment.getOperator() == ASTConstantsPythonBasis.EQUALS) {
           Log.error("Invalid variable declaration " + node.get_SourcePositionStart());
         }
       }

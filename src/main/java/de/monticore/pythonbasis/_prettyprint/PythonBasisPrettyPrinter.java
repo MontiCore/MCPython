@@ -1,6 +1,10 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore.pythonbasis._prettyprint;
 
+import de.monticore.pythonbasis._ast.ASTArgument;
+import de.monticore.pythonbasis._ast.ASTStringLiteralPython;
+import java.util.Iterator;
+
 // Generated code that was fixed manually, reoved generated comments.
 public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
   
@@ -34,8 +38,8 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
     if (this.isPrintComments()) {
       de.monticore.prettyprint.CommentPrettyPrinter.printPreComments(node, getPrinter());
     }
-    if (((node.isPresentSourceStrPy() || node.isPresentSourceStr()) || node
-        .isPresentSourceChar())) {
+    boolean hasSource = hasSource(node);
+    if (hasSource) {
       
       if (node.isPresentStringModifier()) {
         node.getStringModifier().accept(getTraverser());
@@ -52,8 +56,7 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
         getPrinter().print("\'" + node.getSourceChar() + "\'" + " ");
       }
     }
-    else if ((node.isPresentFsource() && !(((node.isPresentStringModifier() || node
-        .isPresentSourceStrPy()) || node.isPresentSourceStr()) || node.isPresentSourceChar()))) {
+    else if (node.isPresentFsource() && !(node.isPresentStringModifier() || hasSource)) {
       node.getFsource().accept(getTraverser());
       
     }
@@ -63,13 +66,16 @@ public class PythonBasisPrettyPrinter extends PythonBasisPrettyPrinterTOP {
     
   }
   
+  private boolean hasSource(ASTStringLiteralPython node) {
+    return node.isPresentSourceStrPy() || node.isPresentSourceStr() || node.isPresentSourceChar();
+  }
+  
   @Override
   public void handle(de.monticore.pythonbasis._ast.ASTArguments node) {
     if (this.isPrintComments()) {
       de.monticore.prettyprint.CommentPrettyPrinter.printPreComments(node, getPrinter());
     }
-    java.util.Iterator<de.monticore.pythonbasis._ast.ASTArgument> iter_argument = node
-        .getArgumentList().iterator();
+    Iterator<ASTArgument> iter_argument = node.getArgumentList().iterator();
     getPrinter().stripTrailing();
     getPrinter().print("(");
     

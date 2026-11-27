@@ -11,6 +11,7 @@ import de.monticore.pythonbasis._ast.ASTArguments;
 import de.monticore.pythonbasis._ast.ASTOptionalFunctionParameter;
 import de.monticore.python._symboltable.IPythonScope;
 import de.monticore.symbols.basicsymbols._symboltable.FunctionSymbol;
+import de.monticore.symbols.basicsymbols._symboltable.VariableSymbol;
 import de.se_rwth.commons.logging.Log;
 
 import java.util.List;
@@ -30,27 +31,29 @@ public class PythonFunctionArgumentSizeCoco implements CommonExpressionsASTCallE
         return;
       }
       
-      if (args.size() < symbol.getParameterList().stream().filter(p -> !(p
-          .getAstNode() instanceof ASTOptionalFunctionParameter)).count()) {
-        Log.error("Too few arguments for function " + symbol.getName() + " " + node
-            .get_SourcePositionStart());
+      int required = 0;
+      for (VariableSymbol parameter : symbol.getParameterList()) {
+        if (!(parameter.getAstNode() instanceof ASTOptionalFunctionParameter)) {
+          required++;
+        }
+      }
+      String position = " " + node.get_SourcePositionStart();
+      if (args.size() < required) {
+        Log.error("Too few arguments for function " + symbol.getName() + position);
       }
       
       if (args.size() > symbol.getParameterList().size()) {
-        Log.error("Too many arguments for function " + symbol.getName() + " " + node
-            .get_SourcePositionStart());
+        Log.error("Too many arguments for function " + symbol.getName() + position);
       }
     }
   }
   
   private Optional<FunctionSymbol> getFunctionSymbol(ASTExpression node) {
-    if (node instanceof ASTNameExpression) {
-      return ((IPythonScope) node.getEnclosingScope()).resolveFunction(((ASTNameExpression) node)
-          .getName());
+    if (node instanceof ASTNameExpression nameExpression) {
+      return ((IPythonScope) node.getEnclosingScope()).resolveFunction(nameExpression.getName());
     }
-    else if (node instanceof ASTFieldAccessExpression) {
-      return ((IPythonScope) node.getEnclosingScope()).resolveFunction(
-          ((ASTFieldAccessExpression) node).getName());
+    else if (node instanceof ASTFieldAccessExpression fieldAccess) {
+      return ((IPythonScope) node.getEnclosingScope()).resolveFunction(fieldAccess.getName());
     }
     return Optional.empty();
   }

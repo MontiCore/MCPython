@@ -44,8 +44,8 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
   @Override
   public void visit(de.monticore.python._ast.ASTVariableDeclaration node) {
     if (getCurrentScope().isPresent()) {
-      Optional<VariableSymbol> variableSymbolOptional = getCurrentScope().get().resolveVariable(node
-          .getName());
+      IPythonScope scope = getCurrentScope().get();
+      Optional<VariableSymbol> variableSymbolOptional = scope.resolveVariable(node.getName());
       if (variableSymbolOptional.isPresent()) {
         node.setSymbol(variableSymbolOptional.get());
         node.setEnclosingScope(variableSymbolOptional.get().getEnclosingScope());
@@ -85,8 +85,13 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
     
     ASTClassStatementBlock block = node.getClassStatementBlock();
     // one-line classes (e.g. "class A: pass") have a single ClassStatement instead of a body
-    List<ASTClassStatement> classStatements = block.isPresentClassStatementBlockBody() ? block
-        .getClassStatementBlockBody().getClassStatementList() : List.of(block.getClassStatement());
+    List<ASTClassStatement> classStatements;
+    if (block.isPresentClassStatementBlockBody()) {
+      classStatements = block.getClassStatementBlockBody().getClassStatementList();
+    }
+    else {
+      classStatements = List.of(block.getClassStatement());
+    }
     for (ASTClassStatement classStatement : classStatements) {
       if (classStatement instanceof ASTClassFunctionDeclaration) {
         ASTClassFunctionDeclaration functionDeclaration =
