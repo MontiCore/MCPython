@@ -1,3 +1,4 @@
+/* (c) https://github.com/MontiCore/monticore */
 package de.monticore.python._cocos;
 
 import de.monticore.expressions.expressionsbasis._ast.ASTNameExpression;
@@ -6,22 +7,26 @@ import de.monticore.expressions.expressionsbasis._symboltable.IExpressionsBasisS
 import de.monticore.python._symboltable.IPythonScope;
 import de.se_rwth.commons.logging.Log;
 
-public class PythonVariableOrFunctionOrClassExistsCoco implements ExpressionsBasisASTNameExpressionCoCo {
-
-	@Override
-	public void check(ASTNameExpression node) {
+public class PythonVariableOrFunctionOrClassExistsCoco implements
+    ExpressionsBasisASTNameExpressionCoCo {
+  
+  @Override
+  public void check(ASTNameExpression node) {
     IExpressionsBasisScope es = node.getEnclosingScope();
-    if(!(es instanceof IPythonScope)){
+    if (!(es instanceof IPythonScope)) {
       return;
     }
-
+    
     IPythonScope s = (IPythonScope) es;
-
-    if (s.resolveVariable(node.getName()).isEmpty()
-				&& s.resolveFunction(node.getName()).isEmpty()
-				&& s.resolvePythonClass(node.getName()).isEmpty()) {
-			Log.error("Variable, Function or Class " + node.getName() + " does not exist " + node.get_SourcePositionStart());
-		}
-	}
-
+    
+    if (s.resolveVariable(node.getName()).isEmpty() && s.resolveFunction(node.getName()).isEmpty()
+        && s.resolvePythonClass(node.getName()).isEmpty()
+        // names from "except E as e" / "case ... as y" and type aliases ("type X = int")
+        && s.resolveAlias(node.getName()).isEmpty() && s.resolveTypeRuleStatement(node.getName())
+            .isEmpty()) {
+      Log.error("Variable, Function or Class " + node.getName() + " does not exist " + node
+          .get_SourcePositionStart());
+    }
+  }
+  
 }

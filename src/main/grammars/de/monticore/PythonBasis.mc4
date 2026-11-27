@@ -92,7 +92,7 @@ grammar PythonBasis extends MultilineString,
   /*====================================== Literals ======================================*/
 
   HexNumberLiteral implements NumericLiteral <100> = HexNumberToken;
-  ImaginaryNumberLiteral implements NumericLiteral <100> = {noSpace(2)}? (DigitsPart| Digits | PyFloat) key("j");
+  ImaginaryNumberLiteral implements NumericLiteral <100> = {noSpace(2)}? (DigitsPart| Digits | PyFloat | FloatWithExponent) (key("j") | key("J"));
 
   //Literals for Datastructures
   ArrayLiteral implements Literal = "[" (VariableInit || ",")* ","? "]" ;
@@ -200,7 +200,7 @@ grammar PythonBasis extends MultilineString,
   ListComprehensionExpression implements Expression = "[" Expression "for" ForControl GeneratorFilter* "]";
   SetComprehensionExpression implements Expression = "{" Expression "for" ForControl GeneratorFilter* "}";
   DictComprehensionExpression implements Expression = "{" Name ":" Expression "for" ForControl GeneratorFilter* "}";
-  GeneratorExpression implements Expression = Expression "for" ForControl GeneratorFilter? ;
+  GeneratorExpression implements Expression = Expression "for" ForControl GeneratorFilter* ;
 
 
   ForControl = ForList "in" ForIterable;

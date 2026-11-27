@@ -71,13 +71,14 @@ grammar Python extends  PythonBasis {
   scope ExceptStatement = "except" ExceptPattern? ":" StatementBlock;
   FinallyStatement = "finally" ":" finallyStatement:StatementBlock;
 
-  //PEP758
+  //PEP758 (the starred patterns have a higher priority, so "except* E" is not parsed as an
+  //AliasedSingleExpressionPattern with a starred expression)
   interface ExceptPattern;
   AliasedSingleExpressionPattern implements ExceptPattern = Expression ("as" Alias)?;
   ExpressionListing implements ExceptPattern = (Expression || ",")+;
   ParenthesisedExpressionListing implements  ExceptPattern = "(" (Expression || ",")+ ")" ("as" Alias)?;
-  StarredExpressionListing implements ExceptPattern = "*"(Expression || ",")+;
-  StarredParenthesisedExpressionListing implements  ExceptPattern = "*""(" (Expression || ",")+ ")" ("as" Alias)?;
+  StarredExpressionListing implements ExceptPattern <10> = "*"(Expression || ",")+ ("as" Alias)?;
+  StarredParenthesisedExpressionListing implements  ExceptPattern <20> = "*""(" (Expression || ",")+ ")" ("as" Alias)?;
 
   //With open file statement
   scope WithStatement implements Statement,ClassStatement = async:"async"? "with" (WithStatementContents || ",")+ ":"

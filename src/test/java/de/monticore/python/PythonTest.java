@@ -1,10 +1,20 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore.python;
 
+import de.monticore.python._ast.ASTExceptPattern;
+import de.monticore.python._ast.ASTPythonScript;
+import de.monticore.python._ast.ASTStarredExpressionListing;
+import de.monticore.python._ast.ASTStarredParenthesisedExpressionListing;
+import de.monticore.python._ast.ASTTryExceptStatement;
 import de.se_rwth.commons.logging.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PythonTest extends AbstractPythonTest {
   
@@ -54,6 +64,44 @@ public class PythonTest extends AbstractPythonTest {
     parseModelFromStringAndExpectSuccess(
         "rgb = [i for i, *b in range(0, hlen, hlen // 3) if cond1 if cond2]\n");
     
+  }
+  
+  @Test
+  public void parseGeneratorExpressionWithSeveralFilters() {
+    parseModelFromStringAndExpectSuccess("s = sum(x for x in y if a if b)\n");
+  }
+  
+  @Test
+  public void parseImaginaryNumbers() {
+    parseModelFromStringAndExpectSuccess("x = 10j\n");
+    parseModelFromStringAndExpectSuccess("x = 4.2j\n");
+    parseModelFromStringAndExpectSuccess("x = 3.14_15_93j\n");
+    parseModelFromStringAndExpectSuccess("x = 3.14e-10j\n");
+    parseModelFromStringAndExpectSuccess("x = 1e3j\n");
+    parseModelFromStringAndExpectSuccess("x = 3.14J\n");
+    parseModelFromStringAndExpectSuccess("x = 1 + 2J\n");
+    // j and J are still names
+    parseModelFromStringAndExpectSuccess("j = 1\nJ = j * 2\n");
+  }
+  
+  @Test
+  public void parseStarredExceptPatterns() throws IOException {
+    ASTExceptPattern pattern = parseExceptPattern("except* ValueError as eg:");
+    assertInstanceOf(ASTStarredExpressionListing.class, pattern);
+    assertTrue(((ASTStarredExpressionListing) pattern).isPresentAlias());
+    
+    assertInstanceOf(ASTStarredExpressionListing.class, parseExceptPattern("except* ValueError:"));
+    
+    pattern = parseExceptPattern("except* (ValueError, TypeError) as eg:");
+    assertInstanceOf(ASTStarredParenthesisedExpressionListing.class, pattern);
+    assertTrue(((ASTStarredParenthesisedExpressionListing) pattern).isPresentAlias());
+  }
+  
+  private ASTExceptPattern parseExceptPattern(String exceptLine) throws IOException {
+    String model = "try:\n    f()\n" + exceptLine + "\n    pass\n";
+    ASTPythonScript ast = PythonMill.parser().parse_String(model).get();
+    ASTTryExceptStatement tryStatement = (ASTTryExceptStatement) ast.getStatement(0);
+    return tryStatement.getExceptStatement(0).getExceptPattern();
   }
   
   @Test
