@@ -224,46 +224,64 @@ def table = { List<String> header, List<List<String>> rows ->
   rows.each { List<String> r -> out.add(line(r)) }
   out
 }
-// The samples that do not parse: a table of the sections (folders) with the most unparsed samples first,
-// then all of them in the same order. Samples that were not run (null) are not listed.
-def notParsedReport = { Map<String, Boolean> allResults, File samplesRoot, String title ->
+// The samples that do not parse. byColumn: column header -> results of a branch (null if its build failed); the
+// first column is the branch whose unparsed samples are listed. First a table of the sections (folders) with
+// unparsed samples, the most unparsed samples of the first branch first, then all unparsed samples of the first
+// branch in the same order. With one branch the table shows the Python versions of the unparsed samples; with
+// several it shows one column per branch, so you can see whether a gap is already closed on another branch.
+// Samples that were not run (null) are not counted.
+def notParsedReport = { Map<String, Map<String, Boolean>> byColumn, File samplesRoot, String title ->
   // only samples: if the test factory itself fails, JUnit reports a test named after the factory method
-  Map<String, Boolean> results = allResults.findAll { it.key.endsWith(".py") }
+  Map<String, Map<String, Boolean>> columns = byColumn.collectEntries { String c, Map<String, Boolean> r ->
+    [c, r?.findAll { it.key.endsWith(".py") }]
+  }
+  Map<String, Boolean> results = columns.values().first()
   Map<String, List<String>> bySection = results.keySet().sort().groupBy { String t ->
     t.contains('/') ? t.substring(0, t.lastIndexOf('/')) : '(root)'
   }
-  Map<String, List<String>> failing = [:]
-  bySection.each { String section, List<String> files ->
-    List<String> notParsed = files.findAll { String t -> results[t] == false }
-    if (notParsed) failing[section] = notParsed
+  def notParsedIn = { Map<String, Boolean> r, List<String> files -> files.findAll { String t -> r?.get(t) == false } }
+  // "not parsed/run" of a section on a branch
+  def countOf = { Map<String, Boolean> r, List<String> files ->
+    r == null ? "build failed" : "${notParsedIn(r, files).size()}/${files.count { String t -> r[t] != null }}".toString()
   }
+  // sections with unparsed samples on any branch
+  List<String> sections = bySection.keySet().toList().findAll { String s ->
+    columns.values().any { Map<String, Boolean> r -> notParsedIn(r, bySection[s]) }
+  }
+  Map<String, List<String>> failing = bySection.collectEntries { String s, List<String> files -> [s, notParsedIn(results, files)] }
   int total = failing.values().sum(0) { List<String> files -> files.size() }
-  // the counts leave out the samples that were not run
   int notRun = results.count { it.value == null }
   List<String> lines = ["### $title ($total of ${results.size() - notRun})".toString(), ""]
   if (notRun) lines.addAll(["$notRun samples were not run and are not listed.".toString(), ""])
-  if (!failing) {
+  if (!sections) {
     lines.add("All samples parse.")
     return lines
   }
   // "Python 3.12" -> "3.12", "original syntax (before Python 2.0)" -> "original"
   def shortSince = { String since -> since.startsWith("original") ? "original" : since.replace("Python ", "") }
-  List<String> order = failing.keySet().sort { a, b -> failing[b].size() <=> failing[a].size() ?: a <=> b }
+  List<String> order = sections.sort { a, b -> failing[b].size() <=> failing[a].size() ?: a <=> b }
   List<List<String>> rows = order.collect { String section ->
-    // the range of the known versions ("?" if no sample has a "Since: original ..." or "Since: Python X.Y" header)
-    List<String> versions = failing[section].collect { String t -> sinceOf(samplesRoot, t) }
-        .findAll { String v -> versionKey(v) < 2_00_00 }.unique().sort { versionKey(it) }
-    String range = versions ? shortSince(versions.first()) : "?"
-    if (versions.size() > 1) range += "–" + shortSince(versions.last())
-    int run = bySection[section].count { String t -> results[t] != null }
-    [section, "${failing[section].size()}/$run".toString(), range]
+    List<String> row = [section]
+    columns.values().each { Map<String, Boolean> r -> row.add(countOf(r, bySection[section])) }
+    if (columns.size() == 1) {
+      // the range of the known versions ("?" if no sample has a "Since: original ..." or "Since: Python X.Y" header)
+      List<String> versions = failing[section].collect { String t -> sinceOf(samplesRoot, t) }
+          .findAll { String v -> versionKey(v) < 2_00_00 }.unique().sort { versionKey(it) }
+      String range = versions ? shortSince(versions.first()) : "?"
+      if (versions.size() > 1) range += "–" + shortSince(versions.last())
+      row.add(range)
+    }
+    row
   }
-  lines.addAll(table(["Section", "Not parsed", "Since"], rows))
-  lines.addAll(["", "<details><summary>All $total samples</summary>".toString(), ""])
-  order.each { String section ->
-    failing[section].each { String t -> lines.add("- `$t` (${shortSince(sinceOf(samplesRoot, t))})".toString()) }
+  List<String> header = ["Section"] + (columns.size() == 1 ? ["Not parsed", "Since"] : columns.keySet().toList())
+  lines.addAll(table(header, rows))
+  if (total) {
+    lines.addAll(["", "<details><summary>All $total samples</summary>".toString(), ""])
+    order.each { String section ->
+      failing[section].each { String t -> lines.add("- `$t` (${shortSince(sinceOf(samplesRoot, t))})".toString()) }
+    }
+    lines.addAll(["", "</details>"])
   }
-  lines.addAll(["", "</details>"])
   lines
 }
 
@@ -294,7 +312,7 @@ tasks.register('pythonCoverage', Test) {
   doLast {
     Map<String, Boolean> results = readResults(resultsDir)
     List<String> lines = ["## Python coverage: ${results.count { it.value }}/${results.size()}".toString(), ""]
-    lines.addAll(notParsedReport(results, samplesRoot, "Not parsed"))
+    lines.addAll(notParsedReport(["Not parsed": results], samplesRoot, "Not parsed"))
     def report = lines.join("\n") + "\n"
     reportFile.parentFile.mkdirs()
     reportFile.text = report
@@ -616,7 +634,11 @@ tasks.register('compareCoverage') {
       lines << "### No longer parsed (${lost.values().flatten().unique().size()})"
       lost.each { b, l -> l.each { lines << "- `$it` (parses on $b)" } }
       lines << ""
-      lines.addAll(notParsedReport(current, collectedSamples, "Not parsed on $branchName"))
+      // one column per branch, like the tables above
+      Map<String, Map<String, Boolean>> byColumn = columns.collectEntries { String b ->
+        [column(b).toString(), b == branchName ? current : results[b]]
+      }
+      lines.addAll(notParsedReport(byColumn, collectedSamples, "Not parsed on $branchName"))
 
       def report = lines.join("\n") + "\n"
       reportFile.parentFile.mkdirs()
