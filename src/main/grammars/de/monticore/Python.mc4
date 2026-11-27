@@ -77,7 +77,8 @@ grammar Python extends  PythonBasis {
   AliasedSingleExpressionPattern implements ExceptPattern = Expression ("as" Alias)?;
   ExpressionListing implements ExceptPattern = (Expression || ",")+;
   ParenthesisedExpressionListing implements  ExceptPattern = "(" (Expression || ",")+ ")" ("as" Alias)?;
-  StarredExpressionListing implements ExceptPattern <10> = "*"(Expression || ",")+ ("as" Alias)?;
+  // "as" only after a single type: Python rejects "except* A, B as e" (that needs parentheses)
+  StarredExpressionListing implements ExceptPattern <10> = "*" Expression "as" Alias | "*" (Expression || ",")+;
   StarredParenthesisedExpressionListing implements  ExceptPattern <20> = "*""(" (Expression || ",")+ ")" ("as" Alias)?;
 
   //With open file statement

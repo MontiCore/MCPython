@@ -54,6 +54,22 @@ public class PythonCoCoCheckerTest {
     assertTrue(unknown.stream().anyMatch(m -> m.contains(" v ")), unknown.toString());
   }
   
+  @Test
+  public void namesBoundSeveralTimesExist() throws IOException {
+    LogStub.init();
+    Log.enableFailQuick(false);
+    // valid Python that binds the same alias name twice must not make the CoCo throw
+    List<String> models = List.of(
+        "try:\n    f()\nexcept A as e:\n    try:\n        g()\n    except B as e:\n        print(e)\n",
+        "match p:\n    case (A() as q) | (B() as q):\n        print(q)\n",
+        "type X = int\ntype X = str\nprint(X)\n");
+    for (String model : models) {
+      List<Finding> findings = assertDoesNotThrow(() -> runNameExistsCocoOnString(model), model);
+      assertTrue(findings.stream().noneMatch(f -> f.getMsg().contains(" e ") || f.getMsg().contains(
+          " q ") || f.getMsg().contains(" X ")), findings.toString());
+    }
+  }
+  
   private List<Finding> runNameExistsCocoOnString(String model) throws IOException {
     PythonMill.reset();
     PythonMill.init();

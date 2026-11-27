@@ -19,13 +19,18 @@ public class PythonVariableOrFunctionOrClassExistsCoco implements
     
     IPythonScope s = (IPythonScope) es;
     
-    if (s.resolveVariable(node.getName()).isEmpty() && s.resolveFunction(node.getName()).isEmpty()
-        && s.resolvePythonClass(node.getName()).isEmpty()
-        // names from "except E as e" / "case ... as y" and type aliases ("type X = int")
-        && s.resolveAlias(node.getName()).isEmpty() && s.resolveTypeRuleStatement(node.getName())
-            .isEmpty()) {
-      Log.error("Variable, Function or Class " + node.getName() + " does not exist " + node
-          .get_SourcePositionStart());
+    String name = node.getName();
+    // Also names from "except E as e" / "case ... as y" (inside their block) and type aliases
+    // ("type X = int"). These use resolve...Many, because valid Python can bind such a name more
+    // than once (nested excepts, "case (A() as q) | (B() as q)", a redefined type alias), and the
+    // single resolve throws then.
+    boolean exists = s.resolveVariable(name).isPresent() || s.resolveFunction(name).isPresent();
+    exists = exists || s.resolvePythonClass(name).isPresent();
+    exists = exists || !s.resolveAliasMany(name).isEmpty();
+    exists = exists || !s.resolveTypeRuleStatementMany(name).isEmpty();
+    if (!exists) {
+      String position = node.get_SourcePositionStart().toString();
+      Log.error("Variable, Function or Class " + name + " does not exist " + position);
     }
   }
   

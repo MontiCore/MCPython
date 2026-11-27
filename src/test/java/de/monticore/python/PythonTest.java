@@ -95,6 +95,11 @@ public class PythonTest extends AbstractPythonTest {
     pattern = parseExceptPattern("except* (ValueError, TypeError) as eg:");
     assertInstanceOf(ASTStarredParenthesisedExpressionListing.class, pattern);
     assertTrue(((ASTStarredParenthesisedExpressionListing) pattern).isPresentAlias());
+    
+    assertInstanceOf(ASTStarredExpressionListing.class, parseExceptPattern(
+        "except* ValueError, TypeError:"));
+    // like plain except, several types with "as" need parentheses
+    parseModelFromStringAndExpectFail("try:\n    f()\nexcept* A, B as e:\n    pass\n");
   }
   
   private ASTExceptPattern parseExceptPattern(String exceptLine) throws IOException {
