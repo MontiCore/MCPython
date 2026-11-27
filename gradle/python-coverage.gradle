@@ -226,7 +226,9 @@ def table = { List<String> header, List<List<String>> rows ->
 }
 // The samples that do not parse: a table of the sections (folders) with the most unparsed samples first,
 // then all of them in the same order. Samples that were not run (null) are not listed.
-def notParsedReport = { Map<String, Boolean> results, File samplesRoot, String title ->
+def notParsedReport = { Map<String, Boolean> allResults, File samplesRoot, String title ->
+  // only samples: if the test factory itself fails, JUnit reports a test named after the factory method
+  Map<String, Boolean> results = allResults.findAll { it.key.endsWith(".py") }
   Map<String, List<String>> bySection = results.keySet().sort().groupBy { String t ->
     t.contains('/') ? t.substring(0, t.lastIndexOf('/')) : '(root)'
   }
@@ -236,8 +238,9 @@ def notParsedReport = { Map<String, Boolean> results, File samplesRoot, String t
     if (notParsed) failing[section] = notParsed
   }
   int total = failing.values().sum(0) { List<String> files -> files.size() }
-  List<String> lines = ["### $title ($total of ${results.size()})".toString(), ""]
+  // the counts leave out the samples that were not run
   int notRun = results.count { it.value == null }
+  List<String> lines = ["### $title ($total of ${results.size() - notRun})".toString(), ""]
   if (notRun) lines.addAll(["$notRun samples were not run and are not listed.".toString(), ""])
   if (!failing) {
     lines.add("All samples parse.")
@@ -247,10 +250,13 @@ def notParsedReport = { Map<String, Boolean> results, File samplesRoot, String t
   def shortSince = { String since -> since.startsWith("original") ? "original" : since.replace("Python ", "") }
   List<String> order = failing.keySet().sort { a, b -> failing[b].size() <=> failing[a].size() ?: a <=> b }
   List<List<String>> rows = order.collect { String section ->
-    List<String> versions = failing[section].collect { String t -> sinceOf(samplesRoot, t) }.unique().sort { versionKey(it) }
-    String range = shortSince(versions.first())
+    // the range of the known versions ("?" if no sample has a "Since: original ..." or "Since: Python X.Y" header)
+    List<String> versions = failing[section].collect { String t -> sinceOf(samplesRoot, t) }
+        .findAll { String v -> versionKey(v) < 2_00_00 }.unique().sort { versionKey(it) }
+    String range = versions ? shortSince(versions.first()) : "?"
     if (versions.size() > 1) range += "–" + shortSince(versions.last())
-    [section, "${failing[section].size()}/${bySection[section].size()}".toString(), range]
+    int run = bySection[section].count { String t -> results[t] != null }
+    [section, "${failing[section].size()}/$run".toString(), range]
   }
   lines.addAll(table(["Section", "Not parsed", "Since"], rows))
   lines.addAll(["", "<details><summary>All $total samples</summary>".toString(), ""])
