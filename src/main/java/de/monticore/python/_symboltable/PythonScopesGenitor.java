@@ -98,8 +98,16 @@ public class PythonScopesGenitor extends PythonScopesGenitorTOP {
             ((ASTClassFunctionDeclaration) classStatement);
         
         if (functionDeclaration.getName().equals("__init__")) {
-          for (ASTStatement functionStatement : functionDeclaration.getStatementBlock()
-              .getStatementBlockBody().getStatementList()) {
+          ASTStatementBlock initBlock = functionDeclaration.getStatementBlock();
+          // a one-line __init__ (e.g. "def __init__(self): self.x = 1") has a single Statement
+          List<ASTStatement> initStatements;
+          if (initBlock.isPresentStatementBlockBody()) {
+            initStatements = initBlock.getStatementBlockBody().getStatementList();
+          }
+          else {
+            initStatements = List.of(initBlock.getStatement());
+          }
+          for (ASTStatement functionStatement : initStatements) {
             if (functionStatement instanceof ASTExpressionStatement) {
               ASTExpressionStatement expressionStatement =
                   ((ASTExpressionStatement) functionStatement);

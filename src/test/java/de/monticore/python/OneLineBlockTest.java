@@ -1,6 +1,7 @@
 /* (c) https://github.com/MontiCore/monticore */
 package de.monticore.python;
 
+import de.monticore.python._ast.ASTClassDeclaration;
 import de.monticore.python._ast.ASTPythonScript;
 import de.monticore.python._cocos.*;
 import de.se_rwth.commons.logging.Log;
@@ -32,6 +33,33 @@ public class OneLineBlockTest {
   public void testSymbolTableForOneLineClasses() throws IOException {
     ASTPythonScript ast = PythonMill.parser().parse_String(MODEL).get();
     PythonMill.scopesGenitorDelegator().createFromAST(ast);
+    assertEquals(0, Log.getErrorCount());
+  }
+  
+  @Test
+  public void testSymbolTableForOneLineInit() throws IOException {
+    ASTPythonScript ast = PythonMill.parser().parse_String(
+        "class A:\n    def __init__(self): self.x = 1\n").get();
+    PythonMill.scopesGenitorDelegator().createFromAST(ast);
+    assertEquals(0, Log.getErrorCount());
+    ASTClassDeclaration classA = (ASTClassDeclaration) ast.getStatement(0);
+    assertTrue(classA.getSpannedScope().resolveFieldLocally("x").isPresent());
+  }
+  
+  @Test
+  public void testDeclarationInStatementBlockCocoOnOneLineBlocks() throws IOException {
+    ASTPythonScript ast = PythonMill.parser().parse_String(
+        "if x: pass\nelse: pass\nwhile x: pass\nfor i in x: pass\n").get();
+    PythonMill.scopesGenitorDelegator().createFromAST(ast);
+    
+    PythonFunctionOrClassDeclarationInStatementBlockCoco coco =
+        new PythonFunctionOrClassDeclarationInStatementBlockCoco();
+    PythonCoCoChecker checker = new PythonCoCoChecker();
+    checker.addCoCo((PythonASTIfStatementCoCo) coco);
+    checker.addCoCo((PythonASTWhileStatementCoCo) coco);
+    checker.addCoCo((PythonASTForStatementCoCo) coco);
+    checker.checkAll(ast);
+    
     assertEquals(0, Log.getErrorCount());
   }
   
