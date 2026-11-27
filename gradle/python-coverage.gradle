@@ -2,13 +2,15 @@
 // Grammar coverage tasks, applied from build.gradle.
 //
 //   pythonCoverage          parses every sample in src/test/resources/python-coverage/ (one test per file);
-//                           failures are recorded but do not fail the build
+//                           failures are recorded but do not fail the build; lists the samples that do not
+//                           parse in build/reports/pythonCoverage.md
 //   collectCoverageSamples  collects the samples of the current branch and of every other remote branch
 //                           into build/coverage-samples/ (a sample added on a parallel branch is run everywhere)
 //   pythonCoverageAll       like pythonCoverage, but on the collected samples
 //   compareCoverage         runs the collected samples against the grammar of the current branch and of every
 //                           other remote branch, prints the differences as a table, and fails if a sample that
-//                           parses on dev or on the parent branch of the current branch no longer parses
+//                           parses on dev or on the parent branch of the current branch no longer parses;
+//                           the report also lists the samples that do not parse on the current branch
 //
 // Options:  -PcoverageBranches=dev,foo   use only these branches instead of all remote branches
 //           -PcoverageParent=foo         the parent branch (default: dev); in CI the environment variable
@@ -156,6 +158,109 @@ def coverageBranches = {
   [current: current, branches: branches, refOf: refOf, parent: parent, parentNote: parentNote.toString()]
 }
 
+// ---- helpers for the reports ----
+// test name -> true (parses), false (does not parse) or null (not run: the test was skipped, see
+// PythonCoverageTest), from the JUnit XML files of a results folder
+def readResults = { File dir ->
+  Map<String, Boolean> parsed = [:]
+  def slurper = new groovy.xml.XmlSlurper()
+  dir.listFiles({ File f -> f.name.endsWith(".xml") } as FileFilter)?.each { File f ->
+    slurper.parse(f).testcase.each { tc ->
+      Boolean result = tc.skipped.size() > 0 ? null : (tc.failure.size() == 0 && tc.error.size() == 0)
+      parsed.put(tc.@name.toString(), result)
+    }
+  }
+  parsed
+}
+// the "Since" header of a sample, e.g. "Python 3.12"
+def sinceOf = { File samplesRoot, String file ->
+  def f = new File(samplesRoot, file)
+  def line = f.exists() ? f.readLines().find { it.startsWith("# Since:") } : null
+  line ? line.substring("# Since:".length()).trim() : "(no Since header)"
+}
+// sort key of a "Since" header: "original syntax ..." first, then "Python X.Y" by version, anything else last
+def versionKey = { String s ->
+  if (s.startsWith("original")) return 0
+  def m = s =~ /Python (\d+)\.(\d+)/
+  if (m.find()) return 1_00_00 + (m.group(1) as int) * 100 + (m.group(2) as int)
+  return 2_00_00
+}
+// display width in a monospace console: emoji such as ✅ ❌ 🆕 ⚠ take two columns,
+// the variation selector U+FE0F (after ⚠) takes none, everything else one
+def displayWidth = { String text ->
+  int width = 0
+  text.codePoints().toArray().each { int cp ->
+    if (cp >= 0x1F000 || (cp >= 0x2600 && cp <= 0x27BF)) {
+      width += 2
+    } else if (cp != 0xFE0F) {
+      width += 1
+    }
+  }
+  width
+}
+def pad = { String text, int width, boolean center ->
+  int gap = width - (displayWidth(text) as int)
+  int left = center ? gap.intdiv(2) : 0
+  " " * left + text + " " * (gap - left)
+}
+// a Markdown table whose columns line up in the console and in the .md file as well
+// (first column left-aligned, all other columns centered)
+def table = { List<String> header, List<List<String>> rows ->
+  List<List<String>> all = [header]
+  all.addAll(rows)
+  List<Integer> widths = (0..<header.size()).collect { int i ->
+    int widest = 3
+    all.each { List<String> r -> widest = Math.max(widest, displayWidth(r[i]) as int) }
+    widest
+  }
+  def line = { List<String> r ->
+    "| " + (0..<r.size()).collect { int i -> pad(r[i], widths[i], i > 0) }.join(" | ") + " |"
+  }
+  List<String> out = [line(header)]
+  // separator row: the first column left-aligned ("---"), all others centered (":---:")
+  List<String> separators = ["-" * (widths[0] + 2)]
+  widths.drop(1).each { int w -> separators.add(":" + "-" * w + ":") }
+  out.add("|" + separators.join("|") + "|")
+  rows.each { List<String> r -> out.add(line(r)) }
+  out
+}
+// The samples that do not parse: a table of the sections (folders) with the most unparsed samples first,
+// then all of them in the same order. Samples that were not run (null) are not listed.
+def notParsedReport = { Map<String, Boolean> results, File samplesRoot, String title ->
+  Map<String, List<String>> bySection = results.keySet().sort().groupBy { String t ->
+    t.contains('/') ? t.substring(0, t.lastIndexOf('/')) : '(root)'
+  }
+  Map<String, List<String>> failing = [:]
+  bySection.each { String section, List<String> files ->
+    List<String> notParsed = files.findAll { String t -> results[t] == false }
+    if (notParsed) failing[section] = notParsed
+  }
+  int total = failing.values().sum(0) { List<String> files -> files.size() }
+  List<String> lines = ["### $title ($total of ${results.size()})".toString(), ""]
+  int notRun = results.count { it.value == null }
+  if (notRun) lines.addAll(["$notRun samples were not run and are not listed.".toString(), ""])
+  if (!failing) {
+    lines.add("All samples parse.")
+    return lines
+  }
+  // "Python 3.12" -> "3.12", "original syntax (before Python 2.0)" -> "original"
+  def shortSince = { String since -> since.startsWith("original") ? "original" : since.replace("Python ", "") }
+  List<String> order = failing.keySet().sort { a, b -> failing[b].size() <=> failing[a].size() ?: a <=> b }
+  List<List<String>> rows = order.collect { String section ->
+    List<String> versions = failing[section].collect { String t -> sinceOf(samplesRoot, t) }.unique().sort { versionKey(it) }
+    String range = shortSince(versions.first())
+    if (versions.size() > 1) range += "–" + shortSince(versions.last())
+    [section, "${failing[section].size()}/${bySection[section].size()}".toString(), range]
+  }
+  lines.addAll(table(["Section", "Not parsed", "Since"], rows))
+  lines.addAll(["", "<details><summary>All $total samples</summary>".toString(), ""])
+  order.each { String section ->
+    failing[section].each { String t -> lines.add("- `$t` (${shortSince(sinceOf(samplesRoot, t))})".toString()) }
+  }
+  lines.addAll(["", "</details>"])
+  lines
+}
+
 def configureCoverageTest = { Test t, String name ->
   t.group = "verification"
   t.testClassesDirs = sourceSets.test.output.classesDirs
@@ -175,6 +280,21 @@ tasks.register('pythonCoverage', Test) {
   description = "Parses all Python coverage samples of this branch and records which ones the grammar supports."
   configureCoverageTest(it, 'pythonCoverage')
   inputs.dir(coverageSamplesDir)
+
+  def resultsDir = layout.buildDirectory.dir("test-results/pythonCoverage").get().asFile
+  def reportFile = layout.buildDirectory.file("reports/pythonCoverage.md").get().asFile
+  def samplesRoot = file(coverageSamplesDir)
+  outputs.file(reportFile) // so the report is also there when the results come from the build cache
+  doLast {
+    Map<String, Boolean> results = readResults(resultsDir)
+    List<String> lines = ["## Python coverage: ${results.count { it.value }}/${results.size()}".toString(), ""]
+    lines.addAll(notParsedReport(results, samplesRoot, "Not parsed"))
+    def report = lines.join("\n") + "\n"
+    reportFile.parentFile.mkdirs()
+    reportFile.text = report
+    logger.lifecycle("\n" + report)
+    logger.lifecycle("Report written to $reportFile")
+  }
 }
 
 tasks.register('collectCoverageSamples') {
@@ -237,31 +357,7 @@ tasks.register('compareCoverage') {
   doLast {
     def run = coverageRun
     def git = coverageGit
-    // test name -> true (parses), false (does not parse) or null (not run: the test was skipped, see
-    // PythonCoverageTest), from the JUnit XML files of a results folder
-    def readResults = { File dir ->
-      Map<String, Boolean> parsed = [:]
-      def slurper = new groovy.xml.XmlSlurper()
-      dir.listFiles({ File f -> f.name.endsWith(".xml") } as FileFilter)?.each { File f ->
-        slurper.parse(f).testcase.each { tc ->
-          Boolean result = tc.skipped.size() > 0 ? null : (tc.failure.size() == 0 && tc.error.size() == 0)
-          parsed.put(tc.@name.toString(), result)
-        }
-      }
-      parsed
-    }
-    def since = { String file ->
-      def f = new File(collectedSamples, file)
-      def line = f.exists() ? f.readLines().find { it.startsWith("# Since:") } : null
-      line ? line.substring("# Since:".length()).trim() : "(no Since header)"
-    }
-    // sort key of a "Since" header: "original syntax ..." first, then "Python X.Y" by version, anything else last
-    def versionKey = { String s ->
-      if (s.startsWith("original")) return 0
-      def m = s =~ /Python (\d+)\.(\d+)/
-      if (m.find()) return 1_00_00 + (m.group(1) as int) * 100 + (m.group(2) as int)
-      return 2_00_00
-    }
+    def since = { String file -> sinceOf(collectedSamples, file) }
     def versionComparator = { a, b -> versionKey(a.key) <=> versionKey(b.key) }
 
     // ---- 0. only one compareCoverage per checkout: they would share the worktree folder ----
@@ -450,46 +546,6 @@ tasks.register('compareCoverage') {
       // e.g. a sample from another branch that the grammar of dev cannot handle either)
       boolean newHang = notRun[branchName] && guarded.every { String b -> !notRun[b] }
 
-      // display width in a monospace console: emoji such as ✅ ❌ 🆕 ⚠ take two columns,
-      // the variation selector U+FE0F (after ⚠) takes none, everything else one
-      def displayWidth = { String text ->
-        int width = 0
-        text.codePoints().toArray().each { int cp ->
-          if (cp >= 0x1F000 || (cp >= 0x2600 && cp <= 0x27BF)) {
-            width += 2
-          } else if (cp != 0xFE0F) {
-            width += 1
-          }
-        }
-        width
-      }
-      def pad = { String text, int width, boolean center ->
-        int gap = width - (displayWidth(text) as int)
-        int left = center ? gap.intdiv(2) : 0
-        " " * left + text + " " * (gap - left)
-      }
-      // a Markdown table whose columns line up in the console and in the .md file as well
-      // (first column left-aligned, all other columns centered)
-      def table = { List<String> header, List<List<String>> rows ->
-        List<List<String>> all = [header]
-        all.addAll(rows)
-        List<Integer> widths = (0..<header.size()).collect { int i ->
-          int widest = 3
-          all.each { List<String> r -> widest = Math.max(widest, displayWidth(r[i]) as int) }
-          widest
-        }
-        def line = { List<String> r ->
-          "| " + (0..<r.size()).collect { int i -> pad(r[i], widths[i], i > 0) }.join(" | ") + " |"
-        }
-        List<String> out = [line(header)]
-        // separator row: the first column left-aligned ("---"), all others centered (":---:")
-        List<String> separators = ["-" * (widths[0] + 2)]
-        widths.drop(1).each { int w -> separators.add(":" + "-" * w + ":") }
-        out.add("|" + separators.join("|") + "|")
-        rows.each { List<String> r -> out.add(line(r)) }
-        out
-      }
-
       List<CharSequence> lines = []
       lines << "## Python coverage of $branchName: ${names.count { current[it] }}/${names.size()}"
       lines << ""
@@ -553,6 +609,8 @@ tasks.register('compareCoverage') {
       lines << ""
       lines << "### No longer parsed (${lost.values().flatten().unique().size()})"
       lost.each { b, l -> l.each { lines << "- `$it` (parses on $b)" } }
+      lines << ""
+      lines.addAll(notParsedReport(current, collectedSamples, "Not parsed on $branchName"))
 
       def report = lines.join("\n") + "\n"
       reportFile.parentFile.mkdirs()

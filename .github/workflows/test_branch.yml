@@ -91,10 +91,13 @@ jobs:
           if [ -n "$base" ]; then echo "COVERAGE_PARENT=$base" >> "$GITHUB_ENV"; fi
       - name: Compare coverage with all branches
         run: gradle compareCoverage ${{env.GRADLE_CLI_OPTS}}
-      - name: Add report to job summary
+      - name: Coverage report
+        # its own step, so the report can be read without scrolling through the build output of all branches;
+        # also added to the job summary
         if: always() # also show the report when the comparison found files that no longer parse
         run: |
           if [ -f build/reports/compareCoverage/report.md ]; then
+            cat build/reports/compareCoverage/report.md
             cat build/reports/compareCoverage/report.md >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No coverage report was created, see the log of the 'Compare coverage with all branches' step." >> "$GITHUB_STEP_SUMMARY"
