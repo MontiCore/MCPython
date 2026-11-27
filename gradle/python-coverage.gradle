@@ -1,0 +1,711 @@
+/* (c) https://github.com/MontiCore/monticore */
+// Grammar coverage tasks, applied from build.gradle.
+//
+//   pythonCoverage          parses every sample in src/test/resources/python-coverage/ (one test per file);
+//                           failures are recorded but do not fail the build; lists the samples that do not
+//                           parse in build/reports/pythonCoverage.md
+//   collectCoverageSamples  collects the samples of the current branch and of every other remote branch
+//                           into build/coverage-samples/ (a sample added on a parallel branch is run everywhere)
+//   pythonCoverageAll       like pythonCoverage, but on the collected samples
+//   compareCoverage         runs the collected samples against the grammar of the current branch and of every
+//                           other remote branch, prints the differences as a table, and fails if a sample that
+//                           parses on dev or on the parent branch of the current branch no longer parses;
+//                           the report also lists the samples that do not parse on the current branch
+//
+// Options:  -PcoverageBranches=dev,foo   use only these branches instead of all remote branches
+//           -PcoverageParent=foo         the parent branch (default: dev); in CI the environment variable
+//                                        COVERAGE_PARENT, set to the base branch of the open pull request
+//
+// None of these tasks is part of `build`.
+
+import java.nio.channels.FileChannel
+import java.nio.channels.FileLock
+import java.nio.channels.OverlappingFileLockException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
+
+def coverageSamplesDir = "src/test/resources/python-coverage"
+def coverageTestClass = "src/test/java/de/monticore/python/PythonCoverageTest.java"
+def coverageScript = "gradle/python-coverage.gradle"
+def coverageMainBranch = "dev"
+def collectedSamples = layout.buildDirectory.dir("coverage-samples").get().asFile
+// which branch each collected sample was taken from (path<TAB>branch)
+def collectedOrigins = layout.buildDirectory.file("coverage-samples-origin.txt").get().asFile
+def branchFilter = providers.gradleProperty("coverageBranches").orNull
+def parentProperty = providers.gradleProperty("coverageParent").orNull ?: System.getenv("COVERAGE_PARENT")
+def coverageProjectDir = layout.projectDirectory.asFile
+
+// ---- helpers shared by the tasks (plain ProcessBuilder, so no deprecated project.exec) ----
+// showOutput: forward the process output to the build log line by line instead of returning it
+// (inheriting the streams would send it to the Gradle daemon's log file, not to the console).
+// stdin is always closed: a nested Gradle client that shares stdin with this build does not exit
+// after its build on Windows (seen with Gradle 8.5).
+def coverageRun = { List cmd, File dir, boolean showOutput, long timeoutMinutes = 30 ->
+  def pb = new ProcessBuilder(cmd.collect { it.toString() } as List<String>).directory(dir).redirectErrorStream(true)
+  def proc = pb.start()
+  proc.outputStream.close()
+  // read the output in its own thread, so the timeout below still works if the process hangs
+  def out = new StringBuffer()
+  def reader = Thread.start {
+    def lineReader = proc.inputStream.newReader()
+    String line
+    while ((line = lineReader.readLine()) != null) {
+      if (showOutput) {
+        logger.lifecycle("  | $line")
+      } else {
+        out.append(line).append("\n")
+      }
+    }
+  }
+  if (!proc.waitFor(timeoutMinutes, TimeUnit.MINUTES)) {
+    proc.descendants().forEach { it.destroyForcibly() }
+    proc.destroyForcibly()
+    throw new GradleException("${cmd.join(' ')} did not finish within $timeoutMinutes minutes")
+  }
+  reader.join(10000)
+  [exit: proc.exitValue(), out: out.toString().trim()]
+}
+def coverageGit = { String... args ->
+  def r = coverageRun(["git"] + args.toList(), coverageProjectDir, false)
+  if (r.exit != 0) throw new GradleException("git ${args.join(' ')} failed:\n${r.out}")
+  r.out
+}
+def coverageGitOk = { String... args -> coverageRun(["git"] + args.toList(), coverageProjectDir, false).exit == 0 }
+// a file of a commit, byte for byte (`git show <sha>:<path>`)
+def coverageGitBytes = { String sha, String path ->
+  def proc = new ProcessBuilder(["git", "show", "$sha:$path".toString()]).directory(coverageProjectDir).start()
+  proc.outputStream.close()
+  proc.errorStream.close()
+  def bytes = proc.inputStream.readAllBytes()
+  if (proc.waitFor() != 0) throw new GradleException("git show $sha:$path failed")
+  bytes
+}
+def deleteDir = { File dir -> if (dir.exists()) dir.deleteDir() }
+// plain Java file operations: Project.copy/delete must not be called while a task runs
+def copyInto = { File source, File target ->
+  if (source.isDirectory()) {
+    source.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+      def dest = new File(target, source.toPath().relativize(f.toPath()).toString())
+      dest.parentFile.mkdirs()
+      Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING)
+    }
+  } else {
+    target.parentFile.mkdirs()
+    Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+  }
+}
+// sample files (relative, '/'-separated) below a folder of the working tree
+def samplesIn = { File dir ->
+  Set<String> files = new TreeSet<>()
+  if (dir.isDirectory()) {
+    dir.eachFileRecurse(groovy.io.FileType.FILES) { File f -> files.add(dir.toPath().relativize(f.toPath()).toString().replace('\\', '/')) }
+  }
+  files
+}
+// sample files of a commit
+def samplesOf = { String sha ->
+  Set<String> files = new TreeSet<>()
+  coverageGit("ls-tree", "-r", "--name-only", sha, "--", coverageSamplesDir).readLines().each { String line ->
+    files.add(line.substring(coverageSamplesDir.length() + 1))
+  }
+  files
+}
+
+// The current branch, the other branches and the parent branch:
+// [current: name, branches: [names: dev, parent, then by name], refOf: name -> git ref, parent: name or null, parentNote: text]
+def coverageBranches = {
+  // branch name: from GitHub Actions if available, else from git; the short commit hash for a detached HEAD
+  def current = System.getenv("GITHUB_REF_NAME") ?: coverageRun(["git", "rev-parse", "--abbrev-ref", "HEAD"], coverageProjectDir, false).out
+  if (!current || current == "HEAD") current = coverageGit("rev-parse", "--short", "HEAD")
+
+  // remote branches (origin/*) are preferred, because that is what gets merged; local branches only without a remote
+  def remote = coverageGit("for-each-ref", "--format=%(refname:short)", "refs/remotes/origin").readLines()
+      .findAll { it.startsWith("origin/") && it != "origin/HEAD" }.collect { it.substring("origin/".length()) }
+  def local = coverageGit("for-each-ref", "--format=%(refname:short)", "refs/heads").readLines()
+  def refOf = { String b -> remote.contains(b) ? "origin/$b".toString() : b }
+  def branches
+  if (branchFilter) {
+    branches = branchFilter.split(",").collect { it.trim() }.findAll { it }
+    branches.each { b ->
+      if (!coverageGitOk("rev-parse", "--verify", "--quiet", refOf(b))) throw new GradleException("coverageBranches: unknown branch '$b'")
+    }
+  } else {
+    branches = remote ?: local
+  }
+  branches = (branches - current).unique()
+
+  // The parent branch is given explicitly (CI: the base branch of the open pull request), because git history
+  // cannot tell whether this branch was forked from another branch or the other branch from this one.
+  // Without it, dev is the parent.
+  String explicitParent = parentProperty?.trim() ?: null
+  if (explicitParent) {
+    if (explicitParent == current) throw new GradleException("coverageParent: '$explicitParent' is the current branch")
+    if (!coverageGitOk("rev-parse", "--verify", "--quiet", refOf(explicitParent))) {
+      throw new GradleException("coverageParent: unknown branch '$explicitParent'")
+    }
+    if (!branches.contains(explicitParent)) branches = branches + explicitParent // also with -PcoverageBranches
+  }
+  String parent = explicitParent ?: (branches.contains(coverageMainBranch) ? coverageMainBranch : null)
+  String parentNote = explicitParent ? "$parent (given with coverageParent)" : (parent ? "$parent (default)" : "none")
+
+  // order: dev first, then the parent, then the others by name
+  def rank = { String b -> b == coverageMainBranch ? 0 : (b == parent ? 1 : 2) }
+  branches = branches.sort { a, b -> rank(a) <=> rank(b) ?: a <=> b }
+  if (branches.isEmpty()) throw new GradleException("No other branches found to compare with")
+  [current: current, branches: branches, refOf: refOf, parent: parent, parentNote: parentNote.toString()]
+}
+
+// ---- helpers for the reports ----
+// test name -> true (parses), false (does not parse) or null (not run: the test was skipped, see
+// PythonCoverageTest), from the JUnit XML files of a results folder
+def readResults = { File dir ->
+  Map<String, Boolean> parsed = [:]
+  def slurper = new groovy.xml.XmlSlurper()
+  dir.listFiles({ File f -> f.name.endsWith(".xml") } as FileFilter)?.each { File f ->
+    slurper.parse(f).testcase.each { tc ->
+      Boolean result = tc.skipped.size() > 0 ? null : (tc.failure.size() == 0 && tc.error.size() == 0)
+      parsed.put(tc.@name.toString(), result)
+    }
+  }
+  parsed
+}
+// the "Since" header of a sample, e.g. "Python 3.12"
+def sinceOf = { File samplesRoot, String file ->
+  def f = new File(samplesRoot, file)
+  def line = f.exists() ? f.readLines().find { it.startsWith("# Since:") } : null
+  line ? line.substring("# Since:".length()).trim() : "(no Since header)"
+}
+// sort key of a "Since" header: "original syntax ..." first, then "Python X.Y" by version, anything else last
+def versionKey = { String s ->
+  if (s.startsWith("original")) return 0
+  def m = s =~ /Python (\d+)\.(\d+)/
+  if (m.find()) return 1_00_00 + (m.group(1) as int) * 100 + (m.group(2) as int)
+  return 2_00_00
+}
+// display width in a monospace console: emoji such as ✅ ❌ 🆕 ⚠ take two columns,
+// the variation selector U+FE0F (after ⚠) takes none, everything else one
+def displayWidth = { String text ->
+  int width = 0
+  text.codePoints().toArray().each { int cp ->
+    if (cp >= 0x1F000 || (cp >= 0x2600 && cp <= 0x27BF)) {
+      width += 2
+    } else if (cp != 0xFE0F) {
+      width += 1
+    }
+  }
+  width
+}
+def pad = { String text, int width, boolean center ->
+  int gap = width - (displayWidth(text) as int)
+  int left = center ? gap.intdiv(2) : 0
+  " " * left + text + " " * (gap - left)
+}
+// a Markdown table whose columns line up in the console and in the .md file as well
+// (first column left-aligned, all other columns centered)
+def table = { List<String> header, List<List<String>> rows ->
+  List<List<String>> all = [header]
+  all.addAll(rows)
+  List<Integer> widths = (0..<header.size()).collect { int i ->
+    int widest = 3
+    all.each { List<String> r -> widest = Math.max(widest, displayWidth(r[i]) as int) }
+    widest
+  }
+  def line = { List<String> r ->
+    "| " + (0..<r.size()).collect { int i -> pad(r[i], widths[i], i > 0) }.join(" | ") + " |"
+  }
+  List<String> out = [line(header)]
+  // separator row: the first column left-aligned ("---"), all others centered (":---:")
+  List<String> separators = ["-" * (widths[0] + 2)]
+  widths.drop(1).each { int w -> separators.add(":" + "-" * w + ":") }
+  out.add("|" + separators.join("|") + "|")
+  rows.each { List<String> r -> out.add(line(r)) }
+  out
+}
+// The samples that do not parse. byColumn: column header -> results of a branch (null if its build failed); the
+// first column is the branch whose unparsed samples are listed. First a table of the sections (folders) with
+// unparsed samples, the most unparsed samples of the first branch first, then all unparsed samples of the first
+// branch in the same order. With one branch the table shows the Python versions of the unparsed samples; with
+// several it shows one column per branch, so you can see whether a gap is already closed on another branch.
+// Samples that were not run (null) are not counted.
+def notParsedReport = { Map<String, Map<String, Boolean>> byColumn, File samplesRoot, String title ->
+  // only samples: if the test factory itself fails, JUnit reports a test named after the factory method
+  Map<String, Map<String, Boolean>> columns = byColumn.collectEntries { String c, Map<String, Boolean> r ->
+    [c, r?.findAll { it.key.endsWith(".py") }]
+  }
+  Map<String, Boolean> results = columns.values().first()
+  Map<String, List<String>> bySection = results.keySet().sort().groupBy { String t ->
+    t.contains('/') ? t.substring(0, t.lastIndexOf('/')) : '(root)'
+  }
+  def notParsedIn = { Map<String, Boolean> r, List<String> files -> files.findAll { String t -> r?.get(t) == false } }
+  // "not parsed/run" of a section on a branch
+  def countOf = { Map<String, Boolean> r, List<String> files ->
+    r == null ? "build failed" : "${notParsedIn(r, files).size()}/${files.count { String t -> r[t] != null }}".toString()
+  }
+  // sections with unparsed samples on any branch
+  List<String> sections = bySection.keySet().toList().findAll { String s ->
+    columns.values().any { Map<String, Boolean> r -> notParsedIn(r, bySection[s]) }
+  }
+  Map<String, List<String>> failing = bySection.collectEntries { String s, List<String> files -> [s, notParsedIn(results, files)] }
+  int total = failing.values().sum(0) { List<String> files -> files.size() }
+  int notRun = results.count { it.value == null }
+  List<String> lines = ["### $title ($total of ${results.size() - notRun})".toString(), ""]
+  if (notRun) lines.addAll(["$notRun samples were not run and are not listed.".toString(), ""])
+  if (!sections) {
+    lines.add("All samples parse.")
+    return lines
+  }
+  // "Python 3.12" -> "3.12", "original syntax (before Python 2.0)" -> "original"
+  def shortSince = { String since -> since.startsWith("original") ? "original" : since.replace("Python ", "") }
+  List<String> order = sections.sort { a, b -> failing[b].size() <=> failing[a].size() ?: a <=> b }
+  List<List<String>> rows = order.collect { String section ->
+    List<String> row = [section]
+    columns.values().each { Map<String, Boolean> r -> row.add(countOf(r, bySection[section])) }
+    if (columns.size() == 1) {
+      // the range of the known versions ("?" if no sample has a "Since: original ..." or "Since: Python X.Y" header)
+      List<String> versions = failing[section].collect { String t -> sinceOf(samplesRoot, t) }
+          .findAll { String v -> versionKey(v) < 2_00_00 }.unique().sort { versionKey(it) }
+      String range = versions ? shortSince(versions.first()) : "?"
+      if (versions.size() > 1) range += "–" + shortSince(versions.last())
+      row.add(range)
+    }
+    row
+  }
+  List<String> header = ["Section"] + (columns.size() == 1 ? ["Not parsed", "Since"] : columns.keySet().toList())
+  lines.addAll(table(header, rows))
+  if (total) {
+    lines.addAll(["", "<details><summary>All $total samples</summary>".toString(), ""])
+    order.each { String section ->
+      failing[section].each { String t -> lines.add("- `$t` (${shortSince(sinceOf(samplesRoot, t))})".toString()) }
+    }
+    lines.addAll(["", "</details>"])
+  }
+  lines
+}
+
+def configureCoverageTest = { Test t, String name ->
+  t.group = "verification"
+  t.testClassesDirs = sourceSets.test.output.classesDirs
+  t.classpath = sourceSets.test.runtimeClasspath
+  t.useJUnitPlatform {
+    includeTags "coverage"
+  }
+  t.ignoreFailures = true
+  t.reports.junitXml.outputLocation.set(layout.buildDirectory.dir("test-results/$name"))
+  t.reports.html.outputLocation.set(layout.buildDirectory.dir("reports/$name"))
+  t.testLogging {
+    events "passed", "failed"
+  }
+}
+
+tasks.register('pythonCoverage', Test) {
+  description = "Parses all Python coverage samples of this branch and records which ones the grammar supports."
+  configureCoverageTest(it, 'pythonCoverage')
+  inputs.dir(coverageSamplesDir)
+
+  def resultsDir = layout.buildDirectory.dir("test-results/pythonCoverage").get().asFile
+  def reportFile = layout.buildDirectory.file("reports/pythonCoverage.md").get().asFile
+  def samplesRoot = file(coverageSamplesDir)
+  outputs.file(reportFile) // so the report is also there when the results come from the build cache
+  doLast {
+    Map<String, Boolean> results = readResults(resultsDir)
+    List<String> lines = ["## Python coverage: ${results.count { it.value }}/${results.size()}".toString(), ""]
+    lines.addAll(notParsedReport(["Not parsed": results], samplesRoot, "Not parsed"))
+    def report = lines.join("\n") + "\n"
+    reportFile.parentFile.mkdirs()
+    reportFile.text = report
+    logger.lifecycle("\n" + report)
+    logger.lifecycle("Report written to $reportFile")
+  }
+}
+
+tasks.register('collectCoverageSamples') {
+  description = "Collects the Python coverage samples of this branch and of all other remote branches into build/coverage-samples/."
+  group = "verification"
+  outputs.upToDateWhen { false }
+
+  doLast {
+    def info = coverageBranches()
+    String currentBranch = info.current
+    List<String> otherBranches = info.branches
+    Closure<String> refOfBranch = info.refOf
+    deleteDir(collectedSamples)
+    // 1. the samples of the working tree (they win if a path exists on several branches)
+    copyInto(new File(coverageProjectDir, coverageSamplesDir), collectedSamples)
+    def origins = new TreeMap<String, String>()
+    samplesIn(collectedSamples).each { String f -> origins.put(f, currentBranch) }
+    // 2. the samples that exist only on other branches (dev first, then the parent, then by name; the first one wins,
+    //    so dev and the parent are always checked against their own version of a sample)
+    otherBranches.each { String b ->
+      String sha = coverageGit("rev-parse", refOfBranch(b))
+      samplesOf(sha).findAll { String f -> !origins.containsKey(f) }.each { String file ->
+        def target = new File(collectedSamples, file)
+        target.parentFile.mkdirs()
+        target.bytes = coverageGitBytes(sha, "$coverageSamplesDir/$file")
+        origins[file] = b
+      }
+    }
+    collectedOrigins.parentFile.mkdirs()
+    collectedOrigins.text = origins.collect { k, v -> "$k\t$v" }.join("\n") + "\n"
+    def foreign = origins.findAll { it.value != currentBranch }
+    logger.lifecycle("Collected ${origins.count { it.key.endsWith('.py') }} samples, " +
+        "${foreign.count { it.key.endsWith('.py') }} of them only from other branches")
+  }
+}
+
+tasks.register('pythonCoverageAll', Test) {
+  description = "Parses the samples collected from all branches with the grammar of this branch."
+  configureCoverageTest(it, 'pythonCoverageAll')
+  dependsOn 'collectCoverageSamples'
+  systemProperty "pythonCoverage.root", collectedSamples.absolutePath
+  // the collected samples are an input, so the build cache never returns results for other samples
+  inputs.dir(collectedSamples).withPropertyName("collectedSamples").withPathSensitivity(PathSensitivity.RELATIVE)
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('compareCoverage') {
+  description = "Compares the Python coverage of this branch with all other remote branches."
+  group = "verification"
+  dependsOn 'pythonCoverageAll'
+  outputs.upToDateWhen { false }
+
+  def projectDir = coverageProjectDir
+  def buildDir = layout.buildDirectory.get().asFile
+  // the Gradle installation running this build (the wrapper is not tracked in this repo, and CI uses an installed Gradle)
+  def gradleHome = gradle.gradleHomeDir
+  def currentResults = layout.buildDirectory.dir("test-results/pythonCoverageAll").get().asFile
+  def reportFile = layout.buildDirectory.file("reports/compareCoverage/report.md").get().asFile
+
+  doLast {
+    def run = coverageRun
+    def git = coverageGit
+    def since = { String file -> sinceOf(collectedSamples, file) }
+    def versionComparator = { a, b -> versionKey(a.key) <=> versionKey(b.key) }
+
+    // ---- 0. only one compareCoverage per checkout: they would share the worktree folder ----
+    def lockFile = new File(buildDir, "compareCoverage.lock")
+    lockFile.parentFile.mkdirs()
+    def lockChannel = FileChannel.open(lockFile.toPath(),
+        StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+    FileLock lock = null
+    try {
+      lock = lockChannel.tryLock()
+    } catch (OverlappingFileLockException ignored) {
+      // held by another build in the same Gradle daemon
+    }
+    if (lock == null) {
+      lockChannel.close()
+      throw new GradleException("Another compareCoverage is already running in this checkout. Wait until it has finished.")
+    }
+    try {
+      // ---- 1. the current branch and the branches to compare with ----
+      def info = coverageBranches()
+      String branchName = info.current
+      List<String> branches = info.branches
+      Closure<String> refOf = info.refOf
+
+      // ---- 2. parent branch: given with -PcoverageParent / COVERAGE_PARENT, else dev (see coverageBranches) ----
+      String parent = info.parent
+      String parentNote = info.parentNote
+      logger.lifecycle("Branch: $branchName, parent: $parentNote")
+      logger.lifecycle("Comparing with: ${branches.join(', ')}")
+
+      // ---- 3. cache key: everything the results of a branch depend on ----
+      // CI keeps build/coverage-base-cache/ between runs; one entry per branch commit.
+      def cacheRoot = new File(buildDir, "coverage-base-cache")
+      def harnessDigest = MessageDigest.getInstance("SHA-256")
+      // each input as label -> file or folder; files are hashed with their path, in a fixed order
+      Map<String, File> inputs = [samples: collectedSamples, test: new File(projectDir, coverageTestClass), script: new File(projectDir, coverageScript)]
+      inputs.each { String label, File f ->
+        Map<String, File> files = new TreeMap<>()
+        if (f.isDirectory()) {
+          f.eachFileRecurse(groovy.io.FileType.FILES) { File file ->
+            files.put(label + "/" + f.toPath().relativize(file.toPath()).toString().replace('\\', '/'), file)
+          }
+        } else {
+          files.put(label, f)
+        }
+        files.each { String rel, File file ->
+          harnessDigest.update(rel.bytes)
+          harnessDigest.update(file.bytes)
+        }
+      }
+      def harnessHash = harnessDigest.digest().encodeHex().toString()
+      def cacheKeyOf = { String sha ->
+        MessageDigest.getInstance("SHA-256").digest((sha + harnessHash).bytes).encodeHex().toString().take(16)
+      }
+
+      // ---- 4. results of every branch: from the cache, or built in a worktree ----
+      def worktree = new File(buildDir, "coverage-base")
+      // `git worktree remove` fails on Windows when the build created paths longer than 260 characters,
+      // so delete the folder directly (Java handles long paths) and let git forget it with `prune`
+      def removeWorktree = {
+        deleteDir(worktree)
+        git("worktree", "prune")
+      }
+      def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+      def gradleCmd = new File(gradleHome, isWindows ? "bin/gradle.bat" : "bin/gradle").absolutePath
+
+      Map<String, String> shas = [:]                   // branch -> short sha
+      Map<String, Map<String, Boolean>> results = [:]  // branch -> [test -> passed], null if the build failed
+      Map<String, Set<String>> fileSets = [:]          // branch -> sample files that exist on that branch
+      fileSets[branchName] = samplesIn(new File(projectDir, coverageSamplesDir))
+      def usedKeys = [] as Set
+      branches.each { String b ->
+        String sha = git("rev-parse", refOf(b))
+        shas[b] = sha.take(7)
+        fileSets[b] = samplesOf(sha)
+        def key = cacheKeyOf(sha)
+        usedKeys << key
+        def cached = new File(cacheRoot, key)
+        if (cached.isDirectory() && cached.listFiles().any { it.name.endsWith(".xml") }) {
+          logger.lifecycle("$b (${shas[b]}): using cached results (cache key $key)")
+          results[b] = readResults(cached)
+          return
+        }
+
+        removeWorktree()
+        git("worktree", "add", "--detach", worktree.absolutePath, sha)
+        try {
+          // copy the collected samples, the test class and the task definitions into the worktree
+          deleteDir(new File(worktree, coverageSamplesDir))
+          copyInto(collectedSamples, new File(worktree, coverageSamplesDir))
+          [coverageTestClass, coverageScript].each { path ->
+            copyInto(new File(projectDir, path), new File(worktree, path))
+          }
+
+          // init script: add pythonCoverage to the build unless its build.gradle already applies the script
+          def initScript = new File(buildDir, "coverage-base.init.gradle")
+          def scriptPath = new File(worktree, coverageScript).absolutePath.replace('\\', '/')
+          initScript.text = """\
+            gradle.afterProject { p ->
+              if (p == p.rootProject && p.tasks.findByName('pythonCoverage') == null) {
+                p.apply from: '${scriptPath}'
+              }
+            }
+            """.stripIndent()
+
+          logger.lifecycle("$b (${shas[b]}): running pythonCoverage ...")
+          def r
+          try {
+            r = run([gradleCmd, "-p", worktree.absolutePath, "--init-script", initScript.absolutePath,
+                     "pythonCoverage", "--console=plain", "--quiet"], projectDir, true)
+          } catch (GradleException e) { // the nested build did not finish within the timeout
+            logger.warn("$b (${shas[b]}): ${e.message}")
+            r = [exit: -1]
+          }
+          def xmlDir = new File(worktree, "build/test-results/pythonCoverage")
+          if (r.exit != 0 || !xmlDir.isDirectory()) {
+            // not cached, so the next run tries again (the failure may be temporary)
+            logger.warn("$b (${shas[b]}): pythonCoverage failed (exit code ${r.exit}), the branch is shown as 'build failed'")
+            results[b] = null
+          } else {
+            deleteDir(cached)
+            copyInto(xmlDir, cached)
+            results[b] = readResults(cached)
+          }
+        } finally {
+          removeWorktree()
+        }
+      }
+      // drop cache entries no branch uses any more (not with -PcoverageBranches: the entries of the branches left
+      // out are still valid and would otherwise be rebuilt by the next full run)
+      if (!branchFilter) {
+        cacheRoot.listFiles()?.findAll { it.isDirectory() && !usedKeys.contains(it.name) }?.each { deleteDir(it) }
+      }
+
+      // ---- 5. compare ----
+      Map<String, Boolean> current = readResults(currentResults)
+      if (current.isEmpty()) throw new GradleException("No pythonCoverageAll results found in $currentResults")
+      List<String> names = current.keySet().sort()
+      List<String> built = branches.findAll { String b -> results[b] != null }
+      List<String> failed = branches.findAll { String b -> results[b] == null }
+      // column order: current branch, parent, dev, the other branches that built, then those whose build failed
+      // (no results at all), each group by name. Parent and dev keep their place even if their build failed.
+      List<String> guardedOrder = [parent, coverageMainBranch].findAll { String b -> b && branches.contains(b) }.unique()
+      List<String> others = branches.findAll { String b -> !guardedOrder.contains(b) }
+      List<String> columns = [branchName]
+      columns.addAll(guardedOrder)
+      columns.addAll(others.findAll { String b -> results[b] != null }.sort())
+      columns.addAll(others.findAll { String b -> results[b] == null }.sort())
+      def resultOf = { String b, String test -> b == branchName ? current[test] : results[b]?.get(test) }
+      def isMissingOn = { String b, String test -> !fileSets[b].contains(test) }
+      def cell = { String b, String test ->
+        if (b != branchName && results[b] == null) return "build failed"
+        def ok = resultOf(b, test)
+        def mark = ok == null ? "–" : (ok ? "✅" : "❌")
+        isMissingOn(b, test) ? "$mark 🆕" : mark
+      }
+      def count = { String b, List<String> files ->
+        b != branchName && results[b] == null ? "build failed" : "${files.count { String t -> resultOf(b, t) }}/${files.size()}"
+      }
+      def column = { String b -> b == branchName ? "**$b**" : (b == parent ? "$b (parent)" : b) }
+
+      // a test is listed only if the branches disagree (branches whose build failed and samples that were not run
+      // are left out)
+      List<String> guarded = [coverageMainBranch, parent].findAll { String b -> b && results[b] != null }.unique()
+      List<String> differing = names.findAll { String t ->
+        List<Boolean> all = [current[t]] + built.collect { String b -> results[b][t] }
+        Set<Boolean> known = all.findAll { it != null } as Set // null = not run
+        known.size() > 1
+      }
+      // no longer parsed: a sample of dev or the parent parses there, but not on this branch.
+      // Samples deleted on this branch still come from dev / the parent, so deleting a sample does not hide a loss.
+      // A sample that was not run on this branch (null) is unknown, never lost.
+      Map<String, List<String>> lost = [:]
+      guarded.each { String b ->
+        List<String> l = names.findAll { String t -> current[t] == false && results[b][t] == true && !isMissingOn(b, t) }
+        if (l) lost[b] = l
+      }
+      // samples that were not run (skipped after a parser timeout), per branch with results
+      Map<String, Integer> notRun = [:]
+      columns.findAll { String b -> b == branchName || results[b] != null }.each { String b ->
+        Map<String, Boolean> res = b == branchName ? current : results[b]
+        int n = names.count { String t -> res.containsKey(t) && res[t] == null }
+        if (n) notRun[b] = n
+      }
+      // a hang on this branch fails the comparison, unless dev / the parent hang too (then it is not new,
+      // e.g. a sample from another branch that the grammar of dev cannot handle either)
+      boolean newHang = notRun[branchName] && guarded.every { String b -> !notRun[b] }
+
+      List<CharSequence> lines = []
+      lines << "## Python coverage of $branchName: ${names.count { current[it] }}/${names.size()}"
+      lines << ""
+      lines << "Parent branch: $parentNote. Compared with: " + branches.collect { "$it (${shas[it]})" }.join(", ") + "."
+      lines << ""
+      lines << "Fails if a sample that parses on " + ([coverageMainBranch, parent].findAll { it }.unique().join(" or ")) +
+          " no longer parses on $branchName."
+      lines << ""
+      lines << "The samples of all branches are run on every branch. 🆕 = the sample does not exist on that branch " +
+          "(it comes from another branch, or was removed there). – = not run."
+      notRun.each { String b, Integer n ->
+        String effect = b == branchName && newHang ? "This fails the comparison." : "They count as unknown (neither parsed nor lost)."
+        lines.add("- ⚠️ $b: $n samples were not run, because a parser did not stop after its timeout. $effect".toString())
+      }
+      columns.each { String b ->
+        List<String> missing = names.findAll { String t -> isMissingOn(b, t) }
+        if (missing) lines << "- $b: ${missing.size()} of ${names.size()} samples do not exist there"
+      }
+      // samples of dev / the parent that were removed on this branch (they are still run, see above)
+      guarded.each { String b ->
+        List<String> removed = names.findAll { String t -> isMissingOn(branchName, t) && !isMissingOn(b, t) }
+        if (removed) {
+          lines.add("")
+          lines.add("Samples of $b that do not exist on $branchName (${removed.size()}, removed or not merged yet):".toString())
+          removed.each { String t -> lines.add("- `$t`".toString()) }
+        }
+      }
+      if (failed) {
+        lines.add("")
+        lines.add("⚠️ The build failed on: ${failed.join(', ')}.".toString())
+      }
+      lines << ""
+      // a table row: the label, then one cell per column
+      def row = { String label, Closure cellOf ->
+        List<String> r = [label]
+        columns.each { String b -> r.add(cellOf(b).toString()) }
+        r
+      }
+      def header = { String first -> row(first, column) }
+      // a row with the number of parsed samples per branch, and a row with the result of one sample per branch
+      def countRow = { String label, List<String> files -> row(label) { String b -> count(b, files) } }
+      def testRow = { String test -> row("`$test`".toString()) { String b -> cell(b, test) } }
+
+      Map<String, List<String>> byChapter = names.groupBy { String t -> t.contains('/') ? t.substring(0, t.indexOf('/')) : '(root)' }
+      List<List<String>> chapterRows = byChapter.sort().collect { String chapter, List<String> files -> countRow(chapter, files) }
+      chapterRows.add(countRow("**Total**", names))
+      lines.addAll(table(header("Chapter"), chapterRows))
+      lines << ""
+      Map<String, List<String>> bySince = names.groupBy { String t -> since(t) }
+      List<List<String>> sinceRows = bySince.sort(versionComparator).collect { String version, List<String> files -> countRow(version, files) }
+      lines.addAll(table(header("Since"), sinceRows))
+      lines << ""
+      lines << "### Differences between branches (${differing.size()})"
+      lines << ""
+      if (differing) {
+        List<List<String>> testRows = differing.collect { String t -> testRow(t) }
+        lines.addAll(table(header("Test"), testRows))
+      } else {
+        lines << "All branches parse the same samples."
+      }
+      lines << ""
+      lines << "### No longer parsed (${lost.values().flatten().unique().size()})"
+      lost.each { b, l -> l.each { lines << "- `$it` (parses on $b)" } }
+      lines << ""
+      // one column per branch, like the tables above
+      Map<String, Map<String, Boolean>> byColumn = columns.collectEntries { String b ->
+        [column(b).toString(), b == branchName ? current : results[b]]
+      }
+      lines.addAll(notParsedReport(byColumn, collectedSamples, "Not parsed on $branchName"))
+
+      def report = lines.join("\n") + "\n"
+      reportFile.parentFile.mkdirs()
+      reportFile.text = report
+      logger.lifecycle("\n" + report)
+      logger.lifecycle("Report written to $reportFile")
+
+      [coverageMainBranch, parent].findAll { it && branches.contains(it) && results[it] == null }.unique().each { b ->
+        throw new GradleException("pythonCoverage failed on $b, so the coverage of $branchName could not be checked against it")
+      }
+      // a parser that does not stop after its timeout is a grammar bug, and it hides the results of the samples after it
+      if (newHang) {
+        throw new GradleException("A parser on $branchName did not stop after its timeout, so ${notRun[branchName]} " +
+            "samples were not run (see the skipped tests in the pythonCoverageAll report)")
+      }
+      if (!lost.isEmpty()) {
+        throw new GradleException("Files parse on ${lost.keySet().join(' / ')} but no longer on $branchName: " +
+            lost.values().flatten().unique().join(', '))
+      }
+    } finally {
+      lock.release()
+      lockChannel.close()
+    }
+  }
+}
+
+// Checks that every sample of this branch is valid Python: `python -m compileall` in the official Python image.
+// Only the samples of the current branch (each branch checks its own samples). Needs Docker. Not part of `build`.
+def pythonCheckImage = "python:3.15-slim" // newest stable Python, see the README
+
+tasks.register('checkPythonSamples') {
+  description = "Checks with $pythonCheckImage (Docker) that every Python coverage sample of this branch is valid Python."
+  group = "verification"
+  def samples = new File(coverageProjectDir, coverageSamplesDir)
+  def reportFile = layout.buildDirectory.file("reports/checkPythonSamples/report.md").get().asFile
+  inputs.dir(samples)
+  outputs.file(reportFile)
+
+  doLast {
+    if (coverageRun(["docker", "version", "--format", "{{.Server.Version}}"], coverageProjectDir, false).exit != 0) {
+      throw new GradleException("Docker is not available or not running. Start Docker and run checkPythonSamples again.")
+    }
+    def count = samplesIn(samples).count { it.endsWith(".py") }
+    logger.lifecycle("Checking $count samples with $pythonCheckImage ...")
+    // read-only mount; PYTHONPYCACHEPREFIX writes the bytecode to /tmp in the container instead of into the samples
+    def r = coverageRun(["docker", "run", "--rm", "-v", "${samples.absolutePath}:/samples:ro", "-e", "PYTHONPYCACHEPREFIX=/tmp/pycache",
+                         pythonCheckImage, "python", "-m", "compileall", "-q", "/samples"], coverageProjectDir, false, 15)
+    // show the paths relative to the repo instead of the container paths
+    def output = r.out.replace("/samples/", "$coverageSamplesDir/")
+    def failed = output.readLines().findAll { it.startsWith("*** Error compiling") }
+        .collect { String line -> line.find(/'(.*)'/) { String match, String path -> path } ?: line } // the quoted path
+
+    def lines = []
+    if (r.exit == 0) {
+      lines << "## Python samples: all $count are valid Python ($pythonCheckImage)"
+    } else {
+      lines << "## Python samples: ${failed.size()} of $count are not valid Python ($pythonCheckImage)"
+      lines << ""
+      lines << "```"
+      lines << output
+      lines << "```"
+    }
+    reportFile.parentFile.mkdirs()
+    reportFile.text = lines.join("\n") + "\n"
+    logger.lifecycle(lines.join("\n"))
+    if (r.exit != 0) {
+      throw new GradleException("${failed.size() ?: 'Some'} sample(s) are not valid Python, see $reportFile")
+    }
+  }
+}

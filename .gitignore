@@ -18,3 +18,4 @@ target-emf/
 /gradlew
 /gradlew.bat
 /bin/
+__pycache__/

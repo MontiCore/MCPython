@@ -56,7 +56,10 @@ repositories {
 }
 
 test {
-  useJUnitPlatform()
+  useJUnitPlatform {
+    // grammar coverage tests run in their own task, see pythonCoverage
+    excludeTags "coverage"
+  }
   testLogging {
     exceptionFormat = 'full'
     showStackTraces = true
@@ -83,9 +86,14 @@ shadowJar {
   archiveClassifier = "cli"
 }
 
+// Grammar coverage tasks (pythonCoverage, compareCoverage), see the file for details
+apply from: "gradle/python-coverage.gradle"
+
 tasks.register('testReport', TestReport) {
   destinationDirectory = layout.buildDirectory.dir("reports/allTests")
-  getTestResults().from(tasks.withType(Test))
+  // only the normal tests: the coverage tasks (pythonCoverage*) write their own reports and would otherwise
+  // run as dependencies of this task
+  getTestResults().from(tasks.named('test'))
 }
 
 def testProjects = [
