@@ -60,8 +60,9 @@ An error is returned if this rule is violated.
 This Coco checks for duplicate parameter names in a function definition.  
 If two parameters share the same name, an error is returned, indicating a duplicate parameter name and its position.
 
-#### 8. PythonLambdaDuplicateParameterNameCoco
-This Coco performs the same check as the previous one but for lambda expressions.  
+#### 8. PythonBasisLambdaDuplicateParameterNameCoco
+This Coco performs the same check as the previous one but for lambda expressions.
+It is defined in the PythonBasis grammar (`de.monticore.pythonbasis._cocos`).  
 If duplicate parameter names are found, an error is returned along with the position of the issue.
 
 #### 9. PythonVariableOrFunctionOrClassExistsCoco
@@ -83,4 +84,3 @@ Additionally, function symbols are stored to enable validation of correct symbol
 * [Best Practices](https://github.com/MontiCore/monticore/blob/opendev/docs/BestPractices.md)
 * [Publications about MBSE and MontiCore](https://www.se-rwth.de/publications/)
 * [Licence definition](https://github.com/MontiCore/monticore/blob/master/00.org/Licenses/LICENSE-MONTICORE-3-LEVEL.md)
-

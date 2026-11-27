@@ -1,3 +1,4 @@
+/* (c) https://github.com/MontiCore/monticore */
 package de.monticore;
 
 // Since the String token starts with '"', the beginning of a multiline String(""") is tokenized as
@@ -5,5 +6,6 @@ package de.monticore;
 // This can be fixed by adding another token, which must be defined before the String token.
 // Thus, this grammar must be used before MCCommonLiterals, which most langauges use.
 component grammar MultilineString {
-  token DoubleQuoteMultilineStringDelimiter = '"' '"' '"';
+  token DoubleQuoteMultilineFStringDelimiter = ('f'|'F') '"' '"' '"';
+  token DoubleQuoteMultilineStringDelimiter =  '"' '"' '"';
 }
